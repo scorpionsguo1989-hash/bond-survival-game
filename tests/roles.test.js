@@ -15,6 +15,7 @@ describe('ROLE_CFO', () => {
   it('getInitialMetrics returns object with all metrics initialized', () => {
     const m = getInitialMetrics({ regionTier: 'central_capital', businessType: 'infrastructure', healthLevel: 'medium' });
     expect(m.cash).toBeGreaterThan(0);
-    expect(m.leverageRatio).toBeGreaterThan(0).toBeLessThan(100);
+    expect(m.leverageRatio).toBeGreaterThan(0);
+    expect(m.leverageRatio).toBeLessThan(100);
   });
 });

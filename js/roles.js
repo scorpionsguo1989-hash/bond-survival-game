@@ -34,14 +34,16 @@ const HEALTH_MODIFIERS = {
   weak:   { cashMult: 0.6, leverageDelta: +5, costDelta: +0.7 },
 };
 
+const INITIAL_CREDIT_USAGE_RATIO = 0.55;
+
 export function getInitialMetrics(profile) {
   const r = REGION_MODIFIERS[profile.regionTier];
   const h = HEALTH_MODIFIERS[profile.healthLevel];
   return {
     cash: parseFloat((3.0 * r.cashMult * h.cashMult).toFixed(2)),       // 单位：亿
     creditTotal: r.creditBase,                                           // 总授信（亿）
-    creditUsed: parseFloat((r.creditBase * 0.55).toFixed(2)),
-    creditUsage: 55,                                                     // %
+    creditUsed: parseFloat((r.creditBase * INITIAL_CREDIT_USAGE_RATIO).toFixed(2)),
+    creditUsage: INITIAL_CREDIT_USAGE_RATIO * 100,                       // %
     leverageRatio: r.leverageBase + h.leverageDelta,                    // %
     financingCost: parseFloat((r.costBase + h.costDelta).toFixed(2)),  // %
     collateralRoom: profile.healthLevel === 'good' ? 'high' : (profile.healthLevel === 'medium' ? 'medium' : 'low'),
