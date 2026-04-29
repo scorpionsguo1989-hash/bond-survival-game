@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>债市生存游戏 — 界面原型</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0e1a; color: #c8d4e8; font-family: 'SF Mono', 'Courier New', monospace; font-size: 13px; }
+
+  /* 导航 */
+  .nav { display: flex; gap: 0; background: #0f1623; border-bottom: 1px solid #1e2d47; }
+  .nav button { padding: 10px 24px; background: none; border: none; color: #4a6080; cursor: pointer; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; border-bottom: 2px solid transparent; transition: all 0.2s; }
+  .nav button.active { color: #4fc3f7; border-bottom-color: #4fc3f7; }
+  .nav button:hover { color: #7fb3d3; }
+
+  /* 界面容器 */
+  .screen { display: none; padding: 20px; min-height: calc(100vh - 42px); }
+  .screen.active { display: block; }
+
+  /* ========== 界面一：命运卡 ========== */
+  .fate-container { max-width: 700px; margin: 40px auto; text-align: center; }
+  .fate-title { font-size: 11px; letter-spacing: 3px; color: #4a6080; text-transform: uppercase; margin-bottom: 8px; }
+  .fate-subtitle { font-size: 26px; color: #e0eaf8; font-weight: 300; margin-bottom: 40px; letter-spacing: 2px; }
+  .fate-card { background: linear-gradient(135deg, #0f1e35 0%, #091526 100%); border: 1px solid #1e3a5f; border-radius: 12px; padding: 36px; position: relative; overflow: hidden; }
+  .fate-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #1565c0, #4fc3f7, #1565c0); }
+  .role-badge { display: inline-block; padding: 5px 16px; background: #1565c0; border-radius: 20px; font-size: 11px; letter-spacing: 2px; color: #90caf9; margin-bottom: 20px; }
+  .role-name { font-size: 32px; color: #e0eaf8; font-weight: 300; margin-bottom: 4px; }
+  .role-org { font-size: 13px; color: #4fc3f7; margin-bottom: 28px; }
+  .fate-tags { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 28px; }
+  .tag { padding: 4px 12px; border-radius: 4px; font-size: 11px; letter-spacing: 1px; }
+  .tag-region { background: #1a2e1a; color: #81c784; border: 1px solid #2e5030; }
+  .tag-type { background: #1a1a2e; color: #9fa8da; border: 1px solid #2e2e50; }
+  .tag-warn { background: #2e1a1a; color: #ef9a9a; border: 1px solid #502e2e; }
+  .challenges { text-align: left; background: #07101e; border-radius: 8px; padding: 20px; }
+  .challenges-title { font-size: 10px; letter-spacing: 2px; color: #4a6080; text-transform: uppercase; margin-bottom: 14px; }
+  .challenge-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+  .challenge-num { color: #e53935; font-weight: bold; min-width: 16px; }
+  .challenge-text { color: #8fa8c8; line-height: 1.5; }
+  .start-btn { margin-top: 32px; padding: 14px 48px; background: #1565c0; border: none; border-radius: 6px; color: #e0eaf8; font-size: 14px; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; }
+  .start-btn:hover { background: #1976d2; }
+  .init-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+  .init-stat { background: #07101e; border-radius: 6px; padding: 12px; text-align: center; }
+  .init-stat-label { font-size: 10px; color: #4a6080; letter-spacing: 1px; margin-bottom: 4px; }
+  .init-stat-value { font-size: 18px; font-weight: bold; }
+  .val-ok { color: #81c784; }
+  .val-warn { color: #ffb74d; }
+  .val-bad { color: #ef5350; }
+
+  /* ========== 界面二：主界面 ========== */
+  .topbar { display: flex; align-items: center; justify-content: space-between; background: #0f1623; border-bottom: 1px solid #1e2d47; padding: 8px 16px; margin: -20px -20px 20px; }
+  .topbar-left { display: flex; align-items: center; gap: 20px; }
+  .game-id { font-size: 11px; color: #4a6080; letter-spacing: 1px; }
+  .quarter-badge { padding: 3px 10px; background: #1e2d47; border-radius: 3px; font-size: 12px; color: #4fc3f7; }
+  .policy-axis { display: flex; align-items: center; gap: 8px; }
+  .policy-label { font-size: 10px; color: #4a6080; }
+  .axis-track { width: 160px; height: 6px; background: #1e2d47; border-radius: 3px; position: relative; }
+  .axis-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #ef5350, #ffb74d, #81c784); }
+  .axis-marker { position: absolute; top: -3px; width: 12px; height: 12px; background: #fff; border-radius: 50%; border: 2px solid #4fc3f7; transform: translateX(-50%); left: 35%; }
+  .policy-status { font-size: 11px; color: #ffb74d; }
+  .timer { font-size: 11px; color: #4a6080; }
+
+  .main-grid { display: grid; grid-template-columns: 220px 1fr 260px; gap: 14px; }
+
+  /* 左侧指标面板 */
+  .panel { background: #0f1623; border: 1px solid #1e2d47; border-radius: 6px; padding: 14px; }
+  .panel-title { font-size: 10px; letter-spacing: 2px; color: #4a6080; text-transform: uppercase; margin-bottom: 14px; border-bottom: 1px solid #1e2d47; padding-bottom: 8px; }
+  .metric { margin-bottom: 14px; }
+  .metric-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .metric-name { font-size: 11px; color: #6a8aaa; }
+  .metric-value { font-size: 14px; font-weight: bold; }
+  .metric-bar { height: 3px; background: #1e2d47; border-radius: 2px; }
+  .metric-bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+  .bar-green { background: #388e3c; }
+  .bar-yellow { background: #f57c00; }
+  .bar-red { background: #c62828; }
+  .metric-change { font-size: 10px; }
+  .up { color: #ef5350; }
+  .down { color: #81c784; }
+  .neutral { color: #4a6080; }
+
+  /* 中央事件区 */
+  .event-area { display: flex; flex-direction: column; gap: 14px; }
+  .event-card { background: #0f1623; border: 1px solid #1e2d47; border-radius: 6px; padding: 20px; }
+  .event-type { font-size: 10px; letter-spacing: 2px; color: #4a6080; text-transform: uppercase; margin-bottom: 10px; }
+  .event-title { font-size: 16px; color: #e0eaf8; margin-bottom: 10px; line-height: 1.4; }
+  .event-body { font-size: 12px; color: #6a8aaa; line-height: 1.8; margin-bottom: 18px; }
+  .event-choices { display: flex; flex-direction: column; gap: 8px; }
+  .choice-btn { padding: 10px 16px; background: #0a1628; border: 1px solid #1e3a5f; border-radius: 4px; color: #8fa8c8; font-size: 12px; cursor: pointer; text-align: left; transition: all 0.2s; line-height: 1.5; }
+  .choice-btn:hover { border-color: #4fc3f7; color: #c8d4e8; background: #0f1e35; }
+  .choice-btn .choice-tag { font-size: 10px; color: #4a6080; margin-right: 8px; }
+
+  /* 主动操作区 */
+  .action-card { background: #0f1623; border: 1px solid #1e2d47; border-radius: 6px; padding: 14px; }
+  .action-slot { padding: 8px 12px; background: #07101e; border-radius: 4px; margin-bottom: 6px; border: 1px solid #1e2d47; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+  .action-slot:hover { border-color: #1e4a6f; }
+  .action-name { font-size: 12px; color: #8fa8c8; }
+  .action-cost { font-size: 10px; color: #4a6080; }
+  .ops-remain { font-size: 10px; color: #4a6080; margin-bottom: 10px; }
+  .end-turn-btn { width: 100%; padding: 10px; background: #1e3a5f; border: 1px solid #2a5a8f; border-radius: 4px; color: #4fc3f7; cursor: pointer; font-size: 12px; letter-spacing: 1px; margin-top: 10px; }
+  .end-turn-btn:hover { background: #1565c0; }
+
+  /* 右侧图表区 */
+  .chart-panel { background: #0f1623; border: 1px solid #1e2d47; border-radius: 6px; padding: 14px; margin-bottom: 14px; }
+  .mini-chart { height: 80px; display: flex; align-items: flex-end; gap: 3px; padding: 8px 0; }
+  .bar-col { flex: 1; border-radius: 2px 2px 0 0; transition: height 0.3s; }
+
+  /* 底部状态栏 */
+  .statusbar { background: #0f1623; border-top: 1px solid #1e2d47; padding: 6px 16px; margin: 20px -20px -20px; display: flex; gap: 20px; }
+  .status-item { font-size: 10px; color: #4a6080; }
+  .status-item span { color: #8fa8c8; }
+
+  /* ========== 界面三：危机处置 ========== */
+  .crisis-overlay { background: #0a0e1a; min-height: calc(100vh - 80px); position: relative; }
+  .crisis-flash { animation: flash 1s ease-in-out 3; }
+  @keyframes flash { 0%,100%{opacity:1} 50%{opacity:0.7} }
+  .crisis-banner { background: linear-gradient(90deg, #7f0000, #b71c1c, #7f0000); padding: 12px 20px; text-align: center; font-size: 11px; letter-spacing: 3px; color: #ffcdd2; text-transform: uppercase; margin: -20px -20px 20px; }
+  .crisis-center { max-width: 680px; margin: 0 auto; }
+  .crisis-card { background: #150a0a; border: 1px solid #4a1010; border-radius: 8px; padding: 28px; margin-bottom: 16px; }
+  .crisis-card::before { content: ''; display: block; width: 40px; height: 3px; background: #ef5350; border-radius: 2px; margin-bottom: 16px; }
+  .crisis-title { font-size: 20px; color: #ffcdd2; margin-bottom: 10px; }
+  .crisis-body { font-size: 12px; color: #8a6060; line-height: 1.8; margin-bottom: 20px; }
+  .crisis-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+  .crisis-metric { background: #0a0505; border-radius: 4px; padding: 10px; text-align: center; border: 1px solid #3a1010; }
+  .crisis-metric-label { font-size: 10px; color: #6a4040; margin-bottom: 4px; letter-spacing: 1px; }
+  .crisis-metric-value { font-size: 18px; font-weight: bold; color: #ef5350; }
+  .crisis-options { display: flex; flex-direction: column; gap: 10px; }
+  .crisis-option { padding: 14px 18px; background: #100808; border: 1px solid #3a1010; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+  .crisis-option:hover { border-color: #ef5350; background: #1a0808; }
+  .crisis-option-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .crisis-option-name { font-size: 13px; color: #ffcdd2; }
+  .crisis-option-cost { font-size: 11px; padding: 2px 8px; border-radius: 3px; }
+  .cost-high { background: #3a1010; color: #ef5350; }
+  .cost-med { background: #2e1e10; color: #ffb74d; }
+  .cost-low { background: #1a2e1a; color: #81c784; }
+  .crisis-option-desc { font-size: 11px; color: #6a4040; line-height: 1.5; }
+  .crisis-timer { text-align: center; font-size: 11px; color: #4a2020; margin-top: 16px; letter-spacing: 1px; }
+
+  /* waterfall chart bars */
+  .wf-chart { display: flex; gap: 6px; align-items: flex-end; height: 70px; padding: 6px 0; }
+  .wf-bar { flex: 1; border-radius: 2px 2px 0 0; position: relative; min-width: 10px; }
+  .wf-bar.q1 { background: #ef5350; height: 55px; }
+  .wf-bar.q2 { background: #ef5350; height: 70px; }
+  .wf-bar.q3 { background: #ffb74d; height: 40px; }
+  .wf-bar.q4 { background: #ef5350; height: 60px; }
+  .wf-bar.q5 { background: #81c784; height: 25px; }
+  .wf-bar.q6 { background: #81c784; height: 30px; }
+  .wf-bar.q7 { background: #ffb74d; height: 45px; }
+  .wf-bar.q8 { background: #4fc3f7; height: 20px; opacity: 0.4; }
+
+  /* netval chart */
+  .netval-line { height: 70px; position: relative; overflow: hidden; }
+  .netval-line svg { width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <button class="active" onclick="show('fate')">① 命运卡</button>
+  <button onclick="show('main')">② 主界面（财务总监）</button>
+  <button onclick="show('crisis')">③ 危机处置</button>
+</div>
+
+<!-- ===== 界面一：命运卡 ===== -->
+<div id="fate" class="screen active">
+  <div class="fate-container">
+    <div class="fate-title">债市生存游戏</div>
+    <div class="fate-subtitle">你的命运已定</div>
+
+    <div class="fate-card">
+      <div class="role-badge">角色 · 城投财务总监</div>
+      <div class="role-name">张明远</div>
+      <div class="role-org">淮西市城市建设投资有限公司</div>
+
+      <div class="fate-tags">
+        <span class="tag tag-region">中部地级市</span>
+        <span class="tag tag-type">基础设施建设为主</span>
+        <span class="tag tag-warn">⚠ 隐债重灾区</span>
+      </div>
+
+      <div class="init-stats">
+        <div class="init-stat">
+          <div class="init-stat-label">资产负债率</div>
+          <div class="init-stat-value val-warn">71.3%</div>
+        </div>
+        <div class="init-stat">
+          <div class="init-stat-label">现金余量</div>
+          <div class="init-stat-value val-warn">3.2亿</div>
+        </div>
+        <div class="init-stat">
+          <div class="init-stat-label">授信剩余</div>
+          <div class="init-stat-value val-ok">12亿</div>
+        </div>
+        <div class="init-stat">
+          <div class="init-stat-label">Q1到期债务</div>
+          <div class="init-stat-value val-bad">8.5亿</div>
+        </div>
+        <div class="init-stat">
+          <div class="init-stat-label">综合融资成本</div>
+          <div class="init-stat-value val-warn">6.2%</div>
+        </div>
+        <div class="init-stat">
+          <div class="init-stat-label">抵押物空间</div>
+          <div class="init-stat-value val-warn">偏紧</div>
+        </div>
+      </div>
+
+      <div class="challenges">
+        <div class="challenges-title">你这局的三大挑战</div>
+        <div class="challenge-item">
+          <span class="challenge-num">01</span>
+          <span class="challenge-text">隐债核查压力大，非标融资已被监管约谈，灰色补血渠道基本堵死</span>
+        </div>
+        <div class="challenge-item">
+          <span class="challenge-num">02</span>
+          <span class="challenge-text">开局即面临Q1大额到期，现金余量不足以单独覆盖，必须立即行动</span>
+        </div>
+        <div class="challenge-item">
+          <span class="challenge-num">03</span>
+          <span class="challenge-text">在建项目投资缺口每季度吞噬现金，停工不行，继续烧钱也危险</span>
+        </div>
+      </div>
+
+      <button class="start-btn" onclick="show('main')">接受命运，开始游戏 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 界面二：主界面 ===== -->
+<div id="main" class="screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="game-id">债市生存 · 财务总监</span>
+      <span class="quarter-badge">2022年 Q1</span>
+      <div class="policy-axis">
+        <span class="policy-label">政策环境</span>
+        <div class="axis-track">
+          <div class="axis-fill" style="width:100%"></div>
+          <div class="axis-marker"></div>
+        </div>
+        <span class="policy-status">偏紧 ↓</span>
+      </div>
+    </div>
+    <span class="timer">剩余操作：2次 / 本回合</span>
+  </div>
+
+  <div class="main-grid">
+    <!-- 左侧指标 -->
+    <div>
+      <div class="panel">
+        <div class="panel-title">核心指标</div>
+
+        <div class="metric">
+          <div class="metric-row">
+            <span class="metric-name">现金余量</span>
+            <span class="metric-value val-bad">3.2亿 <span class="metric-change down">▼0.8</span></span>
+          </div>
+          <div class="metric-bar"><div class="metric-bar-fill bar-red" style="width:18%"></div></div>
+        </div>
+
+        <div class="metric">
+          <div class="metric-row">
+            <span class="metric-name">资产负债率</span>
+            <span class="metric-value val-warn">71.3% <span class="metric-change up">▲0.4</span></span>
+          </div>
+          <div class="metric-bar"><div class="metric-bar-fill bar-yellow" style="width:71%"></div></div>
+        </div>
+
+        <div class="metric">
+          <div class="metric-row">
+            <span class="metric-name">授信使用率</span>
+            <span class="metric-value val-ok">58% <span class="metric-change neutral">—</span></span>
+          </div>
+          <div class="metric-bar"><div class="metric-bar-fill bar-green" style="width:58%"></div></div>
+        </div>
+
+        <div class="metric">
+          <div class="metric-row">
+            <span class="metric-name">综合融资成本</span>
+            <span class="metric-value val-warn">6.2% <span class="metric-change up">▲0.1</span></span>
+          </div>
+          <div class="metric-bar"><div class="metric-bar-fill bar-yellow" style="width:62%"></div></div>
+        </div>
+
+        <div class="metric">
+          <div class="metric-row">
+            <span class="metric-name">抵押物剩余</span>
+            <span class="metric-value val-warn">中 <span class="metric-change down">▼</span></span>
+          </div>
+          <div class="metric-bar"><div class="metric-bar-fill bar-yellow" style="width:40%"></div></div>
+        </div>
+
+        <div class="metric">
+          <div class="metric-row">
+            <span class="metric-name">项目投资缺口</span>
+            <span class="metric-value val-bad">-2.1亿/季</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:14px">
+        <div class="panel-title">主动操作</div>
+        <div class="ops-remain">本回合剩余操作：<span style="color:#4fc3f7">2次</span></div>
+        <div class="action-slot">
+          <span class="action-name">申请银行续贷</span>
+          <span class="action-cost">消耗1次</span>
+        </div>
+        <div class="action-slot">
+          <span class="action-name">发行城投债</span>
+          <span class="action-cost">消耗1次</span>
+        </div>
+        <div class="action-slot">
+          <span class="action-name">资产处置变现</span>
+          <span class="action-cost">消耗1次</span>
+        </div>
+        <div class="action-slot" style="opacity:0.4">
+          <span class="action-name">⚠ 非标融资</span>
+          <span class="action-cost" style="color:#ef5350">高风险</span>
+        </div>
+        <button class="end-turn-btn">结束本季度 →</button>
+      </div>
+    </div>
+
+    <!-- 中央事件 -->
+    <div class="event-area">
+      <div class="event-card">
+        <div class="event-type">📌 主线事件 · Q1 2022</div>
+        <div class="event-title">银行收紧城投贷款额度</div>
+        <div class="event-body">
+          监管窗口指导下发，辖区内商业银行对城投平台新增贷款全面收紧。你的主开户行通知：现有授信到期后，是否续做需要总行审批，流程预计需要6-8周。<br><br>
+          Q1有8.5亿到期，其中3亿来自该银行的流动资金贷款。现金账上只有3.2亿，覆盖不了。
+        </div>
+        <div class="event-choices">
+          <button class="choice-btn">
+            <span class="choice-tag">[A]</span>立即启动备用银行的授信申请，提前6周铺路，但需要贡献部分存款作对价
+          </button>
+          <button class="choice-btn">
+            <span class="choice-tag">[B]</span>向主管局汇报情况，争取政策性银行专项额度介入，时间窗口更长但不确定
+          </button>
+          <button class="choice-btn">
+            <span class="choice-tag">[C]</span>加快推进存量资产处置，用土地抵押换流动性，接受估值折扣
+          </button>
+        </div>
+      </div>
+
+      <div class="event-card" style="border-color:#1a2e1a">
+        <div class="event-type" style="color:#4a7a4a">📎 支线事件</div>
+        <div class="event-title" style="font-size:14px">在建项目承包商催款</div>
+        <div class="event-body" style="margin-bottom:12px">
+          城北基础设施PPP项目承包商上门，已垫资2.8亿，要求本季度结清1.2亿工程款，否则停工。项目已完成70%，停工损失巨大。
+        </div>
+        <div class="event-choices">
+          <button class="choice-btn"><span class="choice-tag">[A]</span>协商延期，承诺下季度优先结算，接受承包商提出的违约金</button>
+          <button class="choice-btn"><span class="choice-tag">[B]</span>从现金账上硬扛，结算工程款，牺牲流动性</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧图表 -->
+    <div>
+      <div class="chart-panel">
+        <div class="panel-title">债务到期瀑布图（亿）</div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:#4a6080;margin-bottom:4px">
+          <span>Q1</span><span>Q2</span><span>Q3</span><span>Q4</span><span>Q1'23</span><span>Q2</span><span>Q3</span><span>Q4</span>
+        </div>
+        <div class="wf-chart">
+          <div class="wf-bar q1" title="8.5亿"></div>
+          <div class="wf-bar q2" title="10.2亿"></div>
+          <div class="wf-bar q3" title="5.8亿"></div>
+          <div class="wf-bar q4" title="8.8亿"></div>
+          <div class="wf-bar q5" title="3.5亿"></div>
+          <div class="wf-bar q6" title="4.2亿"></div>
+          <div class="wf-bar q7" title="6.5亿"></div>
+          <div class="wf-bar q8" title="2.8亿"></div>
+        </div>
+        <div style="font-size:10px;color:#4a6080;margin-top:4px">▪ 红色=高压 ▪ 橙=中压 ▪ 绿=可控 ▪ 蓝=预测</div>
+      </div>
+
+      <div class="chart-panel">
+        <div class="panel-title">现金余量走势（亿）</div>
+        <div class="netval-line">
+          <svg viewBox="0 0 200 70" preserveAspectRatio="none">
+            <polyline points="0,20 30,15 60,30 90,45 120,38 150,50 180,42 200,55"
+              fill="none" stroke="#4fc3f7" stroke-width="1.5"/>
+            <polyline points="0,20 30,15 60,30 90,45 120,38 150,50 180,42 200,55 200,70 0,70"
+              fill="url(#grad)" opacity="0.2"/>
+            <defs>
+              <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#4fc3f7"/>
+                <stop offset="100%" stop-color="#4fc3f7" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <circle cx="200" cy="55" r="3" fill="#ef5350"/>
+          </svg>
+        </div>
+        <div style="font-size:10px;color:#ef5350;margin-top:4px">当前 3.2亿 ↓趋势不乐观</div>
+      </div>
+
+      <div class="chart-panel">
+        <div class="panel-title">本季度综合评分</div>
+        <div style="display:grid;gap:6px;margin-top:4px">
+          <div style="display:flex;justify-content:space-between;font-size:11px">
+            <span style="color:#6a8aaa">流动性管理</span>
+            <span style="color:#ffb74d">62</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px">
+            <span style="color:#6a8aaa">融资成本控制</span>
+            <span style="color:#81c784">78</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px">
+            <span style="color:#6a8aaa">项目推进</span>
+            <span style="color:#ffb74d">55</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px">
+            <span style="color:#6a8aaa">合规指数</span>
+            <span style="color:#81c784">81</span>
+          </div>
+          <div style="border-top:1px solid #1e2d47;padding-top:6px;margin-top:2px;display:flex;justify-content:space-between;font-size:12px">
+            <span style="color:#8fa8c8">综合</span>
+            <span style="color:#4fc3f7;font-weight:bold">69</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span class="status-item">目标：存活至 <span>2024年Q4</span></span>
+    <span class="status-item">当前排名：<span>#247</span></span>
+    <span class="status-item">本局存活率预测：<span style="color:#ffb74d">61%</span></span>
+    <span class="status-item">已过回合：<span>1/12</span></span>
+  </div>
+</div>
+
+<!-- ===== 界面三：危机处置 ===== -->
+<div id="crisis" class="screen">
+  <div class="crisis-banner">⚠ 危机警报 · 时间暂停 · 必须处置后继续</div>
+
+  <div class="crisis-center">
+    <div class="crisis-card">
+      <div class="crisis-title">资金链危机：明日9点到期，账上不够</div>
+      <div class="crisis-body">
+        2022年Q2末，某信托公司5亿定融产品明日上午9:00到期兑付。当前账面可用资金2.8亿，缺口2.2亿。已联系主开户行，对方表示审批流程未走完，无法今日放款。距离违约还有不足18小时。
+      </div>
+
+      <div class="crisis-metrics">
+        <div class="crisis-metric">
+          <div class="crisis-metric-label">账面资金</div>
+          <div class="crisis-metric-value">2.8亿</div>
+        </div>
+        <div class="crisis-metric">
+          <div class="crisis-metric-label">到期金额</div>
+          <div class="crisis-metric-value">5.0亿</div>
+        </div>
+        <div class="crisis-metric">
+          <div class="crisis-metric-label">缺口</div>
+          <div class="crisis-metric-value">-2.2亿</div>
+        </div>
+      </div>
+
+      <div class="crisis-options">
+        <div class="crisis-option">
+          <div class="crisis-option-header">
+            <span class="crisis-option-name">紧急向兄弟平台拆借</span>
+            <span class="crisis-option-cost cost-med">代价：中</span>
+          </div>
+          <div class="crisis-option-desc">联系同一主管局下的兄弟城投，紧急拆借2.5亿，利率8%，期限30天。关系消耗大，且兄弟平台自身也有压力，存在谈崩风险。</div>
+        </div>
+        <div class="crisis-option">
+          <div class="crisis-option-header">
+            <span class="crisis-option-name">资产紧急变现：出售停车场运营权</span>
+            <span class="crisis-option-cost cost-med">代价：中高</span>
+          </div>
+          <div class="crisis-option-desc">将城北停车场20年运营权以2.3亿打包出售，买家已接洽，愿意今日签约、明晨付款。估值较市场价低约15%，但能覆盖缺口。</div>
+        </div>
+        <div class="crisis-option">
+          <div class="crisis-option-header">
+            <span class="crisis-option-name">向信托公司申请展期</span>
+            <span class="crisis-option-cost cost-high">代价：高</span>
+          </div>
+          <div class="crisis-option-desc">紧急联系信托公司，申请延期3个月。对方可能接受，但将触发交叉违约条款，导致其他债务提前到期，后续压力骤增，且信用评级几乎必然下调。</div>
+        </div>
+        <div class="crisis-option">
+          <div class="crisis-option-header">
+            <span class="crisis-option-name">向上级主管部门紧急汇报，请求协调</span>
+            <span class="crisis-option-cost cost-low">代价：低（但不确定）</span>
+          </div>
+          <div class="crisis-option-desc">启动向市政府应急汇报机制，请求主管领导出面协调银行今日特批放款。成功概率约40%，若不成功则耽误其他选项的时间窗口。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="crisis-timer">⏱ 系统提示：所有选项均有后续代价，请结合当前财务状况审慎决策</div>
+  </div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
