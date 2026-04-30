@@ -45,8 +45,8 @@ export function advanceTurn(state) {
   newMetrics.cash = parseFloat((newMetrics.cash - newMetrics.opCostRate).toFixed(2));
   // 项目缺口扣减
   newMetrics.cash = parseFloat((newMetrics.cash - newMetrics.projectGap).toFixed(2));
-  // 经营现金流回血（少量）
-  newMetrics.cash = parseFloat((newMetrics.cash + 1.2).toFixed(2));
+  // 经营现金流回血
+  newMetrics.cash = parseFloat((newMetrics.cash + 2.5).toFixed(2));
 
   // 3. 季度推进
   let newQuarter = state.quarter + 1;

@@ -40,7 +40,7 @@ export function getInitialMetrics(profile) {
   const r = REGION_MODIFIERS[profile.regionTier];
   const h = HEALTH_MODIFIERS[profile.healthLevel];
   return {
-    cash: parseFloat((3.0 * r.cashMult * h.cashMult).toFixed(2)),       // 单位：亿
+    cash: parseFloat((5.0 * r.cashMult * h.cashMult).toFixed(2)),       // 单位：亿
     creditTotal: r.creditBase,                                           // 总授信（亿）
     creditUsed: parseFloat((r.creditBase * INITIAL_CREDIT_USAGE_RATIO).toFixed(2)),
     creditUsage: INITIAL_CREDIT_USAGE_RATIO * 100,                       // %
@@ -55,7 +55,8 @@ export function getInitialMetrics(profile) {
 
 function generateDebtSchedule(rMult, hMult) {
   // 总债务规模随财务健康度变化，分布在12季度
-  const totalDebt = 50 / (rMult * hMult);
-  const distribution = [0.17, 0.20, 0.12, 0.18, 0.07, 0.08, 0.13, 0.05, 0, 0, 0, 0];
+  const totalDebt = 8 / (rMult * hMult);
+  // 债务到期分布：前轻后重，Q5-Q7为高峰期，Q9+基本还完
+  const distribution = [0.05, 0.07, 0.09, 0.12, 0.14, 0.17, 0.15, 0.11, 0.06, 0.04, 0, 0];
   return distribution.map(p => parseFloat((totalDebt * p).toFixed(2)));
 }

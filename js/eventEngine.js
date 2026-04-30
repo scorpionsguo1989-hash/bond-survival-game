@@ -1,7 +1,9 @@
 // js/eventEngine.js
 
 export function findMainEvent(mainEvents, year, quarter) {
-  return mainEvents.find(e => e.trigger.year === year && e.trigger.quarter === quarter) || null;
+  const matching = mainEvents.filter(e => e.trigger.year === year && e.trigger.quarter === quarter);
+  if (matching.length === 0) return null;
+  return matching[Math.floor(Math.random() * matching.length)];
 }
 
 export function getPolicyDirection(axisValue) {
