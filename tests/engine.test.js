@@ -68,10 +68,11 @@ describe('applyEventChoice', () => {
   });
 
   it('skips _-prefixed keys (internal flags)', () => {
-    const event = { id: 'test_evt', choices: [{ effects: { _uncertainty: 0.4, _delay: 1, cash: 1 } }] };
+    // Note: _uncertainty is now an active probability gate (not dead), so use other _ flags here.
+    const event = { id: 'test_evt', choices: [{ effects: { _delay: 1, _other: 'foo', cash: 1 } }] };
     const next = applyEventChoice(baseState(), event, 0);
-    expect(next.metrics._uncertainty).toBeUndefined();
     expect(next.metrics._delay).toBeUndefined();
+    expect(next.metrics._other).toBeUndefined();
     expect(next.metrics.cash).toBeCloseTo(6);
   });
 
@@ -97,7 +98,33 @@ describe('applyEventChoice', () => {
     const next = applyEventChoice(baseState(), event, 0);
     expect(next.policyValue).toBe(0);  // -2 + 2 = 0
     expect(next.eventLog).toHaveLength(1);
-    expect(next.eventLog[0]).toEqual({ eventId: 'test_evt', choiceIdx: 0 });
+    expect(next.eventLog[0]).toEqual({ eventId: 'test_evt', choiceIdx: 0, uncertainOutcome: null });
+  });
+
+  it('skips effects when uncertainty roll fails (Math.random returns 0.99)', () => {
+    const origRandom = Math.random;
+    Math.random = () => 0.99;  // force failure
+    try {
+      const event = { id: 'test_unc', choices: [{ effects: { cash: 5, _uncertainty: 0.4 } }] };
+      const next = applyEventChoice(baseState(), event, 0);
+      expect(next.metrics.cash).toBe(5);  // unchanged from baseState which had cash: 5
+      expect(next.eventLog[0]).toEqual({ eventId: 'test_unc', choiceIdx: 0, uncertainOutcome: 'failed' });
+    } finally {
+      Math.random = origRandom;
+    }
+  });
+
+  it('applies effects when uncertainty roll succeeds (Math.random returns 0.01)', () => {
+    const origRandom = Math.random;
+    Math.random = () => 0.01;  // force success
+    try {
+      const event = { id: 'test_unc', choices: [{ effects: { cash: 5, _uncertainty: 0.4 } }] };
+      const next = applyEventChoice(baseState(), event, 0);
+      expect(next.metrics.cash).toBe(10);  // 5 + 5
+      expect(next.eventLog[0].uncertainOutcome).toBe('succeeded');
+    } finally {
+      Math.random = origRandom;
+    }
   });
 });
 

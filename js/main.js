@@ -24,6 +24,10 @@ async function init() {
   if (saved && confirm('发现存档，是否继续？')) {
     state = saved;
     if (state.survived && state.quartersPassed < 12) {
+      // Refresh pendingEvent in case save happened between turns
+      if (!state.pendingEvent) {
+        loadCurrentTurnEvent();
+      }
       enterMainScreen();
     } else {
       enterEndScreen();
@@ -88,12 +92,22 @@ function handleEventChoice(idx) {
 function handleActionSelected(actionId) {
   const action = CFO_ACTIONS.find(a => a.id === actionId);
   const params = {};
-  action.params.forEach(p => {
+  let aborted = false;
+  for (const p of action.params) {
     const input = prompt(`${p.label}（${p.min}-${p.max}）`, p.default);
-    if (input === null) return;
-    params[p.key] = parseFloat(input);
-  });
-  if (Object.keys(params).length === 0) return;
+    if (input === null) {
+      aborted = true;
+      break;
+    }
+    const v = parseFloat(input);
+    if (!Number.isFinite(v) || v < p.min || v > p.max) {
+      alert(`请输入${p.min}-${p.max}之间的数字`);
+      aborted = true;
+      break;
+    }
+    params[p.key] = v;
+  }
+  if (aborted || Object.keys(params).length === 0) return;
   state = applyAction(state, actionId, params);
   enterMainScreen();
 }

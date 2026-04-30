@@ -79,7 +79,8 @@ export function advanceTurn(state) {
  * Apply event choice effects to state. Handles 4 effect types:
  * - "score.<dim>" — adds to state.score[dim]
  * - "collateralRoom" with "downgrade"/"upgrade" — transitions high↔medium↔low
- * - "_<flag>" — internal flags, silently skipped (e.g., _uncertainty, _delay)
+ * - "_uncertainty" — probability of effects applying (0-1). On failure, only policyShift applies; other effects skipped.
+ * - "_<flag>" — other internal flags, silently skipped (e.g., _delay)
  * - numeric — added to state.metrics[key]
  *
  * IMPORTANT: This function does NOT call checkDeath. Callers must invoke checkDeath() after
@@ -87,6 +88,28 @@ export function advanceTurn(state) {
  */
 export function applyEventChoice(state, event, choiceIdx) {
   const choice = event.choices[choiceIdx];
+
+  // Uncertainty gate: if choice has _uncertainty, roll probability.
+  // On failure, only policyShift applies (commitment), other effects skipped.
+  // The eventLog records the outcome for transparency.
+  const uncertainty = choice.effects?._uncertainty;
+  let uncertainOutcome = null;
+  if (uncertainty !== undefined) {
+    const success = Math.random() < uncertainty;
+    uncertainOutcome = success ? 'succeeded' : 'failed';
+    if (!success) {
+      let postPolicy = state.policyValue;
+      if (event.policyShift) {
+        postPolicy = applyPolicyShift(postPolicy, event.policyShift);
+      }
+      return {
+        ...state,
+        policyValue: postPolicy,
+        eventLog: [...state.eventLog, { eventId: event.id, choiceIdx, uncertainOutcome: 'failed' }],
+      };
+    }
+  }
+
   let newMetrics = { ...state.metrics };
   let newScore = { ...state.score };
   let newPolicy = state.policyValue;
@@ -119,7 +142,7 @@ export function applyEventChoice(state, event, choiceIdx) {
     metrics: newMetrics,
     score: newScore,
     policyValue: newPolicy,
-    eventLog: [...state.eventLog, { eventId: event.id, choiceIdx }],
+    eventLog: [...state.eventLog, { eventId: event.id, choiceIdx, uncertainOutcome }],
   };
 }
 
