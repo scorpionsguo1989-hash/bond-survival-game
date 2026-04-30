@@ -1,0 +1,161 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0e1a; color: #c8d4e8; font-family: 'SF Mono', 'Courier New', monospace; font-size: 13px; }
+
+/* 导航 */
+.nav { display: flex; gap: 0; background: #0f1623; border-bottom: 1px solid #1e2d47; }
+.nav button { padding: 10px 24px; background: none; border: none; color: #4a6080; cursor: pointer; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; border-bottom: 2px solid transparent; transition: all 0.2s; }
+.nav button.active { color: #4fc3f7; border-bottom-color: #4fc3f7; }
+.nav button:hover { color: #7fb3d3; }
+
+/* 界面容器 */
+.screen { display: none; padding: 20px; min-height: calc(100vh - 42px); }
+.screen.active { display: block; }
+
+/* ========== 界面一：命运卡 ========== */
+.fate-container { max-width: 700px; margin: 40px auto; text-align: center; }
+.fate-title { font-size: 11px; letter-spacing: 3px; color: #4a6080; text-transform: uppercase; margin-bottom: 8px; }
+.fate-subtitle { font-size: 26px; color: #e0eaf8; font-weight: 300; margin-bottom: 40px; letter-spacing: 2px; }
+.fate-card { background: linear-gradient(135deg, #0f1e35 0%, #091526 100%); border: 1px solid #1e3a5f; border-radius: 12px; padding: 36px; position: relative; overflow: hidden; }
+.fate-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #1565c0, #4fc3f7, #1565c0); }
+.role-badge { display: inline-block; padding: 5px 16px; background: #1565c0; border-radius: 20px; font-size: 11px; letter-spacing: 2px; color: #90caf9; margin-bottom: 20px; }
+.role-name { font-size: 32px; color: #e0eaf8; font-weight: 300; margin-bottom: 4px; }
+.role-org { font-size: 13px; color: #4fc3f7; margin-bottom: 28px; }
+.fate-tags { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 28px; }
+.tag { padding: 4px 12px; border-radius: 4px; font-size: 11px; letter-spacing: 1px; }
+.tag-region { background: #1a2e1a; color: #81c784; border: 1px solid #2e5030; }
+.tag-type { background: #1a1a2e; color: #9fa8da; border: 1px solid #2e2e50; }
+.tag-warn { background: #2e1a1a; color: #ef9a9a; border: 1px solid #502e2e; }
+.challenges { text-align: left; background: #07101e; border-radius: 8px; padding: 20px; }
+.challenges-title { font-size: 10px; letter-spacing: 2px; color: #4a6080; text-transform: uppercase; margin-bottom: 14px; }
+.challenge-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+.challenge-num { color: #e53935; font-weight: bold; min-width: 16px; }
+.challenge-text { color: #8fa8c8; line-height: 1.5; }
+.start-btn { margin-top: 32px; padding: 14px 48px; background: #1565c0; border: none; border-radius: 6px; color: #e0eaf8; font-size: 14px; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; }
+.start-btn:hover { background: #1976d2; }
+.init-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+.init-stat { background: #07101e; border-radius: 6px; padding: 12px; text-align: center; }
+.init-stat-label { font-size: 10px; color: #4a6080; letter-spacing: 1px; margin-bottom: 4px; }
+.init-stat-value { font-size: 18px; font-weight: bold; }
+.val-ok { color: #81c784; }
+.val-warn { color: #ffb74d; }
+.val-bad { color: #ef5350; }
+
+/* ========== 界面二：主界面 ========== */
+.topbar { display: flex; align-items: center; justify-content: space-between; background: #0f1623; border-bottom: 1px solid #1e2d47; padding: 8px 16px; margin: -20px -20px 20px; }
+.topbar-left { display: flex; align-items: center; gap: 20px; }
+.game-id { font-size: 11px; color: #4a6080; letter-spacing: 1px; }
+.quarter-badge { padding: 3px 10px; background: #1e2d47; border-radius: 3px; font-size: 12px; color: #4fc3f7; }
+.policy-axis { display: flex; align-items: center; gap: 8px; }
+.policy-label { font-size: 10px; color: #4a6080; }
+.axis-track { width: 160px; height: 6px; background: #1e2d47; border-radius: 3px; position: relative; }
+.axis-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #ef5350, #ffb74d, #81c784); }
+.axis-marker { position: absolute; top: -3px; width: 12px; height: 12px; background: #fff; border-radius: 50%; border: 2px solid #4fc3f7; transform: translateX(-50%); left: 35%; }
+.policy-status { font-size: 11px; color: #ffb74d; }
+.timer { font-size: 11px; color: #4a6080; }
+
+.main-grid { display: grid; grid-template-columns: 220px 1fr 260px; gap: 14px; }
+
+/* 左侧指标面板 */
+.panel { background: #0f1623; border: 1px solid #1e2d47; border-radius: 6px; padding: 14px; }
+.panel-title { font-size: 10px; letter-spacing: 2px; color: #4a6080; text-transform: uppercase; margin-bottom: 14px; border-bottom: 1px solid #1e2d47; padding-bottom: 8px; }
+.metric { margin-bottom: 14px; }
+.metric-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.metric-name { font-size: 11px; color: #6a8aaa; }
+.metric-value { font-size: 14px; font-weight: bold; }
+.metric-bar { height: 3px; background: #1e2d47; border-radius: 2px; }
+.metric-bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+.bar-green { background: #388e3c; }
+.bar-yellow { background: #f57c00; }
+.bar-red { background: #c62828; }
+.metric-change { font-size: 10px; }
+.up { color: #ef5350; }
+.down { color: #81c784; }
+.neutral { color: #4a6080; }
+
+/* 中央事件区 */
+.event-area { display: flex; flex-direction: column; gap: 14px; }
+.event-card { background: #0f1623; border: 1px solid #1e2d47; border-radius: 6px; padding: 20px; }
+.event-type { font-size: 10px; letter-spacing: 2px; color: #4a6080; text-transform: uppercase; margin-bottom: 10px; }
+.event-title { font-size: 16px; color: #e0eaf8; margin-bottom: 10px; line-height: 1.4; }
+.event-body { font-size: 12px; color: #6a8aaa; line-height: 1.8; margin-bottom: 18px; }
+.event-choices { display: flex; flex-direction: column; gap: 8px; }
+.choice-btn { padding: 10px 16px; background: #0a1628; border: 1px solid #1e3a5f; border-radius: 4px; color: #8fa8c8; font-size: 12px; cursor: pointer; text-align: left; transition: all 0.2s; line-height: 1.5; }
+.choice-btn:hover { border-color: #4fc3f7; color: #c8d4e8; background: #0f1e35; }
+.choice-btn .choice-tag { font-size: 10px; color: #4a6080; margin-right: 8px; }
+
+/* 主动操作区 */
+.action-card { background: #0f1623; border: 1px solid #1e2d47; border-radius: 6px; padding: 14px; }
+.action-slot { padding: 8px 12px; background: #07101e; border-radius: 4px; margin-bottom: 6px; border: 1px solid #1e2d47; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+.action-slot:hover { border-color: #1e4a6f; }
+.action-name { font-size: 12px; color: #8fa8c8; }
+.action-cost { font-size: 10px; color: #4a6080; }
+.ops-remain { font-size: 10px; color: #4a6080; margin-bottom: 10px; }
+.end-turn-btn { width: 100%; padding: 10px; background: #1e3a5f; border: 1px solid #2a5a8f; border-radius: 4px; color: #4fc3f7; cursor: pointer; font-size: 12px; letter-spacing: 1px; margin-top: 10px; }
+.end-turn-btn:hover { background: #1565c0; }
+
+/* 右侧图表区 */
+.chart-panel { background: #0f1623; border: 1px solid #1e2d47; border-radius: 6px; padding: 14px; margin-bottom: 14px; }
+.mini-chart { height: 80px; display: flex; align-items: flex-end; gap: 3px; padding: 8px 0; }
+.bar-col { flex: 1; border-radius: 2px 2px 0 0; transition: height 0.3s; }
+
+/* 底部状态栏 */
+.statusbar { background: #0f1623; border-top: 1px solid #1e2d47; padding: 6px 16px; margin: 20px -20px -20px; display: flex; gap: 20px; }
+.status-item { font-size: 10px; color: #4a6080; }
+.status-item span { color: #8fa8c8; }
+
+/* ========== 界面三：危机处置 ========== */
+.crisis-overlay { background: #0a0e1a; min-height: calc(100vh - 80px); position: relative; }
+.crisis-flash { animation: flash 1s ease-in-out 3; }
+@keyframes flash { 0%,100%{opacity:1} 50%{opacity:0.7} }
+.crisis-banner { background: linear-gradient(90deg, #7f0000, #b71c1c, #7f0000); padding: 12px 20px; text-align: center; font-size: 11px; letter-spacing: 3px; color: #ffcdd2; text-transform: uppercase; margin: -20px -20px 20px; }
+.crisis-center { max-width: 680px; margin: 0 auto; }
+.crisis-card { background: #150a0a; border: 1px solid #4a1010; border-radius: 8px; padding: 28px; margin-bottom: 16px; }
+.crisis-card::before { content: ''; display: block; width: 40px; height: 3px; background: #ef5350; border-radius: 2px; margin-bottom: 16px; }
+.crisis-title { font-size: 20px; color: #ffcdd2; margin-bottom: 10px; }
+.crisis-body { font-size: 12px; color: #8a6060; line-height: 1.8; margin-bottom: 20px; }
+.crisis-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+.crisis-metric { background: #0a0505; border-radius: 4px; padding: 10px; text-align: center; border: 1px solid #3a1010; }
+.crisis-metric-label { font-size: 10px; color: #6a4040; margin-bottom: 4px; letter-spacing: 1px; }
+.crisis-metric-value { font-size: 18px; font-weight: bold; color: #ef5350; }
+.crisis-options { display: flex; flex-direction: column; gap: 10px; }
+.crisis-option { padding: 14px 18px; background: #100808; border: 1px solid #3a1010; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+.crisis-option:hover { border-color: #ef5350; background: #1a0808; }
+.crisis-option-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.crisis-option-name { font-size: 13px; color: #ffcdd2; }
+.crisis-option-cost { font-size: 11px; padding: 2px 8px; border-radius: 3px; }
+.cost-high { background: #3a1010; color: #ef5350; }
+.cost-med { background: #2e1e10; color: #ffb74d; }
+.cost-low { background: #1a2e1a; color: #81c784; }
+.crisis-option-desc { font-size: 11px; color: #6a4040; line-height: 1.5; }
+.crisis-timer { text-align: center; font-size: 11px; color: #4a2020; margin-top: 16px; letter-spacing: 1px; }
+
+/* waterfall chart bars */
+.wf-chart { display: flex; gap: 6px; align-items: flex-end; height: 70px; padding: 6px 0; }
+.wf-bar { flex: 1; border-radius: 2px 2px 0 0; position: relative; min-width: 10px; }
+.wf-bar.q1 { background: #ef5350; height: 55px; }
+.wf-bar.q2 { background: #ef5350; height: 70px; }
+.wf-bar.q3 { background: #ffb74d; height: 40px; }
+.wf-bar.q4 { background: #ef5350; height: 60px; }
+.wf-bar.q5 { background: #81c784; height: 25px; }
+.wf-bar.q6 { background: #81c784; height: 30px; }
+.wf-bar.q7 { background: #ffb74d; height: 45px; }
+.wf-bar.q8 { background: #4fc3f7; height: 20px; opacity: 0.4; }
+
+/* netval chart */
+.netval-line { height: 70px; position: relative; overflow: hidden; }
+.netval-line svg { width: 100%; height: 100%; }
+
+/* === 终局界面 === */
+.endgame-container { max-width: 800px; margin: 30px auto; }
+.endgame-header { text-align: center; margin-bottom: 30px; }
+.endgame-grade { font-size: 96px; font-weight: 100; margin: 10px 0; }
+.grade-S { color: #ffd54f; }
+.grade-A { color: #81c784; }
+.grade-B { color: #4fc3f7; }
+.grade-C { color: #ffb74d; }
+.grade-D { color: #ef5350; }
+.endgame-status { font-size: 14px; color: #6a8aaa; }
+.radar-card { background: #0f1623; border: 1px solid #1e2d47; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+.endgame-actions { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
+.btn-primary { padding: 12px 32px; background: #1565c0; border: none; border-radius: 6px; color: #e0eaf8; font-size: 13px; letter-spacing: 1px; cursor: pointer; }
+.btn-secondary { padding: 12px 32px; background: transparent; border: 1px solid #1e3a5f; border-radius: 6px; color: #4fc3f7; font-size: 13px; cursor: pointer; }
