@@ -1,0 +1,90 @@
+[
+  {
+    "id": "rand_market_rate_jump",
+    "type": "市场",
+    "weight": { "tight": 2, "stable": 1, "loose": 0.5 },
+    "title": "市场利率突然走高",
+    "body": "10年期国债收益率单日跳升15bp，新发行成本被动上抬。",
+    "choices": [
+      { "label": "推迟发行计划，等待市场企稳", "effects": { "score.融资成本控制": 2, "_delay": 1 } },
+      { "label": "硬扛上行成本完成发行", "effects": { "cash": 1.5, "financingCost": 0.3 } }
+    ]
+  },
+  {
+    "id": "rand_market_rating_down",
+    "type": "市场",
+    "weight": { "tight": 2, "stable": 1, "loose": 0.5 },
+    "title": "评级机构下调展望",
+    "body": "某评级机构将你所在区域整体评级展望从'稳定'下调至'负面'。",
+    "choices": [
+      { "label": "主动联系评级机构，提交补充材料", "effects": { "cash": -0.2, "score.危机应对": 3 } },
+      { "label": "接受下调，调整融资策略", "effects": { "financingCost": 0.2, "score.合规指数": 1 } }
+    ]
+  },
+  {
+    "id": "rand_op_contractor_demand",
+    "type": "经营",
+    "weight": { "tight": 1, "stable": 1, "loose": 1 },
+    "title": "在建项目承包商催款",
+    "body": "城北基础设施PPP项目承包商已垫资2.8亿，要求本季度结清1.2亿，否则停工。",
+    "choices": [
+      { "label": "协商延期，承诺下季度优先结算，接受承包商提出的违约金", "effects": { "cash": -0.1, "_delay": 1 } },
+      { "label": "从现金账上硬扛，结算工程款，牺牲流动性", "effects": { "cash": -1.2, "score.项目推进": 4 } }
+    ]
+  },
+  {
+    "id": "rand_op_receivable",
+    "type": "经营",
+    "weight": { "tight": 1, "stable": 1, "loose": 1 },
+    "title": "应收账款回收困难",
+    "body": "委托代建项目业主单位拖延付款，原定本季回笼1.5亿无法到账。",
+    "choices": [
+      { "label": "走法律程序追讨", "effects": { "cash": -0.2, "_delay": 2 } },
+      { "label": "协商分期回款", "effects": { "cash": 0.5, "_delay": 1 } }
+    ]
+  },
+  {
+    "id": "rand_policy_window_guidance",
+    "type": "政策",
+    "weight": { "tight": 3, "stable": 1, "loose": 0 },
+    "title": "监管窗口指导：非标整改",
+    "body": "金融监管部门窗口指导，要求压降非标融资规模，30天内提交整改方案。",
+    "choices": [
+      { "label": "全力配合整改", "effects": { "cash": -0.5, "score.合规指数": 5 } },
+      { "label": "缓期整改，先保兑付", "effects": { "_uncertainty": 0.3 } }
+    ]
+  },
+  {
+    "id": "rand_policy_inspection",
+    "type": "政策",
+    "weight": { "tight": 2, "stable": 1, "loose": 0.5 },
+    "title": "审计组进驻",
+    "body": "省审计厅派出工作组进驻，重点核查隐性债务和资金使用合规性。",
+    "choices": [
+      { "label": "主动提交所有材料，配合调查", "effects": { "score.合规指数": 6, "_delay": 1 } },
+      { "label": "选择性配合，控制信息披露", "effects": { "_uncertainty": 0.4, "score.合规指数": -2 } }
+    ]
+  },
+  {
+    "id": "rand_opportunity_low_rate",
+    "type": "机遇",
+    "weight": { "tight": 0.5, "stable": 1, "loose": 3 },
+    "title": "政策性银行主动对接",
+    "body": "国开行项目经理主动联系，针对你的某在建项目可提供长期低息贷款，综合成本3.8%。",
+    "choices": [
+      { "label": "接受贷款，置换部分高息债务", "effects": { "cash": 2.5, "financingCost": -0.4, "creditUsed": 3 } },
+      { "label": "暂不接受，避免新增负债", "effects": { "score.合规指数": 2 } }
+    ]
+  },
+  {
+    "id": "rand_opportunity_asset_inject",
+    "type": "机遇",
+    "weight": { "tight": 0.5, "stable": 1, "loose": 2 },
+    "title": "优质资产注入预期",
+    "body": "市政府考虑将一处优质市政资产无偿划入你的平台，可显著改善资产结构。",
+    "choices": [
+      { "label": "积极争取，承担相应配套义务", "effects": { "cash": -0.3, "leverageRatio": -3, "collateralRoom": "upgrade", "score.综合发展": 5 } },
+      { "label": "评估后再定，避免承担额外负担", "effects": { "score.合规指数": 1 } }
+    ]
+  }
+]

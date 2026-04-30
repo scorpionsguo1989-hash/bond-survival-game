@@ -1,0 +1,164 @@
+[
+  {
+    "id": "main_2022_q1",
+    "trigger": { "year": 2022, "quarter": 1 },
+    "title": "银行收紧城投贷款额度",
+    "body": "监管窗口指导下发，辖区内商业银行对城投平台新增贷款全面收紧。你的主开户行通知：现有授信到期后，是否续做需要总行审批，流程预计需要6-8周。\n\nQ1有大额到期，现金账上不足以覆盖。",
+    "policyShift": -1,
+    "choices": [
+      {
+        "label": "立即启动备用银行的授信申请，提前6周铺路，但需贡献部分存款作对价",
+        "effects": { "cash": -0.5, "creditUsed": -1.5, "score.合规指数": 5 }
+      },
+      {
+        "label": "向主管局汇报，争取政策性银行专项额度介入，时间窗口更长但不确定",
+        "effects": { "cash": 0, "score.项目推进": 3, "_uncertainty": 0.4 }
+      },
+      {
+        "label": "加快推进存量资产处置，用土地抵押换流动性，接受估值折扣",
+        "effects": { "cash": 2.0, "collateralRoom": "downgrade", "score.流动性管理": -3 }
+      }
+    ]
+  },
+  {
+    "id": "main_2022_q3",
+    "trigger": { "year": 2022, "quarter": 3 },
+    "title": "某省城投爆雷，市场情绪骤冷",
+    "body": "邻省一笔城投私募债违约，引发市场恐慌。信用利差快速走阔，新发行难度加大，投资人对中部和西部城投警惕性提升。",
+    "policyShift": -1,
+    "choices": [
+      {
+        "label": "暂停新增对外披露，闷声做事，待市场情绪平复",
+        "effects": { "score.合规指数": 2, "_marketDelay": 1 }
+      },
+      {
+        "label": "主动召开投资人沟通会，展示偿债计划，稳定市场预期",
+        "effects": { "cash": -0.3, "financingCost": -0.2, "score.危机应对": 6 }
+      },
+      {
+        "label": "趁机锁定一笔长期低息贷款，用一定成本换确定性",
+        "effects": { "cash": 3.0, "financingCost": 0.4, "creditUsed": 3 }
+      }
+    ]
+  },
+  {
+    "id": "main_2022_q4",
+    "trigger": { "year": 2022, "quarter": 4 },
+    "title": "理财赎回潮蔓延",
+    "body": "债市大幅调整，理财产品破净潮起，机构投资者大量赎回，二级市场成交几乎冰封。你的部分债券估值下跌，质押融资也受影响。",
+    "policyShift": -1,
+    "choices": [
+      {
+        "label": "动用授信抢做回购，给市场注入流动性",
+        "effects": { "cash": 1.5, "creditUsed": 2, "score.危机应对": 5 }
+      },
+      {
+        "label": "按兵不动，等待政策面安抚",
+        "effects": { "_uncertainty": 0.5, "score.合规指数": 1 }
+      }
+    ]
+  },
+  {
+    "id": "main_2023_q1",
+    "trigger": { "year": 2023, "quarter": 1 },
+    "title": "化债政策信号释放",
+    "body": "中央经济工作会议明确提出'有效防范化解重点领域风险'，市场预期化债政策即将出台。专项债限额上调讨论升温。",
+    "policyShift": 2,
+    "choices": [
+      {
+        "label": "提前布局，与地方财政沟通，争取纳入化债试点",
+        "effects": { "score.项目推进": 5, "score.合规指数": 3 }
+      },
+      {
+        "label": "保持观望，先确保短期兑付安全",
+        "effects": { "score.流动性管理": 2 }
+      }
+    ]
+  },
+  {
+    "id": "main_2023_q3",
+    "trigger": { "year": 2023, "quarter": 3 },
+    "title": "一揽子化债方案出台",
+    "body": "国务院正式部署一揽子化债方案，特殊再融资债重启，专项债额度大幅扩容。城投平台迎来罕见的政策窗口期，但纳入名单和额度分配竞争激烈。",
+    "policyShift": 2,
+    "choices": [
+      {
+        "label": "全力争取最大额度，置换高息存量债务",
+        "effects": { "cash": 1.0, "financingCost": -1.2, "score.融资成本控制": 8 }
+      },
+      {
+        "label": "适度参与，避免过度依赖政策红利",
+        "effects": { "financingCost": -0.5, "score.合规指数": 4, "score.综合发展": 3 }
+      },
+      {
+        "label": "推动城投市场化转型，借机剥离非主业资产",
+        "effects": { "cash": 2.0, "leverageRatio": -3, "score.综合发展": 6 }
+      }
+    ]
+  },
+  {
+    "id": "main_2024_q1",
+    "trigger": { "year": 2024, "quarter": 1 },
+    "title": "非标全面收紧，监管新规落地",
+    "body": "金融监管总局对城投非标融资发布新规，定融、信托等渠道全面收紧。如有存量非标，需在限期内压降。",
+    "policyShift": -1,
+    "choices": [
+      {
+        "label": "提前压降非标存量，承担一次性置换成本",
+        "effects": { "cash": -1.0, "financingCost": -0.3, "score.合规指数": 7 }
+      },
+      {
+        "label": "申请分阶段整改，争取过渡期",
+        "effects": { "_uncertainty": 0.3, "score.项目推进": -2 }
+      }
+    ]
+  },
+  {
+    "id": "main_2024_q2",
+    "trigger": { "year": 2024, "quarter": 2 },
+    "title": "城投整合提速",
+    "body": "上级要求弱平台被并入强平台，整合重组成为大趋势。你的平台被列入潜在被整合名单。",
+    "policyShift": 0,
+    "choices": [
+      {
+        "label": "主动申请作为整合主体，吸纳兄弟平台资源",
+        "effects": { "cash": 1.5, "creditTotal": 5, "score.综合发展": 5 }
+      },
+      {
+        "label": "接受被整合，配合资产剥离",
+        "effects": { "cash": -0.5, "score.合规指数": 5 }
+      },
+      {
+        "label": "推动市场化重组，引入战略投资者",
+        "effects": { "cash": 2.0, "leverageRatio": -5, "score.综合发展": 6, "_uncertainty": 0.3 }
+      }
+    ]
+  },
+  {
+    "id": "main_2024_q3",
+    "trigger": { "year": 2024, "quarter": 3 },
+    "title": "利率持续下行，再融资成本改善",
+    "body": "央行多次降息，债券市场利率创新低。新发行成本显著下降，存量高息债务置换窗口打开。",
+    "policyShift": 1,
+    "choices": [
+      {
+        "label": "大规模置换存量高息债务",
+        "effects": { "financingCost": -0.8, "score.融资成本控制": 6 }
+      },
+      {
+        "label": "拉长债务久期，锁定低息",
+        "effects": { "financingCost": -0.5, "score.流动性管理": 4 }
+      }
+    ]
+  },
+  {
+    "id": "main_2024_q4",
+    "trigger": { "year": 2024, "quarter": 4 },
+    "title": "终局结算",
+    "body": "三年生存挑战即将结束。综合评估你的表现，结算最终成绩。",
+    "policyShift": 0,
+    "choices": [
+      { "label": "查看最终成绩", "effects": { "_finalize": true } }
+    ]
+  }
+]
