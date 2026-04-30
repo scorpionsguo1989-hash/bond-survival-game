@@ -21,6 +21,14 @@ export function createInitialState(origin) {
   };
 }
 
+/**
+ * Advance to next quarter: drift policy, settle debt, deduct opCost+projectGap, add cash flow,
+ * roll quarter, snapshot history.
+ *
+ * IMPORTANT: This function does NOT update state.survived or state.deathReason. Callers must
+ * invoke checkDeath() on the returned state and write back survived=false + deathReason if dead.
+ * See main.js handleEndTurn for the expected pattern.
+ */
 export function advanceTurn(state) {
   // 1. 政策轴漂移（朝当前方向）
   const dir = state.policyValue < 0 ? 'tight' : (state.policyValue > 0 ? 'loose' : 'stable');
@@ -67,6 +75,16 @@ export function advanceTurn(state) {
   };
 }
 
+/**
+ * Apply event choice effects to state. Handles 4 effect types:
+ * - "score.<dim>" — adds to state.score[dim]
+ * - "collateralRoom" with "downgrade"/"upgrade" — transitions high↔medium↔low
+ * - "_<flag>" — internal flags, silently skipped (e.g., _uncertainty, _delay)
+ * - numeric — added to state.metrics[key]
+ *
+ * IMPORTANT: This function does NOT call checkDeath. Callers must invoke checkDeath() after
+ * this returns if the effects could push metrics to death conditions.
+ */
 export function applyEventChoice(state, event, choiceIdx) {
   const choice = event.choices[choiceIdx];
   let newMetrics = { ...state.metrics };

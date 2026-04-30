@@ -53,3 +53,50 @@ describe('checkDeath', () => {
     expect(result.reason).toContain('现金');
   });
 });
+
+describe('applyEventChoice', () => {
+  const baseState = () => ({
+    ...createInitialState(sampleOrigin),
+    metrics: { cash: 5, creditUsed: 5, creditTotal: 20, financingCost: 6, leverageRatio: 70, opCostRate: 0.6, projectGap: 2, debtMaturity: [0,0,0,0,0,0,0,0,0,0,0,0], collateralRoom: 'medium' },
+  });
+
+  it('adds to score with score.X effect key', () => {
+    const event = { id: 'test_evt', choices: [{ effects: { 'score.合规指数': 5, 'score.项目推进': 3 } }] };
+    const next = applyEventChoice(baseState(), event, 0);
+    expect(next.score['合规指数']).toBe(5);
+    expect(next.score['项目推进']).toBe(3);
+  });
+
+  it('skips _-prefixed keys (internal flags)', () => {
+    const event = { id: 'test_evt', choices: [{ effects: { _uncertainty: 0.4, _delay: 1, cash: 1 } }] };
+    const next = applyEventChoice(baseState(), event, 0);
+    expect(next.metrics._uncertainty).toBeUndefined();
+    expect(next.metrics._delay).toBeUndefined();
+    expect(next.metrics.cash).toBeCloseTo(6);
+  });
+
+  it('downgrades collateralRoom and saturates at low', () => {
+    const event = { id: 'test_evt', choices: [{ effects: { collateralRoom: 'downgrade' } }] };
+    const s1 = applyEventChoice(baseState(), event, 0);
+    expect(s1.metrics.collateralRoom).toBe('low');
+    const s2 = applyEventChoice(s1, event, 0);
+    expect(s2.metrics.collateralRoom).toBe('low');
+  });
+
+  it('upgrades collateralRoom and saturates at high', () => {
+    const state = { ...baseState(), metrics: { ...baseState().metrics, collateralRoom: 'medium' } };
+    const event = { id: 'test_evt', choices: [{ effects: { collateralRoom: 'upgrade' } }] };
+    const s1 = applyEventChoice(state, event, 0);
+    expect(s1.metrics.collateralRoom).toBe('high');
+    const s2 = applyEventChoice(s1, event, 0);
+    expect(s2.metrics.collateralRoom).toBe('high');
+  });
+
+  it('applies policyShift and appends eventLog', () => {
+    const event = { id: 'test_evt', policyShift: 2, choices: [{ effects: {} }] };
+    const next = applyEventChoice(baseState(), event, 0);
+    expect(next.policyValue).toBe(0);  // -2 + 2 = 0
+    expect(next.eventLog).toHaveLength(1);
+    expect(next.eventLog[0]).toEqual({ eventId: 'test_evt', choiceIdx: 0 });
+  });
+});
