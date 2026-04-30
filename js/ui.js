@@ -204,3 +204,16 @@ function renderStatusBar(state) {
     </div>
   `;
 }
+
+function renderChartArea(state) {
+  return `
+    <div class="chart-panel">
+      <div class="panel-title">债务到期瀑布图（亿）</div>
+      <div style="height:90px"><canvas id="chart-debt"></canvas></div>
+    </div>
+    <div class="chart-panel">
+      <div class="panel-title">现金余量走势（亿）</div>
+      <div style="height:90px"><canvas id="chart-cash"></canvas></div>
+    </div>
+  `;
+}
