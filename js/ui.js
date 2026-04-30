@@ -307,3 +307,98 @@ export function renderEndScreen(state, finalScore, callbacks) {
   document.getElementById('btn-restart').addEventListener('click', callbacks.onRestart);
   document.getElementById('btn-share').addEventListener('click', () => callbacks.onShare(finalScore));
 }
+
+export function generateShareCard(state, finalScore) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 750;
+  canvas.height = 1200;
+  const ctx = canvas.getContext('2d');
+
+  // 背景
+  const grad = ctx.createLinearGradient(0, 0, 0, 1200);
+  grad.addColorStop(0, '#0a0e1a');
+  grad.addColorStop(1, '#0f1e35');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 750, 1200);
+
+  // 顶部装饰条
+  ctx.fillStyle = '#4fc3f7';
+  ctx.fillRect(0, 0, 750, 4);
+
+  // 标题
+  ctx.fillStyle = '#e0eaf8';
+  ctx.font = '300 36px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('债市生存游戏', 375, 90);
+  ctx.font = '14px sans-serif';
+  ctx.fillStyle = '#6a8aaa';
+  ctx.fillText('搞债 · 财务总监模式', 375, 120);
+
+  // 评分大字
+  ctx.font = '300 220px sans-serif';
+  ctx.fillStyle = gradeColor(finalScore.grade.grade);
+  ctx.fillText(finalScore.grade.grade, 375, 360);
+
+  ctx.font = '24px sans-serif';
+  ctx.fillStyle = '#e0eaf8';
+  ctx.fillText(finalScore.grade.label, 375, 410);
+
+  ctx.font = '60px sans-serif';
+  ctx.fillStyle = '#4fc3f7';
+  ctx.fillText(`${finalScore.total}`, 375, 490);
+  ctx.font = '16px sans-serif';
+  ctx.fillStyle = '#6a8aaa';
+  ctx.fillText('总分（满分100）', 375, 520);
+
+  // 平台信息
+  ctx.font = '18px sans-serif';
+  ctx.fillStyle = '#8fa8c8';
+  ctx.fillText(state.origin.platformName, 375, 580);
+  ctx.font = '14px sans-serif';
+  ctx.fillStyle = '#6a8aaa';
+  ctx.fillText(`${state.origin.labels.region} · ${state.origin.labels.business}`, 375, 610);
+
+  // 状态
+  ctx.font = '16px sans-serif';
+  ctx.fillStyle = state.survived ? '#81c784' : '#ef5350';
+  ctx.fillText(state.survived ? `✓ 成功存活 ${state.quartersPassed} 季度` : `✗ 第 ${state.quartersPassed} 季度失败`, 375, 660);
+
+  // 六维分数列表
+  ctx.textAlign = 'left';
+  let y = 740;
+  ctx.font = '14px sans-serif';
+  Object.entries(finalScore.dimensions).forEach(([k, v]) => {
+    ctx.fillStyle = '#6a8aaa';
+    ctx.fillText(k, 100, y);
+    ctx.fillStyle = v >= 70 ? '#81c784' : (v >= 50 ? '#ffb74d' : '#ef5350');
+    ctx.textAlign = 'right';
+    ctx.fillText(Math.round(v), 650, y);
+    ctx.textAlign = 'left';
+    // 进度条
+    ctx.fillStyle = '#1e2d47';
+    ctx.fillRect(100, y + 8, 550, 4);
+    ctx.fillStyle = v >= 70 ? '#81c784' : (v >= 50 ? '#ffb74d' : '#ef5350');
+    ctx.fillRect(100, y + 8, 550 * v / 100, 4);
+    y += 50;
+  });
+
+  // 底部水印
+  ctx.fillStyle = '#4a6080';
+  ctx.font = '12px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('搞债公众号出品 · 长按识别打开游戏', 375, 1150);
+
+  // 输出图片
+  return canvas.toDataURL('image/png');
+}
+
+function gradeColor(g) {
+  return { S: '#ffd54f', A: '#81c784', B: '#4fc3f7', C: '#ffb74d', D: '#ef5350' }[g] || '#4fc3f7';
+}
+
+export function downloadShareCard(dataUrl, filename) {
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = filename;
+  a.click();
+}
