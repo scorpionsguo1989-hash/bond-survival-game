@@ -87,13 +87,14 @@ function getLabels(origin) {
 
 function generateChallenges(origin) {
   const challenges = [];
+  // 优先级从高到低，slice(0,3) 时优先保留最影响游戏性的挑战
   if (origin.healthLevel === 'weak') challenges.push('开局即面临大额到期，现金不足以单独覆盖，必须立即行动');
   if (origin.tag === 'hidden_debt_zone') challenges.push('隐债核查压力大，非标融资被监管约谈，灰色补血渠道堵死');
-  if (origin.tag === 'leadership_change') challenges.push('新班子上任，前期决策需更谨慎，避免被指责短期主义');
   if (origin.tag === 'restructuring') challenges.push('正在整合重组期，资源调配受限，存在不确定性');
+  if (origin.tag === 'leadership_change') challenges.push('新班子上任，前期决策需更谨慎，避免被指责短期主义');
   if (origin.businessType === 'land_dev') challenges.push('土地市场低迷，开发收益下滑，资金回笼周期拉长');
-  if (origin.regionTier === 'northeast_old' || origin.regionTier === 'west_prefecture') challenges.push('区域财力有限，转移支付占比高，自给率低');
   if (origin.businessType === 'infrastructure') challenges.push('在建项目持续吞噬现金，停工不行，继续投也危险');
+  if (origin.regionTier === 'northeast_old' || origin.regionTier === 'west_prefecture') challenges.push('区域财力有限，转移支付占比高，自给率低');
 
   // 兜底通用挑战
   const generic = [
@@ -101,10 +102,9 @@ function generateChallenges(origin) {
     '银行授信审批周期延长，部分到期贷款续作不确定',
     '抵押物空间偏紧，新增融资需要寻找替代担保方式',
   ];
+  let genericIdx = 0;
   while (challenges.length < 3) {
-    const next = generic[challenges.length % generic.length];
-    if (!challenges.includes(next)) challenges.push(next);
-    else challenges.push(generic[(challenges.length + 1) % generic.length]);
+    challenges.push(generic[genericIdx++ % generic.length]);
   }
   return challenges.slice(0, 3);
 }
