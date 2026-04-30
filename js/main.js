@@ -12,7 +12,14 @@ let state = null;
 let eventData = null;
 
 async function init() {
-  eventData = await loadEvents();
+  try {
+    eventData = await loadEvents();
+  } catch (e) {
+    document.getElementById('app').innerHTML = '<div style="padding:40px;color:#ef5350;font-family:sans-serif;text-align:center">事件数据加载失败，请刷新重试。<br><br>如反复出现，请检查 content/mainEvents.json 是否可访问。</div>';
+    console.error('loadEvents failed:', e);
+    return;
+  }
+
   const saved = loadGame();
   if (saved && confirm('发现存档，是否继续？')) {
     state = saved;
@@ -40,11 +47,11 @@ function startNewGame() {
 function loadCurrentTurnEvent() {
   const main = findMainEvent(eventData.main, state.year, state.quarter);
   if (main) {
-    state.pendingEvent = main;
+    state = { ...state, pendingEvent: main };
   } else {
     const dir = getPolicyDirection(state.policyValue);
     const sampled = sampleRandomEvents(eventData.random, dir, { min: 1, max: 1 });
-    state.pendingEvent = sampled[0] || null;
+    state = { ...state, pendingEvent: sampled[0] || null };
   }
 }
 
@@ -74,7 +81,7 @@ function enterMainScreen() {
 
 function handleEventChoice(idx) {
   state = applyEventChoice(state, state.pendingEvent, idx);
-  state.pendingEvent = null;
+  state = { ...state, pendingEvent: null };
   enterMainScreen();
 }
 
