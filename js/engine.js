@@ -1,0 +1,136 @@
+// js/engine.js
+import { GAME_CONFIG } from './config.js';
+import { ROLE_CFO, getInitialMetrics } from './roles.js';
+import { driftPolicy, applyPolicyShift } from './policy.js';
+
+export function createInitialState(origin) {
+  return {
+    origin,
+    year: GAME_CONFIG.startYear,
+    quarter: GAME_CONFIG.startQuarter,
+    policyValue: GAME_CONFIG.policyAxisStart,
+    metrics: getInitialMetrics(origin),
+    score: {},
+    actionsUsed: 0,
+    quartersPassed: 0,
+    survived: true,
+    deathReason: null,
+    history: [],          // [{year, quarter, snapshot}]
+    eventLog: [],         // [{eventId, choiceIdx}]
+    pendingEvent: null,
+  };
+}
+
+export function advanceTurn(state) {
+  // 1. 政策轴漂移（朝当前方向）
+  const dir = state.policyValue < 0 ? 'tight' : (state.policyValue > 0 ? 'loose' : 'stable');
+  let newPolicy = driftPolicy(state.policyValue, dir);
+
+  // 2. 收入和到期债务结算
+  let newMetrics = { ...state.metrics };
+  const dueIdx = state.quartersPassed;  // 第几个季度
+  if (dueIdx < newMetrics.debtMaturity.length) {
+    const due = newMetrics.debtMaturity[dueIdx] || 0;
+    newMetrics.cash = parseFloat((newMetrics.cash - due).toFixed(2));
+  }
+  // 运营成本扣减
+  newMetrics.cash = parseFloat((newMetrics.cash - newMetrics.opCostRate).toFixed(2));
+  // 项目缺口扣减
+  newMetrics.cash = parseFloat((newMetrics.cash - newMetrics.projectGap).toFixed(2));
+  // 经营现金流回血（少量）
+  newMetrics.cash = parseFloat((newMetrics.cash + 1.2).toFixed(2));
+
+  // 3. 季度推进
+  let newQuarter = state.quarter + 1;
+  let newYear = state.year;
+  if (newQuarter > 4) { newQuarter = 1; newYear += 1; }
+
+  // 4. 历史快照
+  const newHistory = [...state.history, {
+    year: state.year,
+    quarter: state.quarter,
+    cash: state.metrics.cash,
+    leverageRatio: state.metrics.leverageRatio,
+    financingCost: state.metrics.financingCost,
+    policyValue: state.policyValue,
+  }];
+
+  return {
+    ...state,
+    year: newYear,
+    quarter: newQuarter,
+    policyValue: newPolicy,
+    metrics: newMetrics,
+    actionsUsed: 0,
+    quartersPassed: state.quartersPassed + 1,
+    history: newHistory,
+  };
+}
+
+export function applyEventChoice(state, event, choiceIdx) {
+  const choice = event.choices[choiceIdx];
+  let newMetrics = { ...state.metrics };
+  let newScore = { ...state.score };
+  let newPolicy = state.policyValue;
+
+  if (event.policyShift) {
+    newPolicy = applyPolicyShift(newPolicy, event.policyShift);
+  }
+
+  Object.entries(choice.effects || {}).forEach(([key, val]) => {
+    if (key.startsWith('score.')) {
+      const dim = key.slice(6);
+      newScore[dim] = (newScore[dim] || 0) + val;
+    } else if (key === 'collateralRoom') {
+      if (val === 'downgrade') newMetrics.collateralRoom = downgradeCollateral(newMetrics.collateralRoom);
+      else if (val === 'upgrade') newMetrics.collateralRoom = upgradeCollateral(newMetrics.collateralRoom);
+    } else if (key.startsWith('_')) {
+      // 内部flag，跳过
+    } else if (typeof val === 'number') {
+      newMetrics[key] = parseFloat(((newMetrics[key] || 0) + val).toFixed(2));
+    }
+  });
+
+  // 更新授信使用率
+  if (newMetrics.creditTotal) {
+    newMetrics.creditUsage = Math.round((newMetrics.creditUsed / newMetrics.creditTotal) * 100);
+  }
+
+  return {
+    ...state,
+    metrics: newMetrics,
+    score: newScore,
+    policyValue: newPolicy,
+    eventLog: [...state.eventLog, { eventId: event.id, choiceIdx }],
+  };
+}
+
+export function checkDeath(state) {
+  for (const cond of ROLE_CFO.deathConditions) {
+    const value = state.metrics[cond.metric];
+    if (cond.op === '<=' && value <= cond.threshold) {
+      return { dead: true, reason: cond.reason };
+    }
+    if (cond.op === '>=' && value >= cond.threshold) {
+      return { dead: true, reason: cond.reason };
+    }
+  }
+  return { dead: false };
+}
+
+export function isGameOver(state) {
+  if (!state.survived) return { over: true, type: 'death' };
+  if (state.quartersPassed >= GAME_CONFIG.totalQuarters) return { over: true, type: 'survived' };
+  return { over: false };
+}
+
+function downgradeCollateral(level) {
+  if (level === 'high') return 'medium';
+  if (level === 'medium') return 'low';
+  return 'low';
+}
+function upgradeCollateral(level) {
+  if (level === 'low') return 'medium';
+  if (level === 'medium') return 'high';
+  return 'high';
+}
