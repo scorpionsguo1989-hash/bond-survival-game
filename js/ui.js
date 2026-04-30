@@ -217,3 +217,52 @@ function renderChartArea(state) {
     </div>
   `;
 }
+
+export function renderCrisisModal(crisis, onSelect) {
+  const overlay = document.createElement('div');
+  overlay.id = 'crisis-overlay';
+  overlay.innerHTML = `
+    <div class="screen active" style="position:fixed;inset:0;background:#0a0e1a;z-index:1000;overflow-y:auto;padding:20px">
+      <div class="crisis-banner">⚠ 危机警报 · 时间暂停 · 必须处置后继续</div>
+      <div class="crisis-center">
+        <div class="crisis-card">
+          <div class="crisis-title">${escapeHtml(crisis.title)}</div>
+          <div class="crisis-body">${escapeHtml(crisis.body)}</div>
+          <div class="crisis-metrics">
+            ${crisis.metrics.map(m => `
+              <div class="crisis-metric">
+                <div class="crisis-metric-label">${m.label}</div>
+                <div class="crisis-metric-value">${m.value}</div>
+              </div>
+            `).join('')}
+          </div>
+          <div class="crisis-options">
+            ${crisis.options.map((o, i) => `
+              <div class="crisis-option" data-opt-idx="${i}">
+                <div class="crisis-option-header">
+                  <span class="crisis-option-name">${escapeHtml(o.label)}</span>
+                  <span class="crisis-option-cost cost-${costClass(o.cost)}">代价：${o.cost}</span>
+                </div>
+                <div class="crisis-option-desc">${escapeHtml(o.desc)}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.querySelectorAll('.crisis-option').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.optIdx, 10);
+      overlay.remove();
+      onSelect(crisis.options[idx]);
+    });
+  });
+}
+
+function costClass(cost) {
+  if (cost.includes('高')) return 'high';
+  if (cost.includes('中')) return 'med';
+  return 'low';
+}

@@ -142,6 +142,28 @@ export function isGameOver(state) {
   return { over: false };
 }
 
+export function detectCrisis(state) {
+  const m = state.metrics;
+  if (m.cash < 0.5 && state.quartersPassed < 11) {
+    return {
+      id: 'crisis_cash',
+      title: '资金链危机：现金即将耗尽',
+      body: `账面现金仅剩${m.cash.toFixed(2)}亿，下季度到期债务和运营成本无法覆盖。距离违约不足90天。`,
+      metrics: [
+        { label: '账面资金', value: `${m.cash.toFixed(2)}亿` },
+        { label: '下季到期', value: `${(m.debtMaturity[state.quartersPassed] || 0).toFixed(1)}亿` },
+        { label: '缺口', value: `-${Math.max(0, (m.debtMaturity[state.quartersPassed] || 0) - m.cash).toFixed(1)}亿` },
+      ],
+      options: [
+        { label: '紧急向兄弟平台拆借', cost: '中', desc: '联系同区域兄弟城投拆借资金，利率8%，期限30天。', effects: { cash: 2.5, financingCost: 0.5, 'score.危机应对': 5 } },
+        { label: '资产紧急变现', cost: '中高', desc: '出售停车场运营权，估值打折15%，能覆盖缺口。', effects: { cash: 2.0, collateralRoom: 'downgrade', 'score.危机应对': 3 } },
+        { label: '向上级紧急汇报', cost: '低（不确定）', desc: '请求主管领导协调银行特批放款。成功率约40%。', effects: { _uncertain: 0.4, cash: 3.0, 'score.合规指数': 4 } },
+      ]
+    };
+  }
+  return null;
+}
+
 function downgradeCollateral(level) {
   if (level === 'high') return 'medium';
   if (level === 'medium') return 'low';

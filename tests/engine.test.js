@@ -1,6 +1,6 @@
 // tests/engine.test.js
 import { describe, it, expect } from 'vitest';
-import { createInitialState, advanceTurn, applyEventChoice, checkDeath } from '../js/engine.js';
+import { createInitialState, advanceTurn, applyEventChoice, checkDeath, detectCrisis } from '../js/engine.js';
 
 const sampleOrigin = {
   role: 'cfo', regionTier: 'central_capital', businessType: 'infrastructure',
@@ -98,5 +98,24 @@ describe('applyEventChoice', () => {
     expect(next.policyValue).toBe(0);  // -2 + 2 = 0
     expect(next.eventLog).toHaveLength(1);
     expect(next.eventLog[0]).toEqual({ eventId: 'test_evt', choiceIdx: 0 });
+  });
+});
+
+describe('detectCrisis', () => {
+  it('detects cash crisis before final quarter', () => {
+    const state = createInitialState(sampleOrigin);
+    state.metrics.cash = 0.4;
+    state.metrics.debtMaturity = [0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    state.quartersPassed = 1;
+    const crisis = detectCrisis(state);
+    expect(crisis.id).toBe('crisis_cash');
+    expect(crisis.options).toHaveLength(3);
+  });
+
+  it('does not detect cash crisis near game end', () => {
+    const state = createInitialState(sampleOrigin);
+    state.metrics.cash = 0.4;
+    state.quartersPassed = 11;
+    expect(detectCrisis(state)).toBeNull();
   });
 });
