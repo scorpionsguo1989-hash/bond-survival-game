@@ -1,4 +1,5 @@
 // js/ui.js
+import { renderRadarChart } from './charts.js';
 
 const REGION_LABELS = {
   east_core: '东部核心', central_capital: '中部省会',
@@ -265,4 +266,44 @@ function costClass(cost) {
   if (cost.includes('高')) return 'high';
   if (cost.includes('中')) return 'med';
   return 'low';
+}
+
+export function renderEndScreen(state, finalScore, callbacks) {
+  const app = document.getElementById('app');
+  const gradeClass = `grade-${finalScore.grade.grade}`;
+  app.innerHTML = `
+    <div class="screen active">
+      <div class="endgame-container">
+        <div class="endgame-header">
+          <div class="endgame-status">${state.survived ? '✓ 成功通关' : '✗ 中途失败：' + (state.deathReason || '未知原因')}</div>
+          <div class="endgame-grade ${gradeClass}">${finalScore.grade.grade}</div>
+          <div style="font-size:18px;color:#e0eaf8">${finalScore.grade.label}</div>
+          <div style="font-size:32px;color:#4fc3f7;margin-top:8px">${finalScore.total}<span style="font-size:14px;color:#4a6080"> / 100</span></div>
+          <div style="font-size:12px;color:#6a8aaa;margin-top:8px">${state.origin.platformName} · ${state.origin.directorName}</div>
+          <div style="font-size:11px;color:#4a6080;margin-top:4px">存活 ${state.quartersPassed} / 12 季度</div>
+        </div>
+
+        <div class="radar-card">
+          <div class="panel-title">六维评分</div>
+          <div style="height:280px"><canvas id="chart-radar"></canvas></div>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:14px">
+            ${Object.entries(finalScore.dimensions).map(([k, v]) => `
+              <div style="display:flex;justify-content:space-between;font-size:11px">
+                <span style="color:#6a8aaa">${k}</span>
+                <span style="color:${v>=70?'#81c784':v>=50?'#ffb74d':'#ef5350'}">${Math.round(v)}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="endgame-actions">
+          <button id="btn-restart" class="btn-primary">再来一局</button>
+          <button id="btn-share" class="btn-secondary">生成分享卡片</button>
+        </div>
+      </div>
+    </div>
+  `;
+  requestAnimationFrame(() => renderRadarChart('chart-radar', finalScore.dimensions));
+  document.getElementById('btn-restart').addEventListener('click', callbacks.onRestart);
+  document.getElementById('btn-share').addEventListener('click', () => callbacks.onShare(finalScore));
 }
