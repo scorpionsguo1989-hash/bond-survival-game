@@ -66,6 +66,15 @@
             }
           }
         ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
     },
     "teaching": "valuation_drawdown"
@@ -133,6 +142,15 @@
               "redemptionPressure": 6,
               "score.crisisResponse": -2
             }
+          }
+        ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
           }
         ]
       }
@@ -205,6 +223,15 @@
             }
           }
         ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
     },
     "teaching": "credit_sinking"
@@ -272,6 +299,15 @@
               "concentration": 2,
               "nav": -0.01
             }
+          }
+        ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
           }
         ]
       }
@@ -343,6 +379,15 @@
             }
           }
         ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
     },
     "teaching": "valuation_drawdown"
@@ -412,6 +457,15 @@
             }
           }
         ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
     },
     "teaching": "credit_sinking"
@@ -473,6 +527,15 @@
               "redemptionPressure": 8,
               "score.development": 3
             }
+          }
+        ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
           }
         ]
       }
@@ -544,6 +607,15 @@
             }
           }
         ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
     },
     "teaching": "liquidity"
@@ -603,6 +675,15 @@
               "redemptionPressure": 5,
               "score.development": 4
             }
+          }
+        ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
           }
         ]
       }
@@ -671,6 +752,15 @@
               "creditExposure": 2,
               "score.projectProgress": 3
             }
+          }
+        ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
           }
         ]
       }
@@ -742,6 +832,15 @@
             }
           }
         ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
     },
     "teaching": "regulatory"
@@ -809,6 +908,15 @@
               "redemptionPressure": 6,
               "nav": -0.01
             }
+          }
+        ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
           }
         ]
       }
@@ -883,6 +991,15 @@
             }
           }
         ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
     },
     "teaching": "valuation_drawdown"
@@ -953,6 +1070,15 @@
             }
           }
         ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
     },
     "teaching": "liquidity"
@@ -1019,6 +1145,15 @@
               "redemptionPressure": 3,
               "score.liquidity": -1
             }
+          }
+        ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
           }
         ]
       }
@@ -1093,6 +1228,15 @@
             }
           }
         ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
     },
     "teaching": "client_behavior"
@@ -1152,6 +1296,15 @@
               "redemptionPressure": 7,
               "score.costControl": 2
             }
+          }
+        ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
           }
         ]
       }
@@ -1219,6 +1372,15 @@
               "redemptionPressure": 5,
               "nav": -0.01
             }
+          }
+        ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
           }
         ]
       }
@@ -1292,6 +1454,15 @@
             }
           }
         ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
     },
     "teaching": "credit_sinking"
@@ -1361,6 +1532,15 @@
             }
           }
         ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
     },
     "teaching": "credit_sinking"
@@ -1419,6 +1599,15 @@
               "nav": 0.015,
               "redemptionPressure": 5
             }
+          }
+        ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
           }
         ]
       }
@@ -1492,6 +1681,15 @@
             }
           }
         ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
     },
     "teaching": "credit_sinking"
@@ -1544,6 +1742,15 @@
               "nav": -0.01,
               "redemptionPressure": 6
             }
+          }
+        ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
           }
         ]
       }

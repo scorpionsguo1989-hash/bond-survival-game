@@ -56,6 +56,15 @@
             }
           }
         ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
     }
   },
@@ -115,6 +124,15 @@
               "nav": -0.005,
               "score.crisisResponse": 2
             }
+          }
+        ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
           }
         ]
       }
@@ -177,6 +195,15 @@
             }
           }
         ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
     }
   },
@@ -236,6 +263,15 @@
             }
           }
         ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
     }
   },
@@ -293,6 +329,15 @@
               "redemptionPressure": 4,
               "score.costControl": 2
             }
+          }
+        ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
           }
         ]
       }
@@ -355,6 +400,15 @@
             }
           }
         ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
     }
   },
@@ -413,6 +467,15 @@
               "cashRatio": 1,
               "score.liquidity": 2
             }
+          }
+        ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
           }
         ]
       }
@@ -475,6 +538,15 @@
               "concentration": 3,
               "redemptionPressure": 4
             }
+          }
+        ]
+      },
+      "gov": {
+        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
           }
         ]
       }
