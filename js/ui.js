@@ -45,7 +45,7 @@ export function renderFateCard(origin, role, onAccept) {
             `).join('')}
           </div>
           ${hints ? renderOnboardingCard(hints) : ''}
-          <button id="btn-accept-fate" class="start-btn">接受命运，开始游戏 →</button>
+          <button id="btn-accept-fate" class="start-btn">改写命运，开始游戏 →</button>
         </div>
       </div>
     </div>
