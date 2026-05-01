@@ -50,36 +50,38 @@ function advanceTurn(state) {
   // 1. 季度财政入账
   cash = round(cash + fiscalRevenue / 4, 2);
 
-  // 2. 转移支付（按 politicalScore 调整）
+  // 2. 转移支付（按 politicalScore 调整：60 = 基线）
   const transfer = transferPayment * (politicalScore / 60);
   cash = round(cash + transfer, 2);
 
-  // 3. 土地收入（政策松时好，紧时打折）
+  // 3. 土地收入（政策紧时打折，最低 4 折）
   const landMult = policyValue >= 0 ? 1.0 : Math.max(0.4, 1 + policyValue * 0.08);
   cash = round(cash + (landRevenue / 4) * landMult, 2);
 
-  // 4. 刚性支出（民生 + 工资 + 利息）≈ fiscalRevenue × 0.3
-  const operatingCost = fiscalRevenue * 0.3 / 4;
+  // 4. 刚性支出（民生 + 工资 + 利息）≈ fiscalRevenue × 0.55（更贴合现实地方财政结构）
+  const operatingCost = fiscalRevenue * 0.55 / 4;
   cash = round(cash - operatingCost, 2);
 
-  // 5. 化债任务（每季须还 1.5 亿隐债）
-  const debtServiceTarget = 1.5;
+  // 5. 化债任务（按隐债敞口动态：重点区压力大）
+  //    每季最少 1.5 亿，敞口大的最多 6 亿
+  const debtServiceTarget = Math.min(6, Math.max(1.5, hiddenDebtRisk * 0.04));
   if (cash >= debtServiceTarget) {
     cash = round(cash - debtServiceTarget, 2);
     hiddenDebtRisk = Math.max(0, round(hiddenDebtRisk - debtServiceTarget, 2));
   } else {
-    hiddenDebtRisk = round(hiddenDebtRisk + 2, 2);  // 没钱还 → 风险累积
-    politicalScore = clamp(politicalScore - 1.5, 0, 100);
+    // 没钱完成化债任务 → 隐债累积 + 政绩重扣
+    hiddenDebtRisk = round(hiddenDebtRisk + 3, 2);
+    politicalScore = clamp(politicalScore - 2, 0, 100);
   }
 
-  // 6. industryIndex 自然衰减（不投入则慢慢退步）
-  industryIndex = Math.max(0, round(industryIndex - 0.5, 2));
+  // 6. industryIndex 自然衰减（不投入则退步）
+  industryIndex = Math.max(0, round(industryIndex - 1.0, 2));
 
-  // 7. debtRatio 微调（隐债增 → 综合债务率增）
-  debtRatio = round(debtRatio + hiddenDebtRisk * 0.005 - debtServiceTarget * 0.1, 2);
+  // 7. debtRatio 累积（隐债敞口大 → 债务率自然增加；化债任务完成 → 抵扣）
+  debtRatio = round(debtRatio + hiddenDebtRisk * 0.05 - debtServiceTarget * 0.5, 2);
 
-  // 8. 政绩慢慢下滑（不主动管理则衰减）
-  politicalScore = clamp(politicalScore - 0.3, 0, 100);
+  // 8. 政绩自然衰减（不主动管理则退步，每季 -0.8）
+  politicalScore = clamp(politicalScore - 0.8, 0, 100);
 
   return {
     metrics: { fiscalRevenue, landRevenue, debtRatio, hiddenDebtRisk,

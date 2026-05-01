@@ -5,6 +5,8 @@ let debtChart = null;
 let cashChart = null;
 let navChart = null;
 let holdingsChart = null;
+let fiscalChart = null;
+let debtRatioChart = null;
 
 export function renderDebtWaterfall(state) {
   const ctx = document.getElementById('chart-debt');
@@ -143,6 +145,87 @@ export function renderHoldingsChart(state) {
           display: true, position: 'bottom',
           labels: { color: '#8fa8c8', font: { size: 10 }, padding: 6, boxWidth: 10 },
         },
+      },
+      maintainAspectRatio: false,
+    },
+  });
+}
+
+// GOV 财政收支结构柱状图：fiscalRevenue / landRevenue / transferPayment vs operatingCost / debtService
+export function renderFiscalChart(state) {
+  const ctx = document.getElementById('chart-fiscal');
+  if (!ctx) return;
+  const m = state.metrics;
+  const quartersIncome = m.fiscalRevenue / 4;
+  const transfer = m.transferPayment * (m.politicalScore / 60);
+  const landIn = m.landRevenue / 4;
+  const opCost = m.fiscalRevenue * 0.3 / 4;
+  const debtService = 1.5;
+
+  if (fiscalChart) fiscalChart.destroy();
+  fiscalChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['一般预算', '土地收入', '转移支付', '刚性支出', '化债'],
+      datasets: [{
+        data: [quartersIncome, landIn, transfer, -opCost, -debtService],
+        backgroundColor: [
+          '#4fc3f7', '#81c784', '#ffd54f', '#ffb74d', '#ef5350',
+        ],
+        borderRadius: 2,
+      }],
+    },
+    options: {
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${Math.abs(c.parsed.y).toFixed(1)}亿` } } },
+      scales: {
+        x: { ticks: { color: '#4a6080', font: { size: 9 } }, grid: { display: false } },
+        y: { ticks: { color: '#4a6080' }, grid: { color: '#1e2d47' } },
+      },
+      maintainAspectRatio: false,
+    },
+  });
+}
+
+// GOV 综合债务率折线图：当前 + 历史，含 300% 红线
+export function renderDebtRatioChart(state) {
+  const ctx = document.getElementById('chart-debt-ratio');
+  if (!ctx) return;
+  const labels = state.history.map(h => `${h.year}Q${h.quarter}`);
+  const data = state.history.map(h => h.snapshot?.debtRatio || h.debtRatio).filter(v => v != null);
+  labels.push(`${state.year}Q${state.quarter}`);
+  data.push(state.metrics.debtRatio);
+  const redLine = labels.map(() => 300);
+
+  if (debtRatioChart) debtRatioChart.destroy();
+  debtRatioChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: '债务率',
+          data,
+          borderColor: '#4fc3f7',
+          backgroundColor: 'rgba(79,195,247,0.15)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 2,
+        },
+        {
+          label: '红线 300%',
+          data: redLine,
+          borderColor: '#ef5350',
+          borderDash: [5, 5],
+          pointRadius: 0,
+          fill: false,
+        },
+      ],
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#4a6080' }, grid: { display: false } },
+        y: { ticks: { color: '#4a6080' }, grid: { color: '#1e2d47' }, suggestedMin: 150, suggestedMax: 320 },
       },
       maintainAspectRatio: false,
     },

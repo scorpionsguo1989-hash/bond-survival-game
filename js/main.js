@@ -6,7 +6,7 @@ import { computeFinalScore } from './score.js';
 import { saveGame, loadGame, clearSave, pushHistoryRecord } from './storage.js';
 import { renderFateCard, renderMainScreen, renderCrisisModal, renderEndScreen, generateShareCard, downloadShareCard, renderLeaderboardModal, renderNicknamePrompt } from './ui.js';
 import { submitScore, fetchLeaderboard, fetchRank } from './api.js';
-import { renderDebtWaterfall, renderCashTrend, renderNavChart, renderHoldingsChart } from './charts.js';
+import { renderDebtWaterfall, renderCashTrend, renderNavChart, renderHoldingsChart, renderFiscalChart, renderDebtRatioChart } from './charts.js';
 
 let state = null;
 let eventData = null;
@@ -102,6 +102,9 @@ function enterMainScreen() {
     } else if (state.role.id === 'im') {
       renderNavChart(state);
       renderHoldingsChart(state);
+    } else if (state.role.id === 'gov') {
+      renderFiscalChart(state);
+      renderDebtRatioChart(state);
     }
   });
 

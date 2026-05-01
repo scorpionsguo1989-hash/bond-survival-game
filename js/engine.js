@@ -48,14 +48,15 @@ export function advanceTurn(state) {
   let newYear = state.year;
   if (newQuarter > 4) { newQuarter = 1; newYear += 1; }
 
-  // 4. 历史快照
+  // 4. 历史快照（包含所有角色可能查询的指标）
   const newHistory = [...state.history, {
     year: state.year,
     quarter: state.quarter,
     cash: state.metrics.cash,
     leverageRatio: state.metrics.leverageRatio,
     financingCost: state.metrics.financingCost,
-    nav: state.metrics.nav,                // IM 角色的净值历史（CFO 时 undefined）
+    nav: state.metrics.nav,                // IM 角色的净值历史
+    debtRatio: state.metrics.debtRatio,    // GOV 角色的债务率历史
     policyValue: state.policyValue,
   }];
 

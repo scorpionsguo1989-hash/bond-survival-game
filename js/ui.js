@@ -164,10 +164,12 @@ function renderMetricsPanel(state) {
   `;
 }
 
-// 通用兜底指标面板：在 IM 之外的角色加入前先用此渲染 role.metrics
-// IM 角色走 renderImMetricsPanel（带赎回压力 4 件套）
+// 通用兜底指标面板：CFO 之外角色的入口分发
+// IM → renderImMetricsPanel（赎回压力 4 件套）
+// GOV → renderGovMetricsPanel（债务率 + 政绩等核心指标）
 function renderGenericMetricsPanel(state) {
   if (state.role?.id === 'im') return renderImMetricsPanel(state);
+  if (state.role?.id === 'gov') return renderGovMetricsPanel(state);
   const m = state.metrics;
   const role = state.role;
   if (!role) return '';
@@ -213,6 +215,32 @@ function renderImMetricsPanel(state) {
       ${metricRow('AA 及以下', m.creditExposure.toFixed(0) + '%', ceColor, m.creditExposure)}
       ${metricRow('回购杠杆', m.leverage.toFixed(0) + '%', levColor, Math.min(100, (m.leverage - 100) * 2.5))}
       ${renderRedemptionCard(state)}
+    </div>
+  `;
+}
+
+// GOV 主界面指标面板（Plan 4 §8）
+function renderGovMetricsPanel(state) {
+  const m = state.metrics;
+  const debtColor = m.debtRatio > 280 ? 'val-bad' : (m.debtRatio > 250 ? 'val-warn' : 'val-ok');
+  const polColor = m.politicalScore < 30 ? 'val-bad' : (m.politicalScore < 45 ? 'val-warn' : 'val-ok');
+  const cashColor = m.cash < 1 ? 'val-bad' : (m.cash < 3 ? 'val-warn' : 'val-ok');
+  const hiddenColor = m.hiddenDebtRisk > 150 ? 'val-bad' : (m.hiddenDebtRisk > 100 ? 'val-warn' : 'val-ok');
+  return `
+    <div class="panel">
+      <div class="panel-title">核心指标</div>
+      ${metricRow('现金（季度）', m.cash.toFixed(1) + '亿', cashColor, Math.min(100, m.cash * 10))}
+      ${metricRow('综合债务率', m.debtRatio.toFixed(1) + '%', debtColor, Math.min(100, (m.debtRatio - 150) / 1.5))}
+      ${metricRow('隐债敞口', m.hiddenDebtRisk.toFixed(0) + '亿', hiddenColor, Math.min(100, m.hiddenDebtRisk / 2))}
+      ${metricRow('政绩评分', Math.round(m.politicalScore), polColor, m.politicalScore)}
+      ${metricRow('专项债额度', m.specialBondQuota.toFixed(1) + '亿', 'val-ok', Math.min(100, m.specialBondQuota * 4))}
+      ${metricRow('产业指数', Math.round(m.industryIndex), m.industryIndex < 30 ? 'val-warn' : 'val-ok', m.industryIndex)}
+      <div class="metric">
+        <div class="metric-row">
+          <span class="metric-name">财政收入（年）</span>
+          <span class="metric-value val-ok">${m.fiscalRevenue.toFixed(0)}亿</span>
+        </div>
+      </div>
     </div>
   `;
 }
@@ -370,6 +398,18 @@ function renderChartArea(state) {
       <div class="chart-panel">
         <div class="panel-title">持仓评级结构</div>
         <div style="height:140px"><canvas id="chart-holdings"></canvas></div>
+      </div>
+    `;
+  }
+  if (state.role?.id === 'gov') {
+    return `
+      <div class="chart-panel">
+        <div class="panel-title">财政收支结构（亿/季）</div>
+        <div style="height:120px"><canvas id="chart-fiscal"></canvas></div>
+      </div>
+      <div class="chart-panel">
+        <div class="panel-title">综合债务率走势</div>
+        <div style="height:120px"><canvas id="chart-debt-ratio"></canvas></div>
       </div>
     `;
   }
