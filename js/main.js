@@ -5,7 +5,8 @@ import { findMainEvent, sampleRandomEvents, getPolicyDirection, loadEvents } fro
 import { CFO_ACTIONS, applyAction, isActionAvailable } from './actions.js';
 import { computeFinalScore } from './score.js';
 import { saveGame, loadGame, clearSave, pushHistoryRecord } from './storage.js';
-import { renderFateCard, renderMainScreen, renderCrisisModal, renderEndScreen, generateShareCard, downloadShareCard } from './ui.js';
+import { renderFateCard, renderMainScreen, renderCrisisModal, renderEndScreen, generateShareCard, downloadShareCard, renderLeaderboardModal, renderNicknamePrompt } from './ui.js';
+import { submitScore, fetchLeaderboard, fetchRank } from './api.js';
 import { renderDebtWaterfall, renderCashTrend } from './charts.js';
 
 let state = null;
@@ -41,11 +42,29 @@ async function init() {
 function startNewGame() {
   const origin = generateOrigin('cfo');
   state = createInitialState(origin);
-  // 触发首回合事件
   loadCurrentTurnEvent();
   renderFateCard(origin, () => {
     enterMainScreen();
   });
+
+  // 命运卡界面渲染后，追加排行榜按钮
+  requestAnimationFrame(() => {
+    const container = document.querySelector('.fate-container');
+    if (container && !document.getElementById('btn-home-leaderboard')) {
+      const btn = document.createElement('button');
+      btn.id = 'btn-home-leaderboard';
+      btn.className = 'btn-secondary';
+      btn.style.cssText = 'margin-top:16px;display:block;margin-left:auto;margin-right:auto';
+      btn.textContent = '查看排行榜';
+      btn.addEventListener('click', showLeaderboard);
+      container.appendChild(btn);
+    }
+  });
+}
+
+async function showLeaderboard() {
+  const result = await fetchLeaderboard();
+  renderLeaderboardModal(result?.data || [], null);
 }
 
 function loadCurrentTurnEvent() {
@@ -181,12 +200,39 @@ function enterEndScreen() {
     quartersPassed: state.quartersPassed,
   });
   clearSave();
+
+  // 弹出昵称输入，然后提交成绩
+  renderNicknamePrompt(
+    (nickname) => submitAndShowEnd(nickname, finalScore),
+    () => submitAndShowEnd(null, finalScore),
+  );
+}
+
+async function submitAndShowEnd(nickname, finalScore) {
+  const scoreData = {
+    nickname,
+    directorName: state.origin.directorName,
+    platformName: state.origin.platformName,
+    regionTier: state.origin.regionTier,
+    healthLevel: state.origin.healthLevel,
+    score: finalScore.total,
+    grade: finalScore.grade.grade,
+    survived: state.survived,
+    quartersPassed: state.quartersPassed,
+  };
+
+  // 提交成绩（失败时 rank 为 null，静默降级）
+  const result = await submitScore(scoreData);
+  const rank = result?.rank || null;
+
   renderEndScreen(state, finalScore, {
+    rank,
     onRestart: () => { state = null; startNewGame(); },
     onShare: (fs) => {
       const dataUrl = generateShareCard(state, fs);
       downloadShareCard(dataUrl, `债市生存_${state.origin.directorName}_${fs.grade.grade}.png`);
     },
+    onLeaderboard: showLeaderboard,
   });
 }
 
