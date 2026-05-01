@@ -12,40 +12,95 @@ const ROLE_ACCENTS = { cfo: '#4fc3f7', im: '#ffd54f', gov: '#ef5350' };
 
 export function renderFateCard(origin, role, onAccept) {
   const app = document.getElementById('app');
-  // role 可选；若未传，按 origin.role 兜底
-  const roleName = role?.name || ROLE_LABELS[origin.role] || '城投财务总监';
-  // 命运卡 onboarding（Plan 3 §3.10）
-  const hints = role?.getOnboardingHints ? role.getOnboardingHints(origin) : null;
-  // 通用 fate-tags 渲染：CFO/IM origin 字段集不同，挑选可用的
-  const tagsHtml = renderFateTags(origin);
-  // 通用 challenges：CFO 有 challenges 字段，IM 无 → fallback 用 onboarding.topRisks 显示
-  const challengesList = origin.challenges && origin.challenges.length > 0
-    ? origin.challenges
-    : (hints ? hints.topRisks : []);
-  // 角色色（CFO 青蓝 / IM 金黄 / GOV 朱红）
-  const roleAccent = { cfo: '#4fc3f7', im: '#ffd54f', gov: '#ef5350' }[origin.role] || '#4fc3f7';
+  const roleId = origin.role || 'cfo';
+  const roleAccent = ROLE_ACCENTS[roleId] || ROLE_ACCENTS.cfo;
+  const d = getFateData(origin, role);
+
   app.innerHTML = `
-    <div class="screen active">
-      <div class="fate-container fate-role-${origin.role}" style="--role-accent:${roleAccent}">
-        <div class="fate-title">债市生存游戏</div>
-        <div class="fate-subtitle">命运由你改写</div>
-        <div class="fate-card">
-          <div class="role-badge">角色 · ${escapeHtml(roleName)}</div>
-          <div class="role-name">${escapeHtml(origin.directorName)}</div>
-          <div class="role-org">${escapeHtml(origin.platformName)}</div>
-          <div class="fate-tags">${tagsHtml}</div>
+    <div class="screen active fate-screen">
+      <div class="fate role-${roleId}" data-role="${roleId}" style="--role-accent:${roleAccent}">
+        <header class="fate-head">
+          <div class="brand">债市生存游戏 <span class="dot">●</span> SURVIVE THE BOND MARKET</div>
+          <h1><span class="lead"></span>命运由你改写</h1>
+          <div class="seed"><b>${escapeHtml(d.seedId)}</b> · ${d.year} Q${d.quarter} — 2024 Q4 · 12 QUARTERS</div>
+        </header>
+        <div class="fate-body">
+          <section class="id-card">
+            <div class="id-row">
+              <div class="role-badge">
+                <span class="glyph"></span>
+                <span>${escapeHtml(d.badgeEN)}</span>
+                <span class="sep">·</span>
+                <span class="zh">${escapeHtml(d.badgeZH)}</span>
+              </div>
+              <div class="seed-mini"><b>${escapeHtml(d.seedShort)}</b> / DIFFICULTY · ${escapeHtml(d.difficulty)}</div>
+            </div>
+            <div class="id-name">
+              <span class="name">${escapeHtml(d.name)}</span>
+              <span class="quote">${escapeHtml(d.nameQuote)}</span>
+            </div>
+            <div class="id-org">
+              <span class="label">PLATFORM</span>${escapeHtml(d.org)}
+            </div>
+            <div class="tags">
+              ${d.tags.map(t => `
+                <span class="tag ${t.kind === 'k' ? '' : t.kind}">
+                  ${t.kind === 'k' ? `<span class="k">${escapeHtml(t.k)}</span>` : ''}
+                  <span>${escapeHtml(t.v)}</span>
+                </span>
+              `).join('')}
+            </div>
+          </section>
           <div class="challenges">
-            <div class="challenges-title">你这局的三大挑战</div>
-            ${challengesList.slice(0, 3).map((c, i) => `
-              <div class="challenge-row">
-                <span class="challenge-num">0${i+1}</span>
-                <span class="challenge-rail" aria-hidden="true"></span>
-                <span class="challenge-text">${escapeHtml(c)}</span>
+            <div class="challenges-head">
+              <span class="ax">⨯</span>
+              <span>你这局的三大挑战</span>
+            </div>
+            ${d.challenges.slice(0, 3).map((c, i) => `
+              <div class="challenge-item">
+                <span class="num"><span>0</span>${i + 1}</span>
+                <span class="rail"></span>
+                <span class="text">${escapeHtml(c)}</span>
               </div>
             `).join('')}
           </div>
-          ${hints ? renderOnboardingCard(hints) : ''}
-          <button id="btn-accept-fate" class="start-btn">改写命运，开始游戏 →</button>
+          <section class="onboard">
+            <div class="onboard-head">
+              <span>BRIEFING · 任务简报</span>
+              <span class="live"><span class="dot"></span><span>LIVE</span></span>
+            </div>
+            <div class="onboard-grid">
+              <div class="onboard-cell">
+                <div class="label"><span class="icon tgt">▶</span><span>本局目标</span></div>
+                <div class="goal-text">${escapeHtml(d.goal.text)}<span class="num"> ${escapeHtml(String(d.goal.q))} </span>${escapeHtml(d.goal.suffix)}</div>
+              </div>
+              <div class="onboard-cell">
+                <div class="label"><span class="icon tip">!</span><span>推荐首操作</span></div>
+                <div class="tip-text">${escapeHtml(d.tip.pre)}<span class="hl"> ${escapeHtml(d.tip.hl)} </span>${escapeHtml(d.tip.post)}</div>
+              </div>
+              <div class="onboard-cell full">
+                <div class="label"><span class="icon rsk">×</span><span>致命风险</span></div>
+                <ul class="risks">
+                  ${d.risks.map(r => `
+                    <li>
+                      <span class="bullet">▍</span>
+                      <span>${escapeHtml(r.text)}</span>
+                      <span class="meta">${r.danger ? `<b>${escapeHtml(r.meta)}</b>` : escapeHtml(r.meta)}</span>
+                    </li>
+                  `).join('')}
+                </ul>
+              </div>
+            </div>
+          </section>
+          <footer class="fate-foot">
+            <button class="cta" id="btn-accept-fate">
+              <span>改写命运，开始游戏</span>
+              <span class="arrow">→</span>
+            </button>
+            <div class="cta-sub">
+              首次进入 · <a id="link-fate-leaderboard">查看全球排行榜</a>
+            </div>
+          </footer>
         </div>
       </div>
     </div>
@@ -53,36 +108,118 @@ export function renderFateCard(origin, role, onAccept) {
   document.getElementById('btn-accept-fate').addEventListener('click', onAccept);
 }
 
-function renderFateTags(origin) {
-  const tags = [];
-  if (origin.labels?.region) tags.push(`<span class="tag tag-region">${escapeHtml(origin.labels.region)}</span>`);
-  if (origin.labels?.business) tags.push(`<span class="tag tag-type">${escapeHtml(origin.labels.business)}</span>`);
-  if (origin.labels?.inst) tags.push(`<span class="tag tag-region">${escapeHtml(origin.labels.inst)}</span>`);
-  if (origin.labels?.scale) tags.push(`<span class="tag tag-type">${escapeHtml(origin.labels.scale)}</span>`);
-  if (origin.labels?.health) tags.push(`<span class="tag tag-type">${escapeHtml(origin.labels.health)}</span>`);
-  if (origin.labels?.tag) tags.push(`<span class="tag tag-warn">⚠ ${escapeHtml(origin.labels.tag)}</span>`);
-  return tags.join('');
+// 把 origin/role 转成 fate-card 渲染所需的统一数据结构
+function getFateData(origin, role) {
+  const roleId = origin.role || 'cfo';
+  const hints = role?.getOnboardingHints ? role.getOnboardingHints(origin) : null;
+  const seedHash = hashString(origin.platformName || 'seed').toString(16).toUpperCase().padStart(4, '0').slice(-4);
+  const year = 2022; // 起始年
+  const quarter = 1;
+  const seedId = `SEED-${year}-${seedHash}`;
+
+  // 难度（基于 challengeScore）
+  const cs = origin.challengeScore || 18;
+  let difficulty = '中等';
+  if (cs >= 24) difficulty = '困难';
+  else if (cs >= 20) difficulty = '挑战';
+  else if (cs <= 16) difficulty = '入门';
+
+  // 角色徽章 EN/ZH
+  const badge = {
+    cfo: { en: 'CFO', zh: '城投财务总监' },
+    im:  { en: 'PM',  zh: '债券基金经理' },
+    gov: { en: 'GOV', zh: '地方政府官员' },
+  }[roleId] || { en: 'CFO', zh: '城投财务总监' };
+
+  // codename quote（从 directorName 拼花名格式）
+  const nameQuote = `// codename · ${origin.directorName || ''}`;
+
+  // 4 个 tag（按 origin 字段挑选 + 标记 kind）
+  const tags = buildFateTags(origin);
+
+  // goal: { text, q, suffix }
+  const goal = buildGoal(roleId, origin);
+
+  // tip: { pre, hl, post } 拆分 firstActionHint
+  const tip = buildTip(hints?.firstActionHint || '观察主线事件');
+
+  // risks: [{text, meta, danger}] 把 topRisks 拆成 text + meta
+  const risks = buildRisks(hints?.topRisks || []);
+
+  // challenges
+  const challenges = origin.challenges && origin.challenges.length
+    ? origin.challenges
+    : (hints?.topRisks || []);
+
+  return {
+    badgeEN: badge.en,
+    badgeZH: badge.zh,
+    name: origin.directorName || '匿名',
+    nameQuote,
+    org: origin.platformName || '未命名机构',
+    seedId,
+    seedShort: seedHash,
+    difficulty,
+    year,
+    quarter,
+    tags,
+    challenges,
+    goal,
+    risks,
+    tip,
+  };
 }
 
-function renderOnboardingCard(hints) {
-  return `
-    <div class="onboarding-card">
-      <div class="onb-section">
-        <div class="onb-title">🎯 本局目标</div>
-        <div class="onb-content">${escapeHtml(hints.goal)}</div>
-      </div>
-      <div class="onb-section">
-        <div class="onb-title">⚠ 致命风险</div>
-        <ul class="onb-list">
-          ${hints.topRisks.map(r => `<li>${escapeHtml(r)}</li>`).join('')}
-        </ul>
-      </div>
-      <div class="onb-section">
-        <div class="onb-title">💡 推荐首操作</div>
-        <div class="onb-content">${escapeHtml(hints.firstActionHint)}</div>
-      </div>
-    </div>
-  `;
+function buildFateTags(origin) {
+  const roleId = origin.role || 'cfo';
+  const labels = origin.labels || {};
+  const tags = [];
+  if (roleId === 'cfo') {
+    if (labels.region)   tags.push({ kind: 'k', k: '区域', v: labels.region });
+    if (labels.business) tags.push({ kind: 'k', k: '业务', v: labels.business });
+    if (labels.health)   tags.push({ kind: 'warn', v: labels.health });
+    if (labels.tag)      tags.push({ kind: 'danger', v: labels.tag });
+  } else if (roleId === 'im') {
+    if (labels.inst)   tags.push({ kind: 'k', k: '机构', v: labels.inst });
+    if (labels.scale)  tags.push({ kind: 'k', k: '规模', v: labels.scale });
+    if (labels.health) tags.push({ kind: 'warn', v: labels.health });
+    if (labels.tag)    tags.push({ kind: 'danger', v: labels.tag });
+  } else if (roleId === 'gov') {
+    if (labels.tier)      tags.push({ kind: 'k', k: '层级', v: labels.tier });
+    if (labels.fiscal)    tags.push({ kind: 'k', k: '财政', v: labels.fiscal });
+    if (labels.political) tags.push({ kind: 'warn', v: labels.political });
+    if (labels.tag)       tags.push({ kind: 'danger', v: labels.tag });
+  }
+  return tags.slice(0, 4);
+}
+
+function buildGoal(roleId, origin) {
+  if (roleId === 'cfo') return { text: '存活', q: 12, suffix: '季度，期末现金不归零' };
+  if (roleId === 'im')  return { text: '守住', q: 0.85, suffix: '净值，12 季度不破清盘线' };
+  if (roleId === 'gov') return { text: '压降', q: 50, suffix: '个百分点债务率，并完成化债任务' };
+  return { text: '存活', q: 12, suffix: '季度' };
+}
+
+function buildTip(hint) {
+  // 尝试拆分 "第一回合先 X 预留 Y" 模式
+  const m = hint.match(/^(.*?)(申请[一-龥]{2,8}|卖出[一-龥]{2,8}|发[一-龥]{2,6}债|调[一-龥]{2,6}|减仓[一-龥]{2,6}|申报[一-龥]{2,8})(.*)$/);
+  if (m) return { pre: m[1].trim() + ' ', hl: m[2].trim(), post: ' ' + m[3].trim() };
+  // 兜底：整句作为 hl
+  return { pre: '第一回合先 ', hl: hint.replace(/^第一回合先?\s*/, '').slice(0, 14), post: '' };
+}
+
+function buildRisks(topRisks) {
+  // topRisks 通常是 "X → Y" 或 "X，Y" 的字符串，拆成 text + meta
+  return topRisks.slice(0, 3).map((r, i) => {
+    let text = r, meta = '', danger = i === 0;
+    const arrow = r.match(/^(.+?)\s*[→\-]>?\s*(.+)$/);
+    if (arrow) { text = arrow[1].trim(); meta = '→ ' + arrow[2].trim(); }
+    else {
+      const comma = r.match(/^(.+?)[,，]\s*(.+)$/);
+      if (comma) { text = comma[1].trim(); meta = comma[2].trim(); }
+    }
+    return { text, meta, danger };
+  });
 }
 
 export function escapeHtml(str) {
