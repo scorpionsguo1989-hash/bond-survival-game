@@ -37,15 +37,38 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "商业银行收紧城投贷款后，买方先看到的是再融资预期恶化，而不是马上违约。AA 及以下城投债二级成交变薄，估值收益率上行，组合净值会先承压。你需要判断这是短期错杀，还是区域信用重定价的开始。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "先减仓 AA 及以下城投，保留现金等估值企稳",
+            "effects": {
+              "creditExposure": -8,
+              "cashRatio": 2,
+              "score.crisisResponse": 5,
+              "score.liquidity": 3
+            }
+          },
+          {
+            "label": "用小仓位承接被错杀的高等级城投",
+            "effects": {
+              "cashRatio": -1.5,
+              "concentration": 1,
+              "nav": 0.01,
+              "score.development": 3
+            }
+          },
+          {
+            "label": "继续持有下沉仓位，赌银行窗口期很快过去",
+            "effects": {
+              "redemptionPressure": 8,
+              "nav": -0.02,
+              "score.projectProgress": -2
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "valuation_drawdown"
   },
   {
     "id": "main_2022_q1_b",
@@ -85,15 +108,36 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "隐债专项审计会把表外、非标和应收类融资重新拉回买方视野。市场不会等审计结论落地才调价，先被卖出的是结构复杂、披露薄弱、区域财政透明度差的主体。组合里如果有这类券，净值波动和合规压力会一起上来。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "清理披露弱、非标占比高的主体",
+            "effects": {
+              "creditExposure": -6,
+              "cashRatio": 1.5,
+              "score.compliance": 5
+            }
+          },
+          {
+            "label": "只保留审计口径较清楚的区域龙头",
+            "effects": {
+              "creditExposure": -3,
+              "concentration": 2,
+              "score.projectProgress": 3
+            }
+          },
+          {
+            "label": "认为审计不影响公开债兑付，维持原仓位",
+            "effects": {
+              "nav": -0.01,
+              "redemptionPressure": 6,
+              "score.crisisResponse": -2
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "regulatory"
   },
   {
     "id": "main_2022_q2_a",
@@ -133,15 +177,37 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "土地出让金下滑会削弱地方财政对城投的隐性支持，弱区域信用利差通常先走阔。投资经理要重新评估财政留存、平台重要性和存量债到期节奏。票息看起来更高，但信用下沉的容错率在下降。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "降低土地财政依赖高区域的敞口",
+            "effects": {
+              "creditExposure": -7,
+              "cashRatio": 1,
+              "score.projectProgress": 4
+            }
+          },
+          {
+            "label": "转向公用事业和强现金流平台",
+            "effects": {
+              "creditExposure": -3,
+              "duration": -0.2,
+              "score.compliance": 2
+            }
+          },
+          {
+            "label": "加仓高票息弱区域城投拉收益",
+            "effects": {
+              "creditExposure": 7,
+              "nav": 0.01,
+              "redemptionPressure": 5,
+              "score.development": 2
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "credit_sinking"
   },
   {
     "id": "main_2022_q2_b",
@@ -181,15 +247,36 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "重点项目加速建设意味着城投平台融资需求更硬，短期现金流可能更紧。买方需要区分项目是否有预算内资金和专项债配套，不能只看政府表态。没有现金流闭环的项目越多，后续估值折价越明显。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "买入有专项债配套的项目平台",
+            "effects": {
+              "cashRatio": -1,
+              "duration": 0.2,
+              "score.projectProgress": 4
+            }
+          },
+          {
+            "label": "压低无收益项目占比高主体的仓位",
+            "effects": {
+              "creditExposure": -4,
+              "cashRatio": 1,
+              "score.compliance": 2
+            }
+          },
+          {
+            "label": "追买项目概念券，赌后续政策资金跟上",
+            "effects": {
+              "creditExposure": 4,
+              "concentration": 2,
+              "nav": -0.01
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "credit_sinking"
   },
   {
     "id": "main_2022_q3_a",
@@ -228,15 +315,37 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "私募债违约会改变市场对城投刚兑边界的想象。即便你没有直接踩中，持仓中同区域、同评级、同期限的券也会被联动打折。这个阶段最难的是流动性消失，想卖不一定卖得出价格。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "砍掉尾部区域和私募债替代品敞口",
+            "effects": {
+              "creditExposure": -10,
+              "cashRatio": 2,
+              "nav": -0.01,
+              "score.crisisResponse": 5
+            }
+          },
+          {
+            "label": "保留强担保主体，接受短期估值波动",
+            "effects": {
+              "redemptionPressure": 4,
+              "score.compliance": 3
+            }
+          },
+          {
+            "label": "逆势加仓同区域高票息券",
+            "effects": {
+              "creditExposure": 8,
+              "concentration": 3,
+              "nav": -0.02,
+              "score.development": 2
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "valuation_drawdown"
   },
   {
     "id": "main_2022_q3_b",
@@ -276,15 +385,36 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "评级展望下调通常不会直接触发违约，但会影响机构白名单、质押折扣和二级报价。对组合来说，评级动作会把原本能拿住的仓位变成需要解释的仓位。你要在收益、白名单约束和客户观感之间取舍。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "把负面展望区域降到观察仓位",
+            "effects": {
+              "creditExposure": -6,
+              "cashRatio": 1,
+              "score.compliance": 4
+            }
+          },
+          {
+            "label": "只减低评级长久期券，保留短债票息",
+            "effects": {
+              "duration": -0.4,
+              "creditExposure": -2,
+              "score.liquidity": 2
+            }
+          },
+          {
+            "label": "维持仓位并向渠道解释主体差异",
+            "effects": {
+              "redemptionPressure": -4,
+              "score.crisisResponse": 2,
+              "score.compliance": -1
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "credit_sinking"
   },
   {
     "id": "main_2022_q4_a",
@@ -316,15 +446,38 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "理财赎回潮会把估值回撤变成真实卖盘，流动性比信用基本面更先决定价格。债券基金经理面对的是客户赎回、交易对手压价和净值继续回撤的连锁反应。此时现金比例就是生存时间。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "主动卖出流动性好的高等级券补现金",
+            "effects": {
+              "cashRatio": 4,
+              "aum": -8,
+              "nav": -0.01,
+              "score.liquidity": 5
+            }
+          },
+          {
+            "label": "暂停加仓，压久期并等待赎回潮缓和",
+            "effects": {
+              "duration": -0.5,
+              "redemptionPressure": -5,
+              "score.crisisResponse": 3
+            }
+          },
+          {
+            "label": "用回购杠杆承接跌出来的收益率",
+            "effects": {
+              "leverage": 15,
+              "cashRatio": 2,
+              "redemptionPressure": 8,
+              "score.development": 3
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "liquidity"
   },
   {
     "id": "main_2022_q4_b",
@@ -364,15 +517,36 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "年末到期高峰会让市场同时关注发行人兑付和买方资金面。城投短债成交折价扩大，跨年资金价格抬升，回购加杠杆的安全垫变薄。组合如果现金不足，可能被迫在最差时点卖券。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "提前卖出部分短久期仓位跨年",
+            "effects": {
+              "cashRatio": 3,
+              "aum": -5,
+              "score.liquidity": 4
+            }
+          },
+          {
+            "label": "保留现金，只续做低杠杆回购",
+            "effects": {
+              "leverage": 5,
+              "cashRatio": 1,
+              "score.compliance": 2
+            }
+          },
+          {
+            "label": "押注跨年后资金转松，维持杠杆仓位",
+            "effects": {
+              "leverage": 12,
+              "nav": -0.01,
+              "redemptionPressure": 6
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "liquidity"
   },
   {
     "id": "main_2023_q1_a",
@@ -402,15 +576,38 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "化债政策信号释放后，市场会先交易预期，弱资质城投往往反弹最快。问题是政策落地有先后，真正受益的是债务压力大但纳入支持范围的主体。追涨可以修复净值，也可能买到政策够不到的尾部平台。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "分批买入有纳入化债预期的区域龙头",
+            "effects": {
+              "cashRatio": -2,
+              "creditExposure": 3,
+              "nav": 0.02,
+              "score.projectProgress": 4
+            }
+          },
+          {
+            "label": "只拉长强区域久期，避免下沉过深",
+            "effects": {
+              "duration": 0.5,
+              "creditExposure": -2,
+              "score.compliance": 3
+            }
+          },
+          {
+            "label": "全面追涨弱资质城投博政策 beta",
+            "effects": {
+              "creditExposure": 9,
+              "concentration": 2,
+              "redemptionPressure": 5,
+              "score.development": 4
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "credit_sinking"
   },
   {
     "id": "main_2023_q1_b",
@@ -449,15 +646,36 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "专项债提前批改善了地方项目资金来源，也压低了部分城投再融资担忧。利率下行和信用修复同时出现时，久期仓位会贡献净值。风险在于收益率下得太快，后面再买的性价比变差。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "适度拉长高等级城投久期",
+            "effects": {
+              "duration": 0.6,
+              "nav": 0.015,
+              "score.costControl": 3
+            }
+          },
+          {
+            "label": "用现金等待新券供给，避免追高",
+            "effects": {
+              "cashRatio": 1,
+              "score.liquidity": 2
+            }
+          },
+          {
+            "label": "加仓专项债配套区域平台",
+            "effects": {
+              "cashRatio": -2,
+              "concentration": 2,
+              "creditExposure": 2,
+              "score.projectProgress": 3
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "duration"
   },
   {
     "id": "main_2023_q2_a",
@@ -496,15 +714,37 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "城投市场化转型试点会改变发行人定位，买方要判断它是信用改善还是政府支持弱化。剥离融资平台功能后，经营现金流和资产质量变得更重要。过去靠政府信用定价的逻辑需要重新校准。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "增配真正有经营现金流的转型平台",
+            "effects": {
+              "creditExposure": -3,
+              "concentration": 1,
+              "nav": 0.01,
+              "score.projectProgress": 4
+            }
+          },
+          {
+            "label": "降低只改名不改业务的平台仓位",
+            "effects": {
+              "creditExposure": -5,
+              "cashRatio": 1,
+              "score.compliance": 3
+            }
+          },
+          {
+            "label": "把转型当作政府支持延续信号继续加仓",
+            "effects": {
+              "creditExposure": 4,
+              "concentration": 2,
+              "redemptionPressure": 3
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "regulatory"
   },
   {
     "id": "main_2023_q2_b",
@@ -544,15 +784,36 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "地方财政收入承压会削弱应收回款和补贴兑现，对城投现金流是慢变量冲击。买方不能只看公开债到期表，还要看财政拖欠和平台自营造血能力。弱财政区域的票息补偿如果不够，持有体验会很差。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "下调财政自给率弱区域的信用敞口",
+            "effects": {
+              "creditExposure": -7,
+              "cashRatio": 1,
+              "score.compliance": 4
+            }
+          },
+          {
+            "label": "保留短久期高票息仓位，控制期限风险",
+            "effects": {
+              "duration": -0.4,
+              "nav": 0.005,
+              "score.costControl": 2
+            }
+          },
+          {
+            "label": "继续吃票息等待财政修复",
+            "effects": {
+              "creditExposure": 4,
+              "redemptionPressure": 6,
+              "nav": -0.01
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "credit_sinking"
   },
   {
     "id": "main_2023_q3_a",
@@ -593,15 +854,38 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "一揽子化债方案落地后，城投债最先反映为估值修复和利差压缩。持仓越下沉，短期净值弹性越大，但政策红利兑现后收益空间也会变窄。你要决定是落袋为安，还是继续拿政策交易的后半段。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "兑现部分弱资质仓位收益，降低波动",
+            "effects": {
+              "creditExposure": -6,
+              "cashRatio": 2,
+              "nav": 0.01,
+              "score.crisisResponse": 4
+            }
+          },
+          {
+            "label": "保留核心仓位，拉长受益区域久期",
+            "effects": {
+              "duration": 0.5,
+              "nav": 0.015,
+              "score.costControl": 3
+            }
+          },
+          {
+            "label": "继续下沉到政策边缘区域追收益",
+            "effects": {
+              "creditExposure": 8,
+              "concentration": 2,
+              "redemptionPressure": 4,
+              "score.development": 3
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "valuation_drawdown"
   },
   {
     "id": "main_2023_q3_b",
@@ -642,15 +926,36 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "应急流动性支持工具改善了市场对尾部风险的预期，也让交易盘重新愿意报价。流动性恢复时，组合可以调整结构，但拥挤交易也会快速压低收益。真正的机会是把难卖的仓位换成更清晰的信用。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "趁成交恢复调出尾部主体",
+            "effects": {
+              "creditExposure": -8,
+              "cashRatio": 1,
+              "score.liquidity": 4
+            }
+          },
+          {
+            "label": "用恢复的流动性换入强主体长久期",
+            "effects": {
+              "duration": 0.4,
+              "creditExposure": -2,
+              "nav": 0.01
+            }
+          },
+          {
+            "label": "继续持有等待利差进一步压缩",
+            "effects": {
+              "nav": 0.01,
+              "redemptionPressure": 3,
+              "score.development": 2
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "liquidity"
   },
   {
     "id": "main_2023_q4_a",
@@ -690,15 +995,35 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "上级考核债务化解进度后，市场会关注哪些平台真降债、哪些只是期限腾挪。买方需要把政策口号拆成可验证指标：公开债余额、非标压降、财政支持路径。考核越严，合规和信息透明越值钱。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "增配公开披露降债进度清晰的平台",
+            "effects": {
+              "creditExposure": -4,
+              "concentration": 1,
+              "score.compliance": 5
+            }
+          },
+          {
+            "label": "卖出只做展期腾挪的平台",
+            "effects": {
+              "cashRatio": 1.5,
+              "creditExposure": -5,
+              "score.crisisResponse": 3
+            }
+          },
+          {
+            "label": "等待年报确认后再调仓",
+            "effects": {
+              "redemptionPressure": 3,
+              "score.liquidity": -1
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "regulatory"
   },
   {
     "id": "main_2023_q4_b",
@@ -738,15 +1063,39 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "信用债市场年末回暖会修复净值，也会让渠道重新追问排名和收益。客户在上涨时容易申购，但新增资金如果追高买入，后续回撤压力会更大。基金经理要在规模、收益和组合安全垫之间做平衡。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "控制申购节奏，把新增资金先放短债",
+            "effects": {
+              "aum": 5,
+              "cashRatio": 1,
+              "duration": -0.2,
+              "score.liquidity": 3
+            }
+          },
+          {
+            "label": "顺势扩规模并加仓热门城投",
+            "effects": {
+              "aum": 20,
+              "cashRatio": -3,
+              "concentration": 3,
+              "nav": 0.01,
+              "score.development": 4
+            }
+          },
+          {
+            "label": "趁净值修复主动降仓位锁收益",
+            "effects": {
+              "cashRatio": 3,
+              "creditExposure": -4,
+              "score.crisisResponse": 3
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "client_behavior"
   },
   {
     "id": "main_2024_q1_a",
@@ -778,15 +1127,36 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "非标全面收紧会暴露城投真实流动性压力，也会让公开债投资人重新审视偿债来源。持仓主体如果依赖融资租赁、信托或应收账款滚续，估值会先被打折。监管新规落地后，侥幸空间变小。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "剔除非标依赖度高的主体",
+            "effects": {
+              "creditExposure": -8,
+              "cashRatio": 1.5,
+              "score.compliance": 5
+            }
+          },
+          {
+            "label": "保留有银行授信替代路径的平台",
+            "effects": {
+              "creditExposure": -3,
+              "concentration": 1,
+              "score.projectProgress": 2
+            }
+          },
+          {
+            "label": "认为公开债优先兑付，继续持有高票息券",
+            "effects": {
+              "nav": -0.015,
+              "redemptionPressure": 7,
+              "score.costControl": 2
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "regulatory"
   },
   {
     "id": "main_2024_q1_b",
@@ -825,15 +1195,35 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "新一轮隐债摸底会让区域债务口径再度收紧，市场更关注政府债务承受力。买方要防止把短期政策支持误读成长期信用改善。信息不透明的主体会被要求更高流动性折价。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "提高组合透明度要求，卖出披露不足主体",
+            "effects": {
+              "creditExposure": -6,
+              "cashRatio": 1,
+              "score.compliance": 5
+            }
+          },
+          {
+            "label": "只保留强财政区域的隐债化解受益券",
+            "effects": {
+              "creditExposure": -3,
+              "duration": 0.2,
+              "score.projectProgress": 2
+            }
+          },
+          {
+            "label": "等摸底结束再行动，避免错杀",
+            "effects": {
+              "redemptionPressure": 5,
+              "nav": -0.01
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "regulatory"
   },
   {
     "id": "main_2024_q2_a",
@@ -874,15 +1264,37 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "城投整合提速后，市场会交易资产注入、主体合并和区域信用集中度变化。强平台整合弱平台不一定利好，关键是债务是否也被带上来。买方需要识别谁是受益主体，谁只是被动承接包袱。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "买入整合后地位提升的平台",
+            "effects": {
+              "cashRatio": -1.5,
+              "concentration": 2,
+              "nav": 0.01,
+              "score.projectProgress": 4
+            }
+          },
+          {
+            "label": "卖出可能承接弱平台债务的主体",
+            "effects": {
+              "creditExposure": -5,
+              "cashRatio": 1,
+              "score.crisisResponse": 3
+            }
+          },
+          {
+            "label": "广撒网买入整合概念券",
+            "effects": {
+              "creditExposure": 5,
+              "concentration": 2,
+              "redemptionPressure": 3
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "credit_sinking"
   },
   {
     "id": "main_2024_q2_b",
@@ -922,15 +1334,36 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "产业基金注资机会会改善部分平台资产质量，但买方要看资金是否真实到位、是否能形成现金流。股权注入改善报表不等于公开债偿付能力立刻增强。这个事件更适合做主体分层，而不是无差别加仓。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "增配注资落地且产业现金流清晰的平台",
+            "effects": {
+              "creditExposure": -3,
+              "cashRatio": -1,
+              "nav": 0.01,
+              "score.projectProgress": 4
+            }
+          },
+          {
+            "label": "等待工商和资金流水确认后再买",
+            "effects": {
+              "cashRatio": 1,
+              "score.compliance": 3
+            }
+          },
+          {
+            "label": "抢先买入所有产业基金概念主体",
+            "effects": {
+              "creditExposure": 4,
+              "concentration": 3,
+              "redemptionPressure": 4
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "credit_sinking"
   },
   {
     "id": "main_2024_q3_a",
@@ -961,15 +1394,36 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "利率持续下行会让长久期债券贡献更高资本利得，但也会压低后续票息空间。城投债再融资成本改善是利好，然而久期过长会在利率反弹时伤净值。此时收益来自久期管理，不只是信用下沉。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "拉长高等级城投久期吃资本利得",
+            "effects": {
+              "duration": 0.7,
+              "nav": 0.02,
+              "score.costControl": 4
+            }
+          },
+          {
+            "label": "保持中短久期，锁定已实现收益",
+            "effects": {
+              "duration": -0.2,
+              "cashRatio": 1,
+              "score.liquidity": 2
+            }
+          },
+          {
+            "label": "用杠杆放大利率下行收益",
+            "effects": {
+              "leverage": 12,
+              "nav": 0.015,
+              "redemptionPressure": 5
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "duration"
   },
   {
     "id": "main_2024_q3_b",
@@ -1010,15 +1464,37 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "政策性银行加大支持力度会改善重点项目平台的再融资预期。买方需要判断支持是普惠信用，还是只覆盖纳入清单的项目和主体。清单外平台仍可能被市场冷落。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "增配清单内重点项目平台",
+            "effects": {
+              "cashRatio": -1.5,
+              "creditExposure": -2,
+              "nav": 0.01,
+              "score.projectProgress": 4
+            }
+          },
+          {
+            "label": "卖出政策支持路径不清楚的尾部主体",
+            "effects": {
+              "creditExposure": -6,
+              "cashRatio": 1,
+              "score.compliance": 3
+            }
+          },
+          {
+            "label": "追买同区域所有城投，赌支持外溢",
+            "effects": {
+              "creditExposure": 6,
+              "concentration": 2,
+              "redemptionPressure": 4
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "credit_sinking"
   },
   {
     "id": "main_2024_q4_final",
@@ -1041,14 +1517,37 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "body": "终局前，客户看的不只是你有没有活下来，还看净值回撤、赎回体验和组合还能不能继续讲故事。城投行情已经从政策 beta 进入主体分层，过去三年的每一次调仓都会反映在最终排名里。最后一个季度要避免为了冲分把产品带到清盘线附近。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "降低尾部仓位，守住净值和赎回体验",
+            "effects": {
+              "creditExposure": -6,
+              "cashRatio": 2,
+              "redemptionPressure": -8,
+              "score.crisisResponse": 4
+            }
+          },
+          {
+            "label": "维持核心仓位，争取稳健收官",
+            "effects": {
+              "nav": 0.005,
+              "score.compliance": 2,
+              "score.development": 2
+            }
+          },
+          {
+            "label": "最后冲刺收益排名，继续加杠杆和下沉",
+            "effects": {
+              "leverage": 10,
+              "creditExposure": 5,
+              "nav": -0.01,
+              "redemptionPressure": 6
+            }
           }
         ]
       }
-    }
+    },
+    "teaching": "client_behavior"
   }
 ]
