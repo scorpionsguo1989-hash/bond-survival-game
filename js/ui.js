@@ -402,3 +402,82 @@ export function downloadShareCard(dataUrl, filename) {
   a.download = filename;
   a.click();
 }
+
+export function renderLeaderboardModal(leaderboardData, onClose) {
+  const overlay = document.createElement('div');
+  overlay.id = 'leaderboard-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(10,14,26,0.95);z-index:1000;overflow-y:auto;padding:20px';
+
+  const rows = (leaderboardData || []).map(row => {
+    const name = escapeHtml(row.nickname || row.directorName);
+    const regionLabel = REGION_LABELS[row.regionTier] || row.regionTier;
+    const healthLabel = HEALTH_LABELS[row.healthLevel] || row.healthLevel;
+    return `
+      <tr>
+        <td class="lb-rank">#${row.rank}</td>
+        <td class="lb-name">${name}</td>
+        <td class="lb-platform">${escapeHtml(row.platformName)}</td>
+        <td class="lb-difficulty">${regionLabel}·${healthLabel}</td>
+        <td class="lb-grade grade-${row.grade}">${row.grade}</td>
+        <td class="lb-score">${row.score}</td>
+        <td class="lb-quarters">${row.quartersPassed}/12</td>
+      </tr>
+    `;
+  }).join('');
+
+  const emptyMsg = leaderboardData && leaderboardData.length > 0
+    ? ''
+    : '<tr><td colspan="7" style="text-align:center;color:#4a6080;padding:40px">暂无记录，等你来创造历史</td></tr>';
+
+  overlay.innerHTML = `
+    <div class="lb-container">
+      <div class="lb-header">
+        <span class="lb-title">排行榜 · Top 20</span>
+        <button id="btn-lb-close" class="lb-close-btn">✕</button>
+      </div>
+      <table class="lb-table">
+        <thead>
+          <tr>
+            <th>排名</th><th>昵称</th><th>平台</th><th>难度</th><th>评级</th><th>总分</th><th>存活</th>
+          </tr>
+        </thead>
+        <tbody>${rows}${emptyMsg}</tbody>
+      </table>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  document.getElementById('btn-lb-close').addEventListener('click', () => {
+    overlay.remove();
+    if (onClose) onClose();
+  });
+}
+
+export function renderNicknamePrompt(onSubmit, onSkip) {
+  const overlay = document.createElement('div');
+  overlay.id = 'nickname-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(10,14,26,0.9);z-index:1000;display:flex;align-items:center;justify-content:center';
+
+  overlay.innerHTML = `
+    <div class="nickname-card">
+      <div class="nickname-title">留下你的大名</div>
+      <div class="nickname-subtitle">上榜后其他玩家可以看到（选填）</div>
+      <input type="text" id="input-nickname" class="nickname-input" maxlength="20" placeholder="最多20个字符">
+      <div class="nickname-actions">
+        <button id="btn-nick-submit" class="btn-primary">提交成绩</button>
+        <button id="btn-nick-skip" class="btn-secondary">跳过</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  document.getElementById('btn-nick-submit').addEventListener('click', () => {
+    const val = document.getElementById('input-nickname').value.trim();
+    overlay.remove();
+    onSubmit(val || null);
+  });
+  document.getElementById('btn-nick-skip').addEventListener('click', () => {
+    overlay.remove();
+    onSkip();
+  });
+}

@@ -159,3 +159,29 @@ body { background: #0a0e1a; color: #c8d4e8; font-family: 'SF Mono', 'Courier New
 .endgame-actions { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
 .btn-primary { padding: 12px 32px; background: #1565c0; border: none; border-radius: 6px; color: #e0eaf8; font-size: 13px; letter-spacing: 1px; cursor: pointer; }
 .btn-secondary { padding: 12px 32px; background: transparent; border: 1px solid #1e3a5f; border-radius: 6px; color: #4fc3f7; font-size: 13px; cursor: pointer; }
+
+/* === 排行榜弹窗 === */
+.lb-container { max-width: 900px; margin: 30px auto; }
+.lb-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.lb-title { font-size: 18px; color: #e0eaf8; letter-spacing: 2px; }
+.lb-close-btn { background: none; border: 1px solid #1e2d47; color: #4a6080; width: 32px; height: 32px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+.lb-close-btn:hover { border-color: #4fc3f7; color: #4fc3f7; }
+.lb-table { width: 100%; border-collapse: collapse; background: #0f1623; border: 1px solid #1e2d47; border-radius: 6px; overflow: hidden; }
+.lb-table th { font-size: 10px; letter-spacing: 1px; color: #4a6080; text-transform: uppercase; text-align: left; padding: 10px 12px; border-bottom: 1px solid #1e2d47; background: #0a1020; }
+.lb-table td { padding: 10px 12px; border-bottom: 1px solid #0d1a2e; font-size: 12px; }
+.lb-rank { color: #4fc3f7; font-weight: bold; min-width: 40px; }
+.lb-name { color: #e0eaf8; }
+.lb-platform { color: #6a8aaa; }
+.lb-difficulty { color: #4a6080; font-size: 11px; }
+.lb-grade { font-weight: bold; font-size: 14px; }
+.lb-score { color: #4fc3f7; font-weight: bold; }
+.lb-quarters { color: #6a8aaa; }
+
+/* === 昵称输入弹窗 === */
+.nickname-card { background: #0f1623; border: 1px solid #1e2d47; border-radius: 12px; padding: 36px; text-align: center; max-width: 400px; width: 90%; }
+.nickname-title { font-size: 20px; color: #e0eaf8; margin-bottom: 8px; }
+.nickname-subtitle { font-size: 12px; color: #4a6080; margin-bottom: 24px; }
+.nickname-input { width: 100%; padding: 12px 16px; background: #07101e; border: 1px solid #1e3a5f; border-radius: 6px; color: #e0eaf8; font-size: 14px; text-align: center; outline: none; margin-bottom: 20px; }
+.nickname-input:focus { border-color: #4fc3f7; }
+.nickname-input::placeholder { color: #2a4060; }
+.nickname-actions { display: flex; gap: 12px; justify-content: center; }
