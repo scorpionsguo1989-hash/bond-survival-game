@@ -40,7 +40,7 @@ async function init() {
 }
 
 function startNewGame() {
-  const origin = generateOrigin('cfo');
+  const origin = generateOrigin();
   state = createInitialState(origin);
   loadCurrentTurnEvent();
   renderFateCard(origin, () => {
