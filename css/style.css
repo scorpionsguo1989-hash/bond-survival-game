@@ -11,27 +11,72 @@ body { background: #0a0e1a; color: #c8d4e8; font-family: 'SF Mono', 'Courier New
 .screen { display: none; padding: 20px; min-height: calc(100vh - 42px); }
 .screen.active { display: block; }
 
-/* ========== 界面一：命运卡 ========== */
-.fate-container { max-width: 700px; margin: 40px auto; text-align: center; }
-.fate-title { font-size: 11px; letter-spacing: 3px; color: #4a6080; text-transform: uppercase; margin-bottom: 8px; }
-.fate-subtitle { font-size: 26px; color: #e0eaf8; font-weight: 300; margin-bottom: 40px; letter-spacing: 2px; }
-.fate-card { background: linear-gradient(135deg, #0f1e35 0%, #091526 100%); border: 1px solid #1e3a5f; border-radius: 12px; padding: 36px; position: relative; overflow: hidden; }
-.fate-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #1565c0, #4fc3f7, #1565c0); }
-.role-badge { display: inline-block; padding: 5px 16px; background: #1565c0; border-radius: 20px; font-size: 11px; letter-spacing: 2px; color: #90caf9; margin-bottom: 20px; }
-.role-name { font-size: 32px; color: #e0eaf8; font-weight: 300; margin-bottom: 4px; }
-.role-org { font-size: 13px; color: #4fc3f7; margin-bottom: 28px; }
-.fate-tags { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 28px; }
-.tag { padding: 4px 12px; border-radius: 4px; font-size: 11px; letter-spacing: 1px; }
+/* ========== 界面一：命运卡（Plan 5 Round 1） ========== */
+.fate-container { max-width: 720px; margin: 28px auto; text-align: center; padding: 0 14px;
+  --role-accent: #4fc3f7;
+}
+.fate-title { font-size: 11px; letter-spacing: 4px; color: #4a6080; text-transform: uppercase; margin-bottom: 6px; }
+.fate-subtitle { font-size: 26px; color: #e0eaf8; font-weight: 300; margin-bottom: 28px; letter-spacing: 3px; }
+.fate-card {
+  background: linear-gradient(135deg, #0f1e35 0%, #091526 100%);
+  border: 1px solid #1e3a5f; border-radius: 10px;
+  padding: 28px 32px; position: relative; overflow: hidden;
+}
+.fate-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, transparent, var(--role-accent), transparent);
+}
+.role-badge {
+  display: inline-block; padding: 5px 18px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--role-accent);
+  border-radius: 20px; font-size: 11px; letter-spacing: 2px;
+  color: var(--role-accent); margin-bottom: 14px;
+}
+.role-name { font-size: 36px; color: #e0eaf8; font-weight: 300; margin-bottom: 4px; letter-spacing: 4px; }
+.role-org { font-size: 13px; color: var(--role-accent); margin-bottom: 18px; letter-spacing: 1px; }
+.fate-tags { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 22px; }
+.tag { padding: 4px 12px; border-radius: 3px; font-size: 11px; letter-spacing: 1px; }
 .tag-region { background: #1a2e1a; color: #81c784; border: 1px solid #2e5030; }
 .tag-type { background: #1a1a2e; color: #9fa8da; border: 1px solid #2e2e50; }
 .tag-warn { background: #2e1a1a; color: #ef9a9a; border: 1px solid #502e2e; }
-.challenges { text-align: left; background: #07101e; border-radius: 8px; padding: 20px; }
-.challenges-title { font-size: 10px; letter-spacing: 2px; color: #4a6080; text-transform: uppercase; margin-bottom: 14px; }
-.challenge-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
-.challenge-num { color: #e53935; font-weight: bold; min-width: 16px; }
-.challenge-text { color: #8fa8c8; line-height: 1.5; }
-.start-btn { margin-top: 32px; padding: 14px 48px; background: #1565c0; border: none; border-radius: 6px; color: #e0eaf8; font-size: 14px; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; }
-.start-btn:hover { background: #1976d2; }
+.challenges { text-align: left; background: #07101e; border-radius: 6px; padding: 16px 18px; border: 1px solid #15243f; }
+.challenges-title { font-size: 10px; letter-spacing: 2px; color: #4a6080; text-transform: uppercase; margin-bottom: 12px; }
+/* 三大挑战：编号 / rail / 文本 三列 grid 对齐 */
+.challenge-row {
+  display: grid;
+  grid-template-columns: 28px 4px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+}
+.challenge-row + .challenge-row { border-top: 1px dashed #15243f; }
+.challenge-num {
+  color: var(--role-accent); font-weight: bold; font-size: 14px;
+  font-family: 'SF Mono', monospace;
+}
+.challenge-rail {
+  width: 3px; height: 100%; min-height: 18px;
+  background: var(--role-accent); border-radius: 2px;
+  opacity: 0.55;
+}
+.challenge-text { color: #c8d4e8; line-height: 1.55; font-size: 12.5px; }
+.start-btn {
+  margin-top: 26px; padding: 14px 48px;
+  background: var(--role-accent); border: none; border-radius: 4px;
+  color: #051018; font-size: 14px; letter-spacing: 3px; font-weight: bold;
+  cursor: pointer; transition: all 0.2s;
+}
+.start-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+/* 命运卡移动端：保留页面整体滚动，避免内部 overflow */
+@media (max-width: 640px) {
+  .fate-container { margin: 16px auto; padding: 0 10px; }
+  .fate-subtitle { font-size: 22px; margin-bottom: 18px; letter-spacing: 2px; }
+  .fate-card { padding: 20px 18px; }
+  .role-name { font-size: 28px; letter-spacing: 3px; }
+  .start-btn { width: 100%; padding: 14px 16px; }
+}
 .init-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
 .init-stat { background: #07101e; border-radius: 6px; padding: 12px; text-align: center; }
 .init-stat-label { font-size: 10px; color: #4a6080; letter-spacing: 1px; margin-bottom: 4px; }
@@ -53,7 +98,14 @@ body { background: #0a0e1a; color: #c8d4e8; font-family: 'SF Mono', 'Courier New
 .policy-status { font-size: 11px; color: #ffb74d; }
 .timer { font-size: 11px; color: #4a6080; }
 
-.main-grid { display: grid; grid-template-columns: 220px 1fr 260px; gap: 14px; }
+.main-grid { display: grid; grid-template-columns: 240px 1fr 280px; gap: 14px; }
+.main-grid .col-left { display: flex; flex-direction: column; gap: 14px; }
+.main-grid .col-center { display: flex; flex-direction: column; gap: 14px; }
+.main-grid .col-right { display: flex; flex-direction: column; gap: 14px; }
+
+/* 本局目标卡（左栏底部） */
+.goal-card .goal-content { font-size: 12px; color: #c8d4e8; line-height: 1.6; margin-bottom: 8px; }
+.goal-card .goal-hint { font-size: 11px; color: #4fc3f7; line-height: 1.5; }
 
 /* 左侧指标面板 */
 .panel { background: #0f1623; border: 1px solid #1e2d47; border-radius: 6px; padding: 14px; }
@@ -103,31 +155,218 @@ body { background: #0a0e1a; color: #c8d4e8; font-family: 'SF Mono', 'Courier New
 .status-item { font-size: 10px; color: #4a6080; }
 .status-item span { color: #8fa8c8; }
 
-/* ========== 界面三：危机处置 ========== */
-.crisis-overlay { background: #0a0e1a; min-height: calc(100vh - 80px); position: relative; }
+/* ========== 界面三：危机处置（Plan 5 Round 3 重设计） ========== */
+.crisis-overlay-v2 {
+  position: fixed; inset: 0; z-index: 1600;
+  background: radial-gradient(ellipse at center, rgba(80,0,0,0.55) 0%, rgba(10,4,4,0.92) 70%);
+  overflow-y: auto; padding: 0 20px 40px;
+  animation: crisis-fade-in 0.25s ease;
+}
+@keyframes crisis-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 .crisis-flash { animation: flash 1s ease-in-out 3; }
 @keyframes flash { 0%,100%{opacity:1} 50%{opacity:0.7} }
-.crisis-banner { background: linear-gradient(90deg, #7f0000, #b71c1c, #7f0000); padding: 12px 20px; text-align: center; font-size: 11px; letter-spacing: 3px; color: #ffcdd2; text-transform: uppercase; margin: -20px -20px 20px; }
-.crisis-center { max-width: 680px; margin: 0 auto; }
-.crisis-card { background: #150a0a; border: 1px solid #4a1010; border-radius: 8px; padding: 28px; margin-bottom: 16px; }
-.crisis-card::before { content: ''; display: block; width: 40px; height: 3px; background: #ef5350; border-radius: 2px; margin-bottom: 16px; }
-.crisis-title { font-size: 20px; color: #ffcdd2; margin-bottom: 10px; }
-.crisis-body { font-size: 12px; color: #8a6060; line-height: 1.8; margin-bottom: 20px; }
-.crisis-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-.crisis-metric { background: #0a0505; border-radius: 4px; padding: 10px; text-align: center; border: 1px solid #3a1010; }
-.crisis-metric-label { font-size: 10px; color: #6a4040; margin-bottom: 4px; letter-spacing: 1px; }
-.crisis-metric-value { font-size: 18px; font-weight: bold; color: #ef5350; }
+.crisis-banner {
+  background: linear-gradient(90deg, #7f0000, #b71c1c, #7f0000);
+  padding: 12px 20px; text-align: center;
+  font-size: 11px; letter-spacing: 3px; color: #ffcdd2;
+  text-transform: uppercase;
+  margin: 0 -20px 24px;
+  animation: crisis-pulse 1.5s ease-in-out infinite;
+}
+@keyframes crisis-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+.crisis-center { max-width: 720px; margin: 0 auto; }
+.crisis-card {
+  background: linear-gradient(180deg, #1a0a0a 0%, #0f0606 100%);
+  border: 1px solid #4a1010;
+  border-top: 3px solid #ef5350;
+  border-radius: 4px;
+  padding: 24px 28px;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.7), 0 0 80px rgba(239,83,80,0.15);
+  animation: crisis-card-in 0.35s cubic-bezier(0.2,0.9,0.2,1);
+}
+@keyframes crisis-card-in {
+  from { transform: translateY(-12px) scale(0.97); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+.crisis-card-header {
+  display: flex; gap: 16px; align-items: flex-start; margin-bottom: 18px;
+  padding-bottom: 16px; border-bottom: 1px dashed #3a1010;
+}
+.crisis-icon {
+  flex-shrink: 0; width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  background: #2e0808; border: 1px solid #ef5350; border-radius: 4px;
+  color: #ef5350; font-size: 22px;
+}
+.crisis-title {
+  font-size: 18px; color: #ffcdd2; margin-bottom: 6px;
+  letter-spacing: 1px; font-weight: bold;
+}
+.crisis-body { font-size: 12px; color: #b09090; line-height: 1.7; }
+.crisis-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+.crisis-metric {
+  background: rgba(0,0,0,0.4); border-radius: 3px;
+  padding: 12px 10px; text-align: center; border: 1px solid #3a1010;
+}
+.crisis-metric-label { font-size: 10px; color: #8a6060; margin-bottom: 6px; letter-spacing: 1px; }
+.crisis-metric-value {
+  font-size: 20px; font-weight: bold; color: #ef5350;
+  font-family: 'SF Mono', monospace;
+}
+.crisis-options-title {
+  font-size: 10px; color: #8a6060; letter-spacing: 2px;
+  margin-bottom: 10px; text-transform: uppercase;
+}
 .crisis-options { display: flex; flex-direction: column; gap: 10px; }
-.crisis-option { padding: 14px 18px; background: #100808; border: 1px solid #3a1010; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
-.crisis-option:hover { border-color: #ef5350; background: #1a0808; }
-.crisis-option-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-.crisis-option-name { font-size: 13px; color: #ffcdd2; }
-.crisis-option-cost { font-size: 11px; padding: 2px 8px; border-radius: 3px; }
-.cost-high { background: #3a1010; color: #ef5350; }
-.cost-med { background: #2e1e10; color: #ffb74d; }
-.cost-low { background: #1a2e1a; color: #81c784; }
-.crisis-option-desc { font-size: 11px; color: #6a4040; line-height: 1.5; }
+.crisis-option {
+  text-align: left; width: 100%;
+  padding: 16px 18px;
+  background: linear-gradient(180deg, #1a0808 0%, #100404 100%);
+  border: 1px solid #3a1010; border-left: 3px solid #ef5350;
+  border-radius: 3px;
+  cursor: pointer; transition: all 0.2s ease;
+  font-family: inherit; color: inherit;
+}
+.crisis-option:hover {
+  border-color: #ef5350; background: linear-gradient(180deg, #2a0a0a 0%, #1a0808 100%);
+  transform: translateX(2px);
+  box-shadow: -2px 0 0 #ef5350;
+}
+.crisis-option-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 8px;
+}
+.crisis-option-name { font-size: 13px; color: #ffcdd2; font-weight: bold; }
+.crisis-option-cost {
+  font-size: 10px; padding: 3px 10px; border-radius: 3px;
+  letter-spacing: 0.5px; font-weight: bold;
+}
+.cost-high { background: #3a1010; color: #ef5350; border: 1px solid #4a1818; }
+.cost-med  { background: #2e1e10; color: #ffb74d; border: 1px solid #3e2a14; }
+.cost-low  { background: #1a2e1a; color: #81c784; border: 1px solid #244024; }
+.crisis-option-desc { font-size: 11px; color: #8a6060; line-height: 1.6; margin-bottom: 6px; }
+.crisis-option-effects {
+  font-size: 10px; color: #ffb74d; padding-top: 6px;
+  border-top: 1px dashed #3a1010; letter-spacing: 0.5px;
+}
+.crisis-footer {
+  text-align: center; font-size: 11px; color: #6a4040;
+  margin-top: 18px; letter-spacing: 1px;
+}
 .crisis-timer { text-align: center; font-size: 11px; color: #4a2020; margin-top: 16px; letter-spacing: 1px; }
+
+/* ============================================================
+   响应式 · 移动端（Plan 5 Round 2 mobile）
+   ============================================================ */
+
+/* 平板及以下：两栏 */
+@media (max-width: 1024px) {
+  .main-grid {
+    grid-template-columns: 1fr 280px;
+    grid-template-areas:
+      "center right"
+      "left   right";
+  }
+  .main-grid .col-left   { grid-area: left; }
+  .main-grid .col-center { grid-area: center; }
+  .main-grid .col-right  { grid-area: right; }
+}
+
+/* 手机：单栏堆叠，顺序 = 事件 → 指标 → 图表 → 目标 */
+@media (max-width: 720px) {
+  body { font-size: 14px; }
+  .screen { padding: 12px; }
+
+  .topbar {
+    flex-direction: column; gap: 8px; align-items: flex-start;
+    padding: 10px 12px; margin: -12px -12px 14px;
+  }
+  .topbar-left { flex-wrap: wrap; gap: 12px; }
+  .game-id { font-size: 12px; }
+  .quarter-badge { font-size: 13px; padding: 4px 12px; }
+  .axis-track { width: 120px; }
+  .timer { font-size: 12px; }
+
+  .main-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas: "center" "left" "right";
+    gap: 12px;
+  }
+
+  /* 指标面板更紧凑 */
+  .panel { padding: 12px; }
+  .panel-title { font-size: 11px; margin-bottom: 12px; padding-bottom: 8px; }
+  .metric { margin-bottom: 12px; }
+  .metric-name { font-size: 12px; }
+  .metric-value { font-size: 15px; }
+
+  /* 事件卡 */
+  .event-card { padding: 16px; }
+  .event-title { font-size: 17px; }
+  .event-body { font-size: 13px; line-height: 1.7; }
+  .choice-btn { padding: 12px 14px; font-size: 13px; min-height: 44px; }
+  .choice-preview { font-size: 11px; }
+
+  /* 操作面板 */
+  .action-slot { padding: 12px; min-height: 44px; }
+  .action-name { font-size: 13px; }
+  .action-cost { font-size: 11px; }
+  .end-turn-btn { padding: 14px; font-size: 14px; min-height: 48px; }
+
+  /* 图表 */
+  .chart-panel { padding: 12px; }
+  .chart-panel canvas { max-height: 160px !important; }
+
+  /* statusbar */
+  .statusbar { flex-direction: column; gap: 6px; padding: 10px 12px; margin: 14px -12px -12px; }
+  .status-item { font-size: 11px; }
+
+  /* 排行榜表格转卡片 */
+  .lb-container { margin: 12px auto; }
+  .lb-table thead { display: none; }
+  .lb-table, .lb-table tbody, .lb-table tr, .lb-table td { display: block; width: 100%; }
+  .lb-table tr {
+    margin-bottom: 8px; padding: 12px;
+    border: 1px solid #1e2d47; border-radius: 4px; background: #0a1020;
+  }
+  .lb-table td {
+    padding: 4px 0; border: none; font-size: 13px;
+    display: flex; justify-content: space-between;
+  }
+  .lb-table td::before {
+    content: attr(data-label) ': ';
+    color: #4a6080; font-size: 11px; letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .lb-table .lb-rank { font-size: 18px; color: #4fc3f7; padding-bottom: 8px; border-bottom: 1px dashed #1e2d47; }
+
+  /* 终局 */
+  .endgame-container { margin: 16px auto; padding: 0 4px; }
+  .endgame-grade { font-size: 72px; }
+  .endgame-actions { flex-direction: column; gap: 10px; }
+  .endgame-actions button { width: 100%; padding: 14px; min-height: 48px; }
+
+  /* 危机 Modal 在移动端的占满优化 */
+  .crisis-overlay-v2 { padding: 0 12px 24px; }
+  .crisis-card { padding: 18px 16px; }
+  .crisis-card-header { flex-direction: column; gap: 10px; }
+  .crisis-icon { width: 36px; height: 36px; font-size: 18px; }
+  .crisis-title { font-size: 16px; }
+  .crisis-metrics { grid-template-columns: 1fr; gap: 6px; }
+  .crisis-metric { display: flex; justify-content: space-between; align-items: center; text-align: left; }
+  .crisis-metric-label { margin-bottom: 0; }
+  .crisis-option { padding: 14px; }
+
+  /* 主动操作按钮在窄屏占满 */
+  .lb-tabs { flex-wrap: wrap; }
+  .lb-tab { flex: 1; min-width: 80px; }
+}
 
 /* waterfall chart bars */
 .wf-chart { display: flex; gap: 6px; align-items: flex-end; height: 70px; padding: 6px 0; }
@@ -222,4 +461,142 @@ body { background: #0a0e1a; color: #c8d4e8; font-family: 'SF Mono', 'Courier New
   display: block; font-size: 10px; color: #4fc3f7;
   margin-top: 6px; padding-top: 6px; border-top: 1px dashed #1e2d47;
   letter-spacing: 0.3px;
+}
+
+/* ============================================================
+   Toast 通知系统（Plan 5 Round 3）
+   ============================================================ */
+#toast-container {
+  position: fixed; top: 20px; right: 20px; z-index: 2000;
+  display: flex; flex-direction: column; gap: 10px;
+  max-width: 360px; pointer-events: none;
+}
+.toast {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 14px;
+  background: #0f1623; border-left: 3px solid #4fc3f7;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  font-size: 13px; color: #c8d4e8;
+  pointer-events: auto;
+  transform: translateX(120%); opacity: 0;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+.toast.toast-in { transform: translateX(0); opacity: 1; }
+.toast.toast-out { transform: translateX(120%); opacity: 0; }
+.toast-success { border-left-color: #81c784; }
+.toast-error   { border-left-color: #ef5350; }
+.toast-info    { border-left-color: #4fc3f7; }
+.toast-icon {
+  flex-shrink: 0; width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; font-size: 12px; font-weight: bold;
+}
+.toast-success .toast-icon { background: #1a2e1a; color: #81c784; }
+.toast-error   .toast-icon { background: #2e1a1a; color: #ef5350; }
+.toast-info    .toast-icon { background: #0f2a3f; color: #4fc3f7; }
+.toast-body { flex: 1; line-height: 1.5; min-width: 0; word-break: break-word; }
+.toast-close {
+  flex-shrink: 0; background: none; border: none; color: #4a6080;
+  font-size: 18px; cursor: pointer; padding: 0; width: 20px; height: 20px;
+  line-height: 1;
+}
+.toast-close:hover { color: #c8d4e8; }
+
+@media (max-width: 640px) {
+  #toast-container { top: 0; left: 0; right: 0; max-width: none; padding: 8px; }
+  .toast { transform: translateY(-120%); }
+  .toast.toast-in { transform: translateY(0); }
+  .toast.toast-out { transform: translateY(-120%); }
+}
+
+/* ============================================================
+   操作输入 Modal（Plan 5 Round 3）
+   ============================================================ */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 1500;
+  background: rgba(5, 8, 16, 0.72);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(2px);
+  animation: modal-fade-in 0.18s ease;
+}
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.modal-card {
+  background: #0f1623;
+  border: 1px solid #1e3a5f;
+  border-top: 2px solid #4fc3f7;
+  border-radius: 6px;
+  width: 100%; max-width: 440px;
+  padding: 0; overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  animation: modal-card-in 0.22s cubic-bezier(0.2,0.8,0.2,1);
+}
+@keyframes modal-card-in {
+  from { transform: translateY(8px) scale(0.98); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+.modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 18px; border-bottom: 1px solid #1e2d47;
+  background: linear-gradient(180deg, #112338 0%, #0f1623 100%);
+}
+.modal-title { font-size: 14px; color: #e0eaf8; letter-spacing: 1px; font-weight: bold; }
+.modal-close {
+  background: none; border: none; color: #4a6080;
+  font-size: 22px; cursor: pointer; padding: 0; line-height: 1;
+}
+.modal-close:hover { color: #ef5350; }
+.modal-desc {
+  padding: 12px 18px; font-size: 12px; color: #8fa8c8;
+  line-height: 1.6; border-bottom: 1px dashed #1e2d47;
+}
+.modal-fields { padding: 16px 18px; display: flex; flex-direction: column; gap: 14px; }
+.modal-field { display: flex; flex-direction: column; gap: 6px; }
+.modal-label {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 11px; color: #8fa8c8; letter-spacing: 0.5px;
+}
+.modal-hint { font-size: 10px; color: #4a6080; }
+.modal-input-row { display: flex; align-items: center; gap: 10px; }
+.modal-input {
+  width: 96px; padding: 8px 10px;
+  background: #07101e; border: 1px solid #1e3a5f; border-radius: 3px;
+  color: #4fc3f7; font-family: 'SF Mono', monospace; font-size: 14px; font-weight: bold;
+  outline: none; text-align: right;
+}
+.modal-input:focus { border-color: #4fc3f7; box-shadow: 0 0 0 2px rgba(79,195,247,0.15); }
+.modal-slider {
+  flex: 1; -webkit-appearance: none; appearance: none;
+  height: 4px; background: #1e2d47; border-radius: 2px; outline: none;
+}
+.modal-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 14px; height: 14px; background: #4fc3f7; border-radius: 50%;
+  cursor: pointer; border: 2px solid #0f1623;
+}
+.modal-slider::-moz-range-thumb {
+  width: 14px; height: 14px; background: #4fc3f7; border-radius: 50%;
+  cursor: pointer; border: 2px solid #0f1623;
+}
+.modal-preview {
+  margin: 0 18px 14px; padding: 10px 12px;
+  background: #07101e; border: 1px dashed #1e3a5f; border-radius: 3px;
+  font-size: 11px; color: #4fc3f7; line-height: 1.5;
+}
+.modal-actions {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding: 12px 18px; background: #0a1020; border-top: 1px solid #1e2d47;
+}
+.modal-actions .btn-secondary,
+.modal-actions .btn-primary {
+  padding: 8px 20px; font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .modal-overlay { padding: 12px; align-items: flex-end; }
+  .modal-card { max-width: none; border-radius: 6px 6px 0 0; }
 }

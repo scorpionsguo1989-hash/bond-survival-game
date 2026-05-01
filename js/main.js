@@ -4,7 +4,7 @@ import { createInitialState, advanceTurn, applyEventChoice, checkDeath, isGameOv
 import { findMainEvent, sampleRandomEvents, getPolicyDirection, loadEvents } from './eventEngine.js';
 import { computeFinalScore } from './score.js';
 import { saveGame, loadGame, clearSave, pushHistoryRecord } from './storage.js';
-import { renderFateCard, renderMainScreen, renderCrisisModal, renderEndScreen, generateShareCard, downloadShareCard, renderLeaderboardModal, renderNicknamePrompt } from './ui.js';
+import { renderFateCard, renderMainScreen, renderCrisisModal, renderEndScreen, generateShareCard, downloadShareCard, renderLeaderboardModal, renderNicknamePrompt, renderActionModal, toast } from './ui.js';
 import { submitScore, fetchLeaderboard, fetchRank } from './api.js';
 import { renderDebtWaterfall, renderCashTrend, renderNavChart, renderHoldingsChart, renderFiscalChart, renderDebtRatioChart } from './charts.js';
 
@@ -117,27 +117,34 @@ function handleEventChoice(idx) {
   enterMainScreen();
 }
 
-function handleActionSelected(actionId) {
+async function handleActionSelected(actionId) {
   const action = state.role.actions.find(a => a.id === actionId);
   if (!action) return;
-  const params = {};
-  let aborted = false;
-  for (const p of action.params) {
-    const input = prompt(`${p.label}（${p.min}-${p.max}）`, p.default);
-    if (input === null) {
-      aborted = true;
-      break;
+  // 预览影响：模拟应用 effects 后的关键指标变化
+  const previewFn = (params) => {
+    try {
+      const before = state.metrics;
+      const sim = state.role.applyActionEffects(state, actionId, params);
+      const after = sim.metrics;
+      const diffs = [];
+      for (const k of Object.keys(after)) {
+        const a = after[k], b = before[k];
+        if (typeof a !== 'number' || typeof b !== 'number') continue;
+        const d = a - b;
+        if (Math.abs(d) < 0.01) continue;
+        const label = state.role.metricLabels?.[k] || k;
+        const sign = d > 0 ? '+' : '';
+        diffs.push(`${label} ${sign}${d.toFixed(2)}`);
+      }
+      return diffs.length ? '预计：' + diffs.slice(0, 4).join('，') : '调整数值实时预览影响';
+    } catch (e) {
+      return '调整数值实时预览影响';
     }
-    const v = parseFloat(input);
-    if (!Number.isFinite(v) || v < p.min || v > p.max) {
-      alert(`请输入${p.min}-${p.max}之间的数字`);
-      aborted = true;
-      break;
-    }
-    params[p.key] = v;
-  }
-  if (aborted || Object.keys(params).length === 0) return;
+  };
+  const params = await renderActionModal(action, previewFn);
+  if (!params) return;  // 用户取消
   state = state.role.applyActionEffects(state, actionId, params);
+  toast.success(`${action.name} 已执行`);
   enterMainScreen();
 }
 
@@ -159,9 +166,9 @@ function handleCrisisChoice(option) {
         state.metrics[k] = parseFloat(((state.metrics[k] || 0) + v).toFixed(2));
       }
     });
-    alert('处置成功');
+    toast.success('处置成功，危机暂时缓解');
   } else {
-    alert('处置失败，未能解决问题');
+    toast.error('处置失败，未能解决问题');
   }
   enterMainScreen();
 }

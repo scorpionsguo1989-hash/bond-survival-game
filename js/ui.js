@@ -20,11 +20,13 @@ export function renderFateCard(origin, role, onAccept) {
   const challengesList = origin.challenges && origin.challenges.length > 0
     ? origin.challenges
     : (hints ? hints.topRisks : []);
+  // 角色色（CFO 青蓝 / IM 金黄 / GOV 朱红）
+  const roleAccent = { cfo: '#4fc3f7', im: '#ffd54f', gov: '#ef5350' }[origin.role] || '#4fc3f7';
   app.innerHTML = `
     <div class="screen active">
-      <div class="fate-container">
+      <div class="fate-container fate-role-${origin.role}" style="--role-accent:${roleAccent}">
         <div class="fate-title">债市生存游戏</div>
-        <div class="fate-subtitle">你的命运已定</div>
+        <div class="fate-subtitle">命运由你改写</div>
         <div class="fate-card">
           <div class="role-badge">角色 · ${escapeHtml(roleName)}</div>
           <div class="role-name">${escapeHtml(origin.directorName)}</div>
@@ -33,8 +35,9 @@ export function renderFateCard(origin, role, onAccept) {
           <div class="challenges">
             <div class="challenges-title">你这局的三大挑战</div>
             ${challengesList.slice(0, 3).map((c, i) => `
-              <div class="challenge-item">
+              <div class="challenge-row">
                 <span class="challenge-num">0${i+1}</span>
+                <span class="challenge-rail" aria-hidden="true"></span>
                 <span class="challenge-text">${escapeHtml(c)}</span>
               </div>
             `).join('')}
@@ -86,19 +89,42 @@ export function escapeHtml(str) {
 
 export function renderMainScreen(state, callbacks) {
   const app = document.getElementById('app');
+  // Plan 5 Round 2 布局：
+  //   左栏 = 角色状态（指标 + 本局目标 onboarding 简版）
+  //   中栏 = 决策流（事件 → 操作）
+  //   右栏 = 图表
   app.innerHTML = `
     <div class="screen active">
       ${renderTopBar(state)}
       ${renderRedemptionBanner(state)}
       <div class="main-grid">
-        <div>${renderMetricsPanel(state)}${renderActionPanel(state)}</div>
-        <div class="event-area" id="event-area">${renderEventArea(state)}</div>
-        <div id="chart-area">${renderChartArea(state)}</div>
+        <div class="col-left">
+          ${renderMetricsPanel(state)}
+          ${renderGoalCard(state)}
+        </div>
+        <div class="col-center event-area" id="event-area">
+          ${renderEventArea(state)}
+          ${renderActionPanel(state)}
+        </div>
+        <div class="col-right" id="chart-area">${renderChartArea(state)}</div>
       </div>
       ${renderStatusBar(state)}
     </div>
   `;
   bindMainScreenEvents(state, callbacks);
+}
+
+// Round 2: 左栏底部"本局目标"小卡（简版 onboarding，不重复挑战）
+function renderGoalCard(state) {
+  if (!state.role?.getOnboardingHints) return '';
+  const hints = state.role.getOnboardingHints(state.origin || {});
+  return `
+    <div class="panel goal-card">
+      <div class="panel-title">本局目标</div>
+      <div class="goal-content">${escapeHtml(hints.goal)}</div>
+      <div class="goal-hint">💡 ${escapeHtml(hints.firstActionHint)}</div>
+    </div>
+  `;
 }
 
 // 赎回压力临界 banner（设计稿 §3.11.4）：pressure >= 70 显示警告
@@ -428,33 +454,40 @@ function renderChartArea(state) {
 export function renderCrisisModal(crisis, onSelect) {
   const overlay = document.createElement('div');
   overlay.id = 'crisis-overlay';
+  overlay.className = 'crisis-overlay-v2';
   overlay.innerHTML = `
-    <div class="screen active" style="position:fixed;inset:0;background:#0a0e1a;z-index:1000;overflow-y:auto;padding:20px">
-      <div class="crisis-banner">⚠ 危机警报 · 时间暂停 · 必须处置后继续</div>
-      <div class="crisis-center">
-        <div class="crisis-card">
-          <div class="crisis-title">${escapeHtml(crisis.title)}</div>
-          <div class="crisis-body">${escapeHtml(crisis.body)}</div>
-          <div class="crisis-metrics">
-            ${crisis.metrics.map(m => `
-              <div class="crisis-metric">
-                <div class="crisis-metric-label">${m.label}</div>
-                <div class="crisis-metric-value">${m.value}</div>
-              </div>
-            `).join('')}
-          </div>
-          <div class="crisis-options">
-            ${crisis.options.map((o, i) => `
-              <div class="crisis-option" data-opt-idx="${i}">
-                <div class="crisis-option-header">
-                  <span class="crisis-option-name">${escapeHtml(o.label)}</span>
-                  <span class="crisis-option-cost cost-${costClass(o.cost)}">代价：${o.cost}</span>
-                </div>
-                <div class="crisis-option-desc">${escapeHtml(o.desc)}</div>
-              </div>
-            `).join('')}
+    <div class="crisis-banner">⚠ 危机警报 · 时间暂停 · 必须处置后继续</div>
+    <div class="crisis-center">
+      <div class="crisis-card">
+        <div class="crisis-card-header">
+          <span class="crisis-icon">⚠</span>
+          <div>
+            <div class="crisis-title">${escapeHtml(crisis.title)}</div>
+            <div class="crisis-body">${escapeHtml(crisis.body)}</div>
           </div>
         </div>
+        <div class="crisis-metrics">
+          ${(crisis.metrics || []).map(m => `
+            <div class="crisis-metric">
+              <div class="crisis-metric-label">${escapeHtml(m.label)}</div>
+              <div class="crisis-metric-value">${escapeHtml(m.value)}</div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="crisis-options-title">请选择处置方案</div>
+        <div class="crisis-options">
+          ${crisis.options.map((o, i) => `
+            <button class="crisis-option" data-opt-idx="${i}">
+              <div class="crisis-option-header">
+                <span class="crisis-option-name">${escapeHtml(o.label)}</span>
+                ${o.cost ? `<span class="crisis-option-cost cost-${costClass(o.cost)}">${escapeHtml(o.cost)}</span>` : ''}
+              </div>
+              ${o.desc ? `<div class="crisis-option-desc">${escapeHtml(o.desc)}</div>` : ''}
+              ${renderCrisisEffects(o.effects)}
+            </button>
+          `).join('')}
+        </div>
+        <div class="crisis-footer">⏱ 此处置不可撤销，请慎重选择</div>
       </div>
     </div>
   `;
@@ -466,6 +499,25 @@ export function renderCrisisModal(crisis, onSelect) {
       onSelect(crisis.options[idx]);
     });
   });
+}
+
+// 渲染危机选项的 effects 预告（带"成败概率"提示，如果有 _uncertain）
+function renderCrisisEffects(effects) {
+  if (!effects) return '';
+  const parts = [];
+  for (const [k, v] of Object.entries(effects)) {
+    if (k === '_uncertain') {
+      parts.push(`成功率 ${Math.round(v * 100)}%`);
+      continue;
+    }
+    if (k.startsWith('_')) continue;
+    if (k.startsWith('score.')) {
+      parts.push(`${k.slice(6)} ${v > 0 ? '+' : ''}${v}`);
+    } else if (typeof v === 'number') {
+      parts.push(`${k} ${v > 0 ? '+' : ''}${v}`);
+    }
+  }
+  return parts.length ? `<div class="crisis-option-effects">💡 ${parts.slice(0, 4).join(' · ')}</div>` : '';
 }
 
 function costClass(cost) {
@@ -628,14 +680,14 @@ export function renderLeaderboardModal(leaderboardData, onClose, fetchFn) {
       const roleLabel = ROLE_LABELS[row.role] || row.role || '财务总监';
       return `
         <tr>
-          <td class="lb-rank">#${row.rank}</td>
-          <td class="lb-role">${roleLabel}</td>
-          <td class="lb-name">${name}</td>
-          <td class="lb-platform">${escapeHtml(row.platformName)}</td>
-          <td class="lb-difficulty">${regionLabel}·${healthLabel}</td>
-          <td class="lb-grade grade-${row.grade}">${row.grade}</td>
-          <td class="lb-score">${row.score}</td>
-          <td class="lb-quarters">${row.quartersPassed}/12</td>
+          <td class="lb-rank" data-label="排名">#${row.rank}</td>
+          <td class="lb-role" data-label="角色">${roleLabel}</td>
+          <td class="lb-name" data-label="昵称">${name}</td>
+          <td class="lb-platform" data-label="平台">${escapeHtml(row.platformName)}</td>
+          <td class="lb-difficulty" data-label="难度">${regionLabel}·${healthLabel}</td>
+          <td class="lb-grade grade-${row.grade}" data-label="评级">${row.grade}</td>
+          <td class="lb-score" data-label="总分">${row.score}</td>
+          <td class="lb-quarters" data-label="存活">${row.quartersPassed}/12</td>
         </tr>
       `;
     }).join('');
@@ -712,5 +764,179 @@ export function renderNicknamePrompt(onSubmit, onSkip) {
   document.getElementById('btn-nick-skip').addEventListener('click', () => {
     overlay.remove();
     onSkip();
+  });
+}
+
+// ============================================================
+// Toast 通知系统（替代 alert()）— Plan 5 Round 3
+// ============================================================
+let toastContainer = null;
+
+function ensureToastContainer() {
+  if (toastContainer && document.body.contains(toastContainer)) return toastContainer;
+  toastContainer = document.createElement('div');
+  toastContainer.id = 'toast-container';
+  document.body.appendChild(toastContainer);
+  return toastContainer;
+}
+
+/**
+ * 显示 Toast 通知（自动消失）
+ * @param {string} message 文案，可单行或双行（用 \n 分隔）
+ * @param {'success'|'error'|'info'} variant 类型（默认 info）
+ * @param {number} duration 自动消失毫秒数（默认 3000，0 = 不自动消失）
+ */
+export function showToast(message, variant = 'info', duration = 3000) {
+  const container = ensureToastContainer();
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${variant}`;
+  const iconMap = { success: '✓', error: '✕', info: 'ⓘ' };
+  const lines = String(message).split('\n');
+  toast.innerHTML = `
+    <span class="toast-icon">${iconMap[variant] || 'ⓘ'}</span>
+    <div class="toast-body">
+      ${lines.map(l => `<div>${escapeHtml(l)}</div>`).join('')}
+    </div>
+    <button class="toast-close" aria-label="关闭">×</button>
+  `;
+  container.appendChild(toast);
+  // 入场动画
+  requestAnimationFrame(() => toast.classList.add('toast-in'));
+
+  const close = () => {
+    toast.classList.remove('toast-in');
+    toast.classList.add('toast-out');
+    setTimeout(() => toast.remove(), 250);
+  };
+  toast.querySelector('.toast-close').addEventListener('click', close);
+  if (duration > 0) setTimeout(close, duration);
+  return close;
+}
+
+// 便捷方法
+export const toast = {
+  success: (msg, duration) => showToast(msg, 'success', duration),
+  error: (msg, duration) => showToast(msg, 'error', duration),
+  info: (msg, duration) => showToast(msg, 'info', duration),
+};
+
+// ============================================================
+// 操作输入 Modal（替代 prompt()）— Plan 5 Round 3
+// ============================================================
+
+/**
+ * 弹出操作输入 Modal，返回 Promise<params|null>（取消返回 null）
+ * @param {object} action {id, name, desc, params: [{key, label, min, max, step, default}]}
+ * @param {function} previewFn (params) => string  可选：根据当前 params 计算预计影响文案
+ * @returns {Promise<object|null>}
+ */
+export function renderActionModal(action, previewFn) {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+
+    const paramFields = (action.params || []).map(p => {
+      const id = `mp-${p.key}`;
+      const hasRange = Number.isFinite(p.min) && Number.isFinite(p.max);
+      return `
+        <div class="modal-field">
+          <label class="modal-label" for="${id}">
+            ${escapeHtml(p.label)}
+            ${hasRange ? `<span class="modal-hint">范围 ${p.min} – ${p.max}</span>` : ''}
+          </label>
+          <div class="modal-input-row">
+            <input type="number" id="${id}" class="modal-input" data-key="${p.key}"
+              value="${p.default ?? p.min ?? 0}"
+              min="${p.min ?? ''}" max="${p.max ?? ''}" step="${p.step ?? 'any'}">
+            ${hasRange ? `
+              <input type="range" class="modal-slider" data-key-target="${id}"
+                value="${p.default ?? p.min ?? 0}"
+                min="${p.min}" max="${p.max}" step="${p.step ?? 0.5}">
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    overlay.innerHTML = `
+      <div class="modal-card">
+        <div class="modal-header">
+          <span class="modal-title">${escapeHtml(action.name)}</span>
+          <button class="modal-close" aria-label="关闭">×</button>
+        </div>
+        ${action.desc ? `<div class="modal-desc">${escapeHtml(action.desc)}</div>` : ''}
+        <div class="modal-fields">${paramFields}</div>
+        <div class="modal-preview" id="modal-preview">💡 调整数值实时预览影响</div>
+        <div class="modal-actions">
+          <button class="btn-secondary modal-cancel">取消</button>
+          <button class="btn-primary modal-confirm">确认下单</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    // 收集当前 params
+    const collect = () => {
+      const out = {};
+      overlay.querySelectorAll('.modal-input').forEach(inp => {
+        const v = parseFloat(inp.value);
+        if (Number.isFinite(v)) out[inp.dataset.key] = v;
+      });
+      return out;
+    };
+
+    // slider ↔ input 双向绑定 + 预览刷新
+    const refreshPreview = () => {
+      if (typeof previewFn === 'function') {
+        try {
+          const txt = previewFn(collect());
+          if (txt) document.getElementById('modal-preview').textContent = '💡 ' + txt;
+        } catch (e) { /* 预览失败不阻塞 */ }
+      }
+    };
+
+    overlay.querySelectorAll('.modal-slider').forEach(slider => {
+      const target = document.getElementById(slider.dataset.keyTarget);
+      slider.addEventListener('input', () => {
+        target.value = slider.value;
+        refreshPreview();
+      });
+    });
+    overlay.querySelectorAll('.modal-input').forEach(inp => {
+      inp.addEventListener('input', () => {
+        const slider = overlay.querySelector(`.modal-slider[data-key-target="${inp.id}"]`);
+        if (slider) slider.value = inp.value;
+        refreshPreview();
+      });
+    });
+    refreshPreview();
+
+    const close = (result) => {
+      overlay.remove();
+      resolve(result);
+    };
+    overlay.querySelector('.modal-close').addEventListener('click', () => close(null));
+    overlay.querySelector('.modal-cancel').addEventListener('click', () => close(null));
+    overlay.querySelector('.modal-confirm').addEventListener('click', () => {
+      const params = collect();
+      // 校验范围
+      for (const p of action.params || []) {
+        const v = params[p.key];
+        if (!Number.isFinite(v)) return showToast(`${p.label} 必须是数字`, 'error');
+        if (Number.isFinite(p.min) && v < p.min) return showToast(`${p.label} 不能小于 ${p.min}`, 'error');
+        if (Number.isFinite(p.max) && v > p.max) return showToast(`${p.label} 不能大于 ${p.max}`, 'error');
+      }
+      close(params);
+    });
+    // ESC 关闭
+    const onKey = (e) => {
+      if (e.key === 'Escape') { document.removeEventListener('keydown', onKey); close(null); }
+    };
+    document.addEventListener('keydown', onKey);
+    // 自动聚焦第一个 input
+    requestAnimationFrame(() => {
+      const first = overlay.querySelector('.modal-input');
+      if (first) { first.focus(); first.select(); }
+    });
   });
 }
