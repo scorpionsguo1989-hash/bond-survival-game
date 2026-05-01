@@ -1,15 +1,19 @@
 // js/engine.js
+// 角色驱动引擎：通过 state.role.<hook>() 调度角色独有逻辑
+// 设计稿 §2.4 / 实施计划 T2
 import { GAME_CONFIG } from './config.js';
-import { ROLE_CFO, getInitialMetrics } from './roles.js';
+import { getRole } from './roles/index.js';
 import { driftPolicy, applyPolicyShift } from './policy.js';
 
 export function createInitialState(origin) {
+  const role = getRole(origin.role);
   return {
     origin,
+    role,                                  // ← 注入
     year: GAME_CONFIG.startYear,
     quarter: GAME_CONFIG.startQuarter,
     policyValue: GAME_CONFIG.policyAxisStart,
-    metrics: getInitialMetrics(origin),
+    metrics: role.getInitialMetrics(origin),
     score: {},
     actionsUsed: 0,
     quartersPassed: 0,
@@ -22,8 +26,10 @@ export function createInitialState(origin) {
 }
 
 /**
- * Advance to next quarter: drift policy, settle debt, deduct opCost+projectGap, add cash flow,
- * roll quarter, snapshot history.
+ * Advance to next quarter:
+ *  1) drift policy
+ *  2) delegate role-specific season settle (state.role.advanceTurn)
+ *  3) roll quarter, snapshot history
  *
  * IMPORTANT: This function does NOT update state.survived or state.deathReason. Callers must
  * invoke checkDeath() on the returned state and write back survived=false + deathReason if dead.
@@ -34,19 +40,8 @@ export function advanceTurn(state) {
   const dir = state.policyValue < 0 ? 'tight' : (state.policyValue > 0 ? 'loose' : 'stable');
   let newPolicy = driftPolicy(state.policyValue, dir);
 
-  // 2. 收入和到期债务结算
-  let newMetrics = { ...state.metrics };
-  const dueIdx = state.quartersPassed;  // 第几个季度
-  if (dueIdx < newMetrics.debtMaturity.length) {
-    const due = newMetrics.debtMaturity[dueIdx] || 0;
-    newMetrics.cash = parseFloat((newMetrics.cash - due).toFixed(2));
-  }
-  // 运营成本扣减
-  newMetrics.cash = parseFloat((newMetrics.cash - newMetrics.opCostRate).toFixed(2));
-  // 项目缺口扣减
-  newMetrics.cash = parseFloat((newMetrics.cash - newMetrics.projectGap).toFixed(2));
-  // 经营现金流回血
-  newMetrics.cash = parseFloat((newMetrics.cash + 2.5).toFixed(2));
+  // 2. 角色独有的季度结算
+  const { metrics: newMetrics, score: newScore } = state.role.advanceTurn(state);
 
   // 3. 季度推进
   let newQuarter = state.quarter + 1;
@@ -60,6 +55,7 @@ export function advanceTurn(state) {
     cash: state.metrics.cash,
     leverageRatio: state.metrics.leverageRatio,
     financingCost: state.metrics.financingCost,
+    nav: state.metrics.nav,                // IM 角色的净值历史（CFO 时 undefined）
     policyValue: state.policyValue,
   }];
 
@@ -69,6 +65,7 @@ export function advanceTurn(state) {
     quarter: newQuarter,
     policyValue: newPolicy,
     metrics: newMetrics,
+    score: newScore || state.score,
     actionsUsed: 0,
     quartersPassed: state.quartersPassed + 1,
     history: newHistory,
@@ -132,7 +129,7 @@ export function applyEventChoice(state, event, choiceIdx) {
     }
   });
 
-  // 更新授信使用率
+  // CFO 专属：更新授信使用率（仅当 creditTotal 存在）
   if (newMetrics.creditTotal) {
     newMetrics.creditUsage = Math.round((newMetrics.creditUsed / newMetrics.creditTotal) * 100);
   }
@@ -146,17 +143,31 @@ export function applyEventChoice(state, event, choiceIdx) {
   };
 }
 
+/**
+ * Generic death check: iterate role.deathConditions and compare each metric.
+ * Supports ops: <, <=, >, >=, ==
+ */
 export function checkDeath(state) {
-  for (const cond of ROLE_CFO.deathConditions) {
+  if (!state.role) return { dead: false };  // 防御性：未注入 role 时不判死
+  for (const cond of state.role.deathConditions) {
     const value = state.metrics[cond.metric];
-    if (cond.op === '<=' && value <= cond.threshold) {
-      return { dead: true, reason: cond.reason };
-    }
-    if (cond.op === '>=' && value >= cond.threshold) {
+    if (value == null) continue;
+    if (compareThreshold(value, cond.op, cond.threshold)) {
       return { dead: true, reason: cond.reason };
     }
   }
   return { dead: false };
+}
+
+function compareThreshold(value, op, threshold) {
+  switch (op) {
+    case '<':  return value < threshold;
+    case '<=': return value <= threshold;
+    case '>':  return value > threshold;
+    case '>=': return value >= threshold;
+    case '==': return value === threshold;
+    default: throw new Error(`Unknown op: ${op}`);
+  }
 }
 
 export function isGameOver(state) {
@@ -165,26 +176,13 @@ export function isGameOver(state) {
   return { over: false };
 }
 
+/**
+ * Delegate crisis detection to role-specific hook.
+ * Returns crisis modal config or null.
+ */
 export function detectCrisis(state) {
-  const m = state.metrics;
-  if (m.cash < 0.5 && state.quartersPassed < 11) {
-    return {
-      id: 'crisis_cash',
-      title: '资金链危机：现金即将耗尽',
-      body: `账面现金仅剩${m.cash.toFixed(2)}亿，下季度到期债务和运营成本无法覆盖。距离违约不足90天。`,
-      metrics: [
-        { label: '账面资金', value: `${m.cash.toFixed(2)}亿` },
-        { label: '下季到期', value: `${(m.debtMaturity[state.quartersPassed] || 0).toFixed(1)}亿` },
-        { label: '缺口', value: `-${Math.max(0, (m.debtMaturity[state.quartersPassed] || 0) - m.cash).toFixed(1)}亿` },
-      ],
-      options: [
-        { label: '紧急向兄弟平台拆借', cost: '中', desc: '联系同区域兄弟城投拆借资金，利率8%，期限30天。', effects: { cash: 2.5, financingCost: 0.5, 'score.危机应对': 5 } },
-        { label: '资产紧急变现', cost: '中高', desc: '出售停车场运营权，估值打折15%，能覆盖缺口。', effects: { cash: 2.0, collateralRoom: 'downgrade', 'score.危机应对': 3 } },
-        { label: '向上级紧急汇报', cost: '低（不确定）', desc: '请求主管领导协调银行特批放款。成功率约40%。', effects: { _uncertain: 0.4, cash: 3.0, 'score.合规指数': 4 } },
-      ]
-    };
-  }
-  return null;
+  if (!state.role || !state.role.detectCrisis) return null;
+  return state.role.detectCrisis(state);
 }
 
 function downgradeCollateral(level) {

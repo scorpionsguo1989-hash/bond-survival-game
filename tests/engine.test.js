@@ -47,7 +47,8 @@ describe('advanceTurn', () => {
 
 describe('checkDeath', () => {
   it('marks dead when cash <= 0', () => {
-    const s = { metrics: { cash: 0 }, year: 2023, quarter: 1 };
+    const s = createInitialState(sampleOrigin);
+    s.metrics.cash = 0;
     const result = checkDeath(s);
     expect(result.dead).toBe(true);
     expect(result.reason).toContain('现金');
@@ -144,5 +145,43 @@ describe('detectCrisis', () => {
     state.metrics.cash = 0.4;
     state.quartersPassed = 11;
     expect(detectCrisis(state)).toBeNull();
+  });
+});
+
+// ---- Plan 3 T2: role registry & role-driven engine ----
+import { getRole, ROLE_REGISTRY } from '../js/roles/index.js';
+
+describe('role registry', () => {
+  it('exposes cfo role', () => {
+    expect(getRole('cfo').id).toBe('cfo');
+  });
+  it('throws on unknown role', () => {
+    expect(() => getRole('xxx')).toThrow();
+  });
+  it('CFO has all required hooks', () => {
+    const cfo = getRole('cfo');
+    expect(typeof cfo.getInitialMetrics).toBe('function');
+    expect(typeof cfo.advanceTurn).toBe('function');
+    expect(typeof cfo.detectCrisis).toBe('function');
+    expect(typeof cfo.getOnboardingHints).toBe('function');
+    expect(Array.isArray(cfo.deathConditions)).toBe(true);
+  });
+});
+
+describe('createInitialState injects role', () => {
+  it('attaches role object to state', () => {
+    const s = createInitialState(sampleOrigin);
+    expect(s.role).toBeDefined();
+    expect(s.role.id).toBe('cfo');
+  });
+});
+
+describe('checkDeath uses role.deathConditions', () => {
+  it('detects death from role-defined condition', () => {
+    const s = createInitialState(sampleOrigin);
+    s.metrics.cash = 0;
+    const d = checkDeath(s);
+    expect(d.dead).toBe(true);
+    expect(d.reason).toMatch(/现金归零/);
   });
 });
