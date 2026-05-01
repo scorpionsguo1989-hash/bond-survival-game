@@ -89,6 +89,7 @@ export function renderMainScreen(state, callbacks) {
   app.innerHTML = `
     <div class="screen active">
       ${renderTopBar(state)}
+      ${renderRedemptionBanner(state)}
       <div class="main-grid">
         <div>${renderMetricsPanel(state)}${renderActionPanel(state)}</div>
         <div class="event-area" id="event-area">${renderEventArea(state)}</div>
@@ -98,6 +99,14 @@ export function renderMainScreen(state, callbacks) {
     </div>
   `;
   bindMainScreenEvents(state, callbacks);
+}
+
+// 赎回压力临界 banner（设计稿 §3.11.4）：pressure >= 70 显示警告
+function renderRedemptionBanner(state) {
+  if (state.role?.id !== 'im') return '';
+  const p = state.metrics.redemptionPressure;
+  if (!p || p < 70) return '';
+  return `<div class="redemption-banner">⚠ 赎回压力 ${Math.round(p)}，接近挤兑临界值（≥80 触发挤兑），建议立即处理</div>`;
 }
 
 function renderTopBar(state) {
@@ -155,9 +164,10 @@ function renderMetricsPanel(state) {
   `;
 }
 
-// 通用兜底指标面板：渲染 state.role.metrics + state.role.metricLabels
-// T8 会被 mainScreenIM 替代为完整的 IM 指标可视化（含赎回压力卡 / 因果链 / 临界 banner）
+// 通用兜底指标面板：在 IM 之外的角色加入前先用此渲染 role.metrics
+// IM 角色走 renderImMetricsPanel（带赎回压力 4 件套）
 function renderGenericMetricsPanel(state) {
+  if (state.role?.id === 'im') return renderImMetricsPanel(state);
   const m = state.metrics;
   const role = state.role;
   if (!role) return '';
@@ -182,6 +192,51 @@ function renderGenericMetricsPanel(state) {
     <div class="panel">
       <div class="panel-title">核心指标</div>
       ${rows}
+    </div>
+  `;
+}
+
+// IM 主界面指标面板（Plan 3 §3.7 + §3.11）
+function renderImMetricsPanel(state) {
+  const m = state.metrics;
+  const navColor = m.nav < 0.88 ? 'val-bad' : (m.nav < 0.95 ? 'val-warn' : 'val-ok');
+  const navPct = Math.max(0, Math.min(100, (m.nav - 0.85) / 0.20 * 100));
+  const concColor = m.concentration > 22 ? 'val-bad' : (m.concentration > 18 ? 'val-warn' : 'val-ok');
+  const levColor = m.leverage > 130 ? 'val-bad' : (m.leverage > 115 ? 'val-warn' : 'val-ok');
+  const ceColor = m.creditExposure > 40 ? 'val-bad' : (m.creditExposure > 25 ? 'val-warn' : 'val-ok');
+  return `
+    <div class="panel">
+      <div class="panel-title">核心指标</div>
+      ${metricRow('组合净值 (NAV)', m.nav.toFixed(4), navColor, navPct)}
+      ${metricRow('久期', m.duration.toFixed(1) + '年', 'val-ok', Math.min(100, m.duration * 14))}
+      ${metricRow('单券集中度', m.concentration.toFixed(1) + '%', concColor, Math.min(100, m.concentration * 4))}
+      ${metricRow('AA 及以下', m.creditExposure.toFixed(0) + '%', ceColor, m.creditExposure)}
+      ${metricRow('回购杠杆', m.leverage.toFixed(0) + '%', levColor, Math.min(100, (m.leverage - 100) * 2.5))}
+      ${renderRedemptionCard(state)}
+    </div>
+  `;
+}
+
+// 赎回压力卡片（设计稿 §3.11）：进度条 + 下季预期赎回 + 现金缺口预警
+function renderRedemptionCard(state) {
+  const m = state.metrics;
+  const pressure = Math.round(m.redemptionPressure);
+  const expectedRedeem = pressure >= 50 ? (m.aum * (pressure - 40) / 200) : 0;
+  const cashAvail = m.aum * m.cashRatio / 100;
+  const gap = expectedRedeem - cashAvail;
+  const color = pressure >= 80 ? '#ef5350' : (pressure >= 60 ? '#ffb74d' : (pressure >= 30 ? '#ffd54f' : '#81c784'));
+  return `
+    <div class="metric metric-redemption" data-pressure="${pressure}">
+      <div class="metric-row">
+        <span class="metric-name">赎回压力</span>
+        <span class="metric-value" style="color:${color}">${pressure}</span>
+      </div>
+      <div class="metric-bar"><div class="metric-bar-fill" style="width:${pressure}%; background:${color}"></div></div>
+      <div class="redemption-detail">
+        <div>🔮 下季预期赎回 ≈ ${expectedRedeem.toFixed(1)} 亿</div>
+        <div>💰 当前现金 ≈ ${cashAvail.toFixed(1)} 亿</div>
+        ${gap > 0 ? `<div style="color:#ef5350">⚠ 缺口 ${gap.toFixed(1)} 亿</div>` : ''}
+      </div>
     </div>
   `;
 }
@@ -225,11 +280,34 @@ function renderEventArea(state) {
         ${e.choices.map((c, i) => `
           <button class="choice-btn" data-choice-idx="${i}">
             <span class="choice-tag">[${String.fromCharCode(65+i)}]</span>${escapeHtml(c.label)}
+            ${renderChoicePreview(c, state.role)}
           </button>
         `).join('')}
       </div>
     </div>
   `;
+}
+
+// 选项 effects 预告（设计稿 §3.11.3）
+// 把数值型 effects 翻译成"赎回压力 -8 / 现金 +1.5%"等可读字串
+function renderChoicePreview(choice, role) {
+  const fx = choice.effects || {};
+  const previews = [];
+  const labels = role?.metricLabels || {};
+  const dimLabels = role?.dimensionLabels || {};
+  for (const [k, v] of Object.entries(fx)) {
+    if (k.startsWith('_') || typeof v !== 'number') continue;
+    if (k.startsWith('score.')) {
+      const dim = k.slice(6);
+      const lbl = dimLabels[dim] || dim;
+      previews.push(`${lbl} ${v > 0 ? '+' : ''}${v}`);
+    } else {
+      const lbl = labels[k] || k;
+      previews.push(`${lbl} ${v > 0 ? '+' : ''}${v}`);
+    }
+  }
+  if (previews.length === 0) return '';
+  return `<div class="choice-preview">💡 预计：${previews.slice(0, 4).join('，')}</div>`;
 }
 
 function renderActionPanel(state) {
@@ -283,6 +361,18 @@ function renderStatusBar(state) {
 }
 
 function renderChartArea(state) {
+  if (state.role?.id === 'im') {
+    return `
+      <div class="chart-panel">
+        <div class="panel-title">净值曲线（NAV）</div>
+        <div style="height:120px"><canvas id="chart-nav"></canvas></div>
+      </div>
+      <div class="chart-panel">
+        <div class="panel-title">持仓评级结构</div>
+        <div style="height:140px"><canvas id="chart-holdings"></canvas></div>
+      </div>
+    `;
+  }
   return `
     <div class="chart-panel">
       <div class="panel-title">债务到期瀑布图（亿）</div>

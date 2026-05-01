@@ -6,7 +6,7 @@ import { computeFinalScore } from './score.js';
 import { saveGame, loadGame, clearSave, pushHistoryRecord } from './storage.js';
 import { renderFateCard, renderMainScreen, renderCrisisModal, renderEndScreen, generateShareCard, downloadShareCard, renderLeaderboardModal, renderNicknamePrompt } from './ui.js';
 import { submitScore, fetchLeaderboard, fetchRank } from './api.js';
-import { renderDebtWaterfall, renderCashTrend } from './charts.js';
+import { renderDebtWaterfall, renderCashTrend, renderNavChart, renderHoldingsChart } from './charts.js';
 
 let state = null;
 let eventData = null;
@@ -94,13 +94,16 @@ function enterMainScreen() {
     onEndTurn: handleEndTurn,
   });
 
-  // CFO 专属图表（IM 在 T8 接入自己的图表）
-  if (state.role.id === 'cfo') {
-    requestAnimationFrame(() => {
+  // 角色专属图表
+  requestAnimationFrame(() => {
+    if (state.role.id === 'cfo') {
       renderDebtWaterfall(state);
       renderCashTrend(state);
-    });
-  }
+    } else if (state.role.id === 'im') {
+      renderNavChart(state);
+      renderHoldingsChart(state);
+    }
+  });
 
   saveGame(state);
 }

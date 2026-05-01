@@ -199,3 +199,27 @@ body { background: #0a0e1a; color: #c8d4e8; font-family: 'SF Mono', 'Courier New
 .onb-content { font-size: 12px; color: #c8d4e8; line-height: 1.6; }
 .onb-list { font-size: 12px; color: #c8d4e8; line-height: 1.7; padding-left: 18px; margin: 0; list-style: disc; }
 .onb-list li { margin-bottom: 2px; }
+
+/* === IM 赎回压力卡（设计稿 §3.11） === */
+.metric-redemption { padding: 10px 8px; border-radius: 6px; background: #07101e; border: 1px solid #1e2d47; margin-top: 4px; }
+.metric-redemption .metric-bar { margin: 4px 0 8px; }
+.redemption-detail { font-size: 10px; color: #6a8aaa; line-height: 1.7; padding-top: 4px; border-top: 1px dashed #1e2d47; }
+
+/* === IM 赎回压力临界 banner（≥70 触发） === */
+.redemption-banner {
+  background: linear-gradient(90deg, #7f0000, #b71c1c, #7f0000);
+  padding: 8px 16px; text-align: center; font-size: 11px; color: #ffcdd2;
+  letter-spacing: 1px; margin: -20px -20px 14px;
+  animation: redemption-pulse 2s ease-in-out infinite;
+}
+@keyframes redemption-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.75; }
+}
+
+/* === 事件选项 effects 预告（IM/CFO 通用） === */
+.choice-preview {
+  display: block; font-size: 10px; color: #4fc3f7;
+  margin-top: 6px; padding-top: 6px; border-top: 1px dashed #1e2d47;
+  letter-spacing: 0.3px;
+}
