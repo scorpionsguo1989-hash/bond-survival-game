@@ -6,6 +6,7 @@ const REGION_LABELS = {
   west_prefecture: '西部地级市', northeast_old: '东北老工业区'
 };
 const HEALTH_LABELS = { good: '财务健康', medium: '财务一般', weak: '财务承压' };
+const ROLE_LABELS = { cfo: '财务总监', im: '投资经理', gov: '地方官员' };
 
 export function renderFateCard(origin, onAccept) {
   const app = document.getElementById('app');
@@ -409,31 +410,36 @@ export function downloadShareCard(dataUrl, filename) {
   a.click();
 }
 
-export function renderLeaderboardModal(leaderboardData, onClose) {
+export function renderLeaderboardModal(leaderboardData, onClose, fetchFn) {
   const overlay = document.createElement('div');
   overlay.id = 'leaderboard-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(10,14,26,0.95);z-index:1000;overflow-y:auto;padding:20px';
 
-  const rows = (leaderboardData || []).map(row => {
-    const name = escapeHtml(row.nickname || row.directorName);
-    const regionLabel = REGION_LABELS[row.regionTier] || row.regionTier;
-    const healthLabel = HEALTH_LABELS[row.healthLevel] || row.healthLevel;
-    return `
-      <tr>
-        <td class="lb-rank">#${row.rank}</td>
-        <td class="lb-name">${name}</td>
-        <td class="lb-platform">${escapeHtml(row.platformName)}</td>
-        <td class="lb-difficulty">${regionLabel}·${healthLabel}</td>
-        <td class="lb-grade grade-${row.grade}">${row.grade}</td>
-        <td class="lb-score">${row.score}</td>
-        <td class="lb-quarters">${row.quartersPassed}/12</td>
-      </tr>
-    `;
-  }).join('');
+  function renderRows(data) {
+    const rows = (data || []).map(row => {
+      const name = escapeHtml(row.nickname || row.directorName);
+      const regionLabel = REGION_LABELS[row.regionTier] || row.regionTier;
+      const healthLabel = HEALTH_LABELS[row.healthLevel] || row.healthLevel;
+      const roleLabel = ROLE_LABELS[row.role] || row.role || '财务总监';
+      return `
+        <tr>
+          <td class="lb-rank">#${row.rank}</td>
+          <td class="lb-role">${roleLabel}</td>
+          <td class="lb-name">${name}</td>
+          <td class="lb-platform">${escapeHtml(row.platformName)}</td>
+          <td class="lb-difficulty">${regionLabel}·${healthLabel}</td>
+          <td class="lb-grade grade-${row.grade}">${row.grade}</td>
+          <td class="lb-score">${row.score}</td>
+          <td class="lb-quarters">${row.quartersPassed}/12</td>
+        </tr>
+      `;
+    }).join('');
 
-  const emptyMsg = leaderboardData && leaderboardData.length > 0
-    ? ''
-    : '<tr><td colspan="7" style="text-align:center;color:#4a6080;padding:40px">暂无记录，等你来创造历史</td></tr>';
+    const emptyMsg = data && data.length > 0
+      ? ''
+      : '<tr><td colspan="8" style="text-align:center;color:#4a6080;padding:40px">暂无记录，等你来创造历史</td></tr>';
+    overlay.querySelector('tbody').innerHTML = rows + emptyMsg;
+  }
 
   overlay.innerHTML = `
     <div class="lb-container">
@@ -441,21 +447,37 @@ export function renderLeaderboardModal(leaderboardData, onClose) {
         <span class="lb-title">排行榜 · Top 20</span>
         <button id="btn-lb-close" class="lb-close-btn">✕</button>
       </div>
+      <div class="lb-tabs">
+        <button class="lb-tab active" data-role="">全部</button>
+        <button class="lb-tab" data-role="cfo">财务总监</button>
+        <button class="lb-tab" data-role="im">投资经理</button>
+      </div>
       <table class="lb-table">
         <thead>
           <tr>
-            <th>排名</th><th>昵称</th><th>平台</th><th>难度</th><th>评级</th><th>总分</th><th>存活</th>
+            <th>排名</th><th>角色</th><th>昵称</th><th>平台</th><th>难度</th><th>评级</th><th>总分</th><th>存活</th>
           </tr>
         </thead>
-        <tbody>${rows}${emptyMsg}</tbody>
+        <tbody></tbody>
       </table>
     </div>
   `;
 
   document.body.appendChild(overlay);
+  renderRows(leaderboardData || []);
   document.getElementById('btn-lb-close').addEventListener('click', () => {
     overlay.remove();
     if (onClose) onClose();
+  });
+  overlay.querySelectorAll('.lb-tab').forEach(tab => {
+    tab.addEventListener('click', async () => {
+      overlay.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      if (!fetchFn) return;
+      const role = tab.dataset.role || null;
+      const result = await fetchFn(role);
+      renderRows(result?.data || []);
+    });
   });
 }
 

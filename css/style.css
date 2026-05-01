@@ -166,10 +166,15 @@ body { background: #0a0e1a; color: #c8d4e8; font-family: 'SF Mono', 'Courier New
 .lb-title { font-size: 18px; color: #e0eaf8; letter-spacing: 2px; }
 .lb-close-btn { background: none; border: 1px solid #1e2d47; color: #4a6080; width: 32px; height: 32px; border-radius: 4px; cursor: pointer; font-size: 14px; }
 .lb-close-btn:hover { border-color: #4fc3f7; color: #4fc3f7; }
+.lb-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+.lb-tab { padding: 7px 14px; background: #07101e; border: 1px solid #1e2d47; border-radius: 4px; color: #6a8aaa; font-size: 12px; cursor: pointer; }
+.lb-tab:hover { border-color: #1e4a6f; color: #8fa8c8; }
+.lb-tab.active { background: #0f1e35; border-color: #4fc3f7; color: #4fc3f7; }
 .lb-table { width: 100%; border-collapse: collapse; background: #0f1623; border: 1px solid #1e2d47; border-radius: 6px; overflow: hidden; }
 .lb-table th { font-size: 10px; letter-spacing: 1px; color: #4a6080; text-transform: uppercase; text-align: left; padding: 10px 12px; border-bottom: 1px solid #1e2d47; background: #0a1020; }
 .lb-table td { padding: 10px 12px; border-bottom: 1px solid #0d1a2e; font-size: 12px; }
 .lb-rank { color: #4fc3f7; font-weight: bold; min-width: 40px; }
+.lb-role { color: #9fa8da; font-size: 11px; white-space: nowrap; }
 .lb-name { color: #e0eaf8; }
 .lb-platform { color: #6a8aaa; }
 .lb-difficulty { color: #4a6080; font-size: 11px; }

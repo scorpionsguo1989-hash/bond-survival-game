@@ -3,6 +3,7 @@
 const VALID_GRADES = ['S', 'A', 'B', 'C', 'D'];
 const VALID_REGIONS = ['east_core', 'central_capital', 'west_prefecture', 'northeast_old'];
 const VALID_HEALTH = ['good', 'medium', 'weak'];
+export const VALID_ROLES = ['cfo', 'im', 'gov'];
 
 // 与前端 score.js getScoreGrade 保持一致
 const GRADE_RANGES = {
@@ -43,6 +44,11 @@ export function validateScoreSubmission(data) {
   // healthLevel
   if (!VALID_HEALTH.includes(data.healthLevel)) {
     return fail('healthLevel must be one of: ' + VALID_HEALTH.join(', '));
+  }
+
+  // role: optional for backward compatibility; missing role is defaulted to cfo by server.js.
+  if (data.role !== undefined && !VALID_ROLES.includes(data.role)) {
+    return fail('role must be one of: ' + VALID_ROLES.join(', '));
   }
 
   // score: integer 0-200

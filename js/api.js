@@ -17,9 +17,10 @@ export async function submitScore(data) {
   }
 }
 
-export async function fetchLeaderboard() {
+export async function fetchLeaderboard(role = null) {
   try {
-    const resp = await fetch(`${API_BASE}/leaderboard`);
+    const url = role ? `${API_BASE}/leaderboard?role=${encodeURIComponent(role)}` : `${API_BASE}/leaderboard`;
+    const resp = await fetch(url);
     if (!resp.ok) return null;
     return await resp.json();
   } catch (e) {
@@ -28,9 +29,10 @@ export async function fetchLeaderboard() {
   }
 }
 
-export async function fetchRank(score) {
+export async function fetchRank(score, role = null) {
   try {
-    const resp = await fetch(`${API_BASE}/rank?score=${score}`);
+    const roleParam = role ? `&role=${encodeURIComponent(role)}` : '';
+    const resp = await fetch(`${API_BASE}/rank?score=${encodeURIComponent(score)}${roleParam}`);
     if (!resp.ok) return null;
     return await resp.json();
   } catch (e) {

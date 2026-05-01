@@ -83,6 +83,33 @@ describe('validateScoreSubmission', () => {
     expect(result.valid).toBe(true);
   });
 
+  it('accepts missing role (defaults to cfo)', () => {
+    const { role, ...noRole } = validData;
+    const result = validateScoreSubmission(noRole);
+    expect(result.valid).toBe(true);
+  });
+
+  it('accepts role=cfo', () => {
+    const result = validateScoreSubmission({ ...validData, role: 'cfo' });
+    expect(result.valid).toBe(true);
+  });
+
+  it('accepts role=im', () => {
+    const result = validateScoreSubmission({ ...validData, role: 'im' });
+    expect(result.valid).toBe(true);
+  });
+
+  it('accepts role=gov for future compatibility', () => {
+    const result = validateScoreSubmission({ ...validData, role: 'gov' });
+    expect(result.valid).toBe(true);
+  });
+
+  it('rejects invalid role', () => {
+    const result = validateScoreSubmission({ ...validData, role: 'xxx' });
+    expect(result.valid).toBe(false);
+    expect(result.error).toContain('role');
+  });
+
   it('rejects nickname longer than 20 chars', () => {
     const result = validateScoreSubmission({ ...validData, nickname: 'a'.repeat(21) });
     expect(result.valid).toBe(false);

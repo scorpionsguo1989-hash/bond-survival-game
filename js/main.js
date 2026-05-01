@@ -63,8 +63,8 @@ function startNewGame() {
 }
 
 async function showLeaderboard() {
-  const result = await fetchLeaderboard();
-  renderLeaderboardModal(result?.data || [], null);
+  const result = await fetchLeaderboard(null);
+  renderLeaderboardModal(result?.data || [], null, fetchLeaderboard);
 }
 
 function loadCurrentTurnEvent() {
@@ -215,6 +215,7 @@ async function submitAndShowEnd(nickname, finalScore) {
     platformName: state.origin.platformName,
     regionTier: state.origin.regionTier,
     healthLevel: state.origin.healthLevel,
+    role: state.origin.role || state.origin.roleId || 'cfo',
     score: finalScore.total,
     grade: finalScore.grade.grade,
     survived: state.survived,

@@ -1,7 +1,7 @@
 // api/server.js
 import express from 'express';
 import { createDb, insertScore, getTopScores, getRank } from './db.js';
-import { validateScoreSubmission } from './validate.js';
+import { validateScoreSubmission, VALID_ROLES } from './validate.js';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
@@ -40,15 +40,21 @@ setInterval(() => {
 // --- Routes ---
 
 app.post('/api/scores', rateLimit, (req, res) => {
-  const validation = validateScoreSubmission(req.body);
+  const data = { ...req.body };
+  if (!data.role) {
+    data.role = 'cfo';
+    console.warn('[BC-FALLBACK] POST /api/scores without role, defaulted to cfo');
+  }
+
+  const validation = validateScoreSubmission(data);
   if (!validation.valid) {
     return res.status(400).json({ ok: false, error: validation.error });
   }
 
   try {
-    insertScore(db, req.body);
-    const { rank } = getRank(db, req.body.score);
-    res.json({ ok: true, rank });
+    const id = insertScore(db, data);
+    const { rank } = getRank(db, data.score, data.role);
+    res.json({ ok: true, rank, id });
   } catch (err) {
     console.error('Insert score failed:', err);
     res.status(500).json({ ok: false, error: 'internal server error' });
@@ -56,8 +62,13 @@ app.post('/api/scores', rateLimit, (req, res) => {
 });
 
 app.get('/api/leaderboard', (req, res) => {
+  const role = req.query.role || null;
+  if (role && !VALID_ROLES.includes(role)) {
+    return res.status(400).json({ ok: false, error: 'invalid role' });
+  }
+
   try {
-    const data = getTopScores(db, 20);
+    const data = getTopScores(db, 20, role);
     const ranked = data.map((row, i) => ({ rank: i + 1, ...row }));
     res.json({ ok: true, data: ranked });
   } catch (err) {
@@ -71,9 +82,13 @@ app.get('/api/rank', (req, res) => {
   if (!Number.isInteger(score) || score < 0 || score > 200) {
     return res.status(400).json({ ok: false, error: 'score query parameter must be 0-200' });
   }
+  const role = req.query.role || null;
+  if (role && !VALID_ROLES.includes(role)) {
+    return res.status(400).json({ ok: false, error: 'invalid role' });
+  }
 
   try {
-    const result = getRank(db, score);
+    const result = getRank(db, score, role);
     res.json({ ok: true, ...result });
   } catch (err) {
     console.error('Get rank failed:', err);
