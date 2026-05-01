@@ -58,11 +58,34 @@
         ]
       },
       "gov": {
-        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "body": "市场利率突然走高，辖区平台的再融资报价同步上行。财政部门担心短债续作成本抬升，发改口也担心在建项目资金断点。你需要判断是先锁定资金，还是压缩融资需求。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "提前锁定政策性资金和周转授信",
+            "effects": {
+              "cash": 2,
+              "debtRatio": 2,
+              "hiddenDebtRisk": -3,
+              "score.liquidity": 3
+            }
+          },
+          {
+            "label": "暂停非刚性项目融资审批",
+            "effects": {
+              "industryIndex": -2,
+              "hiddenDebtRisk": -4,
+              "politicalScore": 1,
+              "score.compliance": 3
+            }
+          },
+          {
+            "label": "继续推动平台市场化融资",
+            "effects": {
+              "cash": 2,
+              "debtRatio": 5,
+              "politicalScore": -1,
+              "score.projectProgress": 2
+            }
           }
         ]
       }
@@ -128,11 +151,31 @@
         ]
       },
       "gov": {
-        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "body": "评级机构下调区域展望后，省里要求你说明财政承压、平台债务和化债安排。融资成本可能上行，招商对象也会重新评估区域信用。此时越想遮掩，后续问责风险越大。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "主动披露化债台账和整改进度",
+            "effects": {
+              "hiddenDebtRisk": -6,
+              "politicalScore": 3,
+              "score.compliance": 4
+            }
+          },
+          {
+            "label": "组织金融机构座谈稳定融资预期",
+            "effects": {
+              "transferPayment": -1,
+              "cash": 1,
+              "score.crisisResponse": 3
+            }
+          },
+          {
+            "label": "压住舆情，暂不扩大披露范围",
+            "effects": {
+              "politicalScore": -3,
+              "hiddenDebtRisk": 5,
+              "score.compliance": -4
+            }
           }
         ]
       }
@@ -197,11 +240,32 @@
         ]
       },
       "gov": {
-        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "body": "在建项目承包商集中催款，若停工会影响季度投资进度和民生工程口碑。财政现金有限，平台垫资也接近上限。你需要在项目不断档和不新增违规垫资之间找平衡。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "财政协调重点工程款优先支付",
+            "effects": {
+              "cash": -2,
+              "industryIndex": 2,
+              "politicalScore": 1,
+              "score.projectProgress": 4
+            }
+          },
+          {
+            "label": "与承包商签订分期支付协议",
+            "effects": {
+              "cash": -0.5,
+              "hiddenDebtRisk": 2,
+              "score.crisisResponse": 2
+            }
+          },
+          {
+            "label": "要求平台自行协调，财政暂不介入",
+            "effects": {
+              "cash": 1,
+              "industryIndex": -3,
+              "politicalScore": -3
+            }
           }
         ]
       }
@@ -265,11 +329,31 @@
         ]
       },
       "gov": {
-        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "body": "委托代建和政府购买服务应收款回收困难，平台现金流被继续占用。表面上只是账期延长，实质上会抬高隐性债务识别风险。你必须决定是否动用财政资源清理历史欠款。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "清理政府购买服务和代建回款",
+            "effects": {
+              "cash": -1,
+              "hiddenDebtRisk": -4,
+              "score.compliance": 4
+            }
+          },
+          {
+            "label": "与业主单位敲定分期回款计划",
+            "effects": {
+              "cash": 1,
+              "hiddenDebtRisk": 1,
+              "score.liquidity": 2
+            }
+          },
+          {
+            "label": "暂不处理历史应收，先保当期支出",
+            "effects": {
+              "cash": 1,
+              "hiddenDebtRisk": 5,
+              "politicalScore": -2
+            }
           }
         ]
       }
@@ -333,11 +417,32 @@
         ]
       },
       "gov": {
-        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "body": "监管窗口指导要求压降非标融资，辖区平台过去依赖的信托、租赁和应收账款融资都被点名。整改会影响短期项目资金，但拖延整改会直接损伤你的合规评分。你需要确定整改力度。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "停止新增非标并建立到期台账",
+            "effects": {
+              "hiddenDebtRisk": -8,
+              "industryIndex": -2,
+              "score.compliance": 5
+            }
+          },
+          {
+            "label": "用合规银行授信置换高风险非标",
+            "effects": {
+              "cash": 1,
+              "debtRatio": 2,
+              "hiddenDebtRisk": -5,
+              "score.costControl": 3
+            }
+          },
+          {
+            "label": "申请过渡期，避免项目资金断裂",
+            "effects": {
+              "hiddenDebtRisk": 3,
+              "politicalScore": -1,
+              "score.crisisResponse": 1
+            }
           }
         ]
       }
@@ -402,11 +507,31 @@
         ]
       },
       "gov": {
-        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "body": "审计组进驻后，隐性债务口径、专项债资金用途和平台往来款都会被穿透核查。你既要配合检查，又要避免材料前后矛盾。选择性披露也许能拖过一时，但会放大后续问责。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "全量提交债务台账和整改材料",
+            "effects": {
+              "hiddenDebtRisk": -7,
+              "politicalScore": 3,
+              "score.compliance": 5
+            }
+          },
+          {
+            "label": "先处置重点风险，再分批补齐材料",
+            "effects": {
+              "hiddenDebtRisk": -4,
+              "cash": -0.5,
+              "score.crisisResponse": 3
+            }
+          },
+          {
+            "label": "控制材料范围，避免暴露更多问题",
+            "effects": {
+              "hiddenDebtRisk": 6,
+              "politicalScore": -5,
+              "score.compliance": -5
+            }
           }
         ]
       }
@@ -471,11 +596,34 @@
         ]
       },
       "gov": {
-        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "body": "政策性银行主动对接辖区重点项目，这是少见的低成本资金窗口。资金投向项目能稳增长，投向债务置换能降风险。关键是项目清单和现金流闭环经得起审查。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "申报收益闭环清晰的项目清单",
+            "effects": {
+              "cash": 3,
+              "industryIndex": 4,
+              "politicalScore": 2,
+              "score.projectProgress": 4
+            }
+          },
+          {
+            "label": "用低成本资金置换高风险隐债",
+            "effects": {
+              "cash": -1,
+              "hiddenDebtRisk": -8,
+              "debtRatio": -2,
+              "score.costControl": 4
+            }
+          },
+          {
+            "label": "扩大融资规模，尽量多争取资金",
+            "effects": {
+              "cash": 5,
+              "debtRatio": 6,
+              "hiddenDebtRisk": 2,
+              "score.projectProgress": 2
+            }
           }
         ]
       }
@@ -542,11 +690,32 @@
         ]
       },
       "gov": {
-        "body": "[TODO GOV 视角文案 — 待 Codex T4 填充]",
+        "body": "市政府考虑把优质市政资产划入平台，既能改善融资形象，也会改变财政和平台的收益分配。资产注入如果没有经营现金流，只是把风险换了一个包装。你需要明确注入边界和配套义务。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "划入经营性资产并明确收益归属",
+            "effects": {
+              "industryIndex": 4,
+              "hiddenDebtRisk": -3,
+              "politicalScore": 3,
+              "score.development": 4
+            }
+          },
+          {
+            "label": "只做资产注入，不新增财政补贴承诺",
+            "effects": {
+              "industryIndex": 2,
+              "score.compliance": 2
+            }
+          },
+          {
+            "label": "配套财政补贴，快速做强平台报表",
+            "effects": {
+              "cash": -2,
+              "industryIndex": 5,
+              "debtRatio": 3,
+              "politicalScore": 2
+            }
           }
         ]
       }

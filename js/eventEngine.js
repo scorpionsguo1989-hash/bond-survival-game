@@ -64,15 +64,17 @@ function flattenForRole(event, roleId) {
 }
 
 export async function loadEvents() {
-  const [mainResp, randResp, randImResp] = await Promise.all([
+  const [mainResp, randResp, randImResp, randGovResp] = await Promise.all([
     fetch('content/mainEvents.json'),
     fetch('content/randomEvents.json'),
     fetch('content/randomEventsIM.json'),
+    fetch('content/randomEventsGOV.json'),
   ]);
   const random = await randResp.json();
   const randomIm = await randImResp.json();
+  const randomGov = await randGovResp.json();
   return {
     main: await mainResp.json(),
-    random: [...random, ...randomIm],
+    random: [...random, ...randomIm, ...randomGov],
   };
 }

@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { findMainEvent, sampleRandomEvents, getPolicyDirection } from '../js/eventEngine.js';
+import { describe, it, expect, vi } from 'vitest';
+import { findMainEvent, sampleRandomEvents, getPolicyDirection, loadEvents } from '../js/eventEngine.js';
 
 // Plan 3 T3: 事件 schema 升级为 roles 嵌套
 const mainEvents = [
@@ -72,5 +72,28 @@ describe('getPolicyDirection', () => {
     expect(getPolicyDirection(-3)).toBe('tight');
     expect(getPolicyDirection(0)).toBe('stable');
     expect(getPolicyDirection(2)).toBe('loose');
+  });
+});
+
+describe('loadEvents', () => {
+  it('merges common, IM-specific, and GOV-specific random pools', async () => {
+    const responses = {
+      'content/mainEvents.json': [{ id: 'main' }],
+      'content/randomEvents.json': [{ id: 'common' }],
+      'content/randomEventsIM.json': [{ id: 'im-only' }],
+      'content/randomEventsGOV.json': [{ id: 'gov-only' }],
+    };
+    const fetchMock = vi.fn(async url => ({
+      json: async () => responses[url],
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const events = await loadEvents();
+
+    expect(fetchMock).toHaveBeenCalledWith('content/randomEventsGOV.json');
+    expect(events.main).toEqual([{ id: 'main' }]);
+    expect(events.random.map(e => e.id)).toEqual(['common', 'im-only', 'gov-only']);
+
+    vi.unstubAllGlobals();
   });
 });

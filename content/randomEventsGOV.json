@@ -1,0 +1,439 @@
+[
+  {
+    "id": "rand_gov_inspection_team",
+    "type": "政策",
+    "weight": {
+      "tight": 3,
+      "stable": 1,
+      "loose": 0.5
+    },
+    "title": "中央督导组临时进驻",
+    "policyDirection": "any",
+    "roles": {
+      "gov": {
+        "body": "中央督导组临时进驻，重点看隐债化解、民生保障和项目合规。你必须快速统一财政、发改和平台口径。材料越真实，短期压力越大；材料越漂亮，后续风险越高。",
+        "choices": [
+          {
+            "label": "建立联合专班，按真实台账迎检",
+            "effects": {
+              "hiddenDebtRisk": -8,
+              "politicalScore": 4,
+              "cash": -1,
+              "score.compliance": 5
+            }
+          },
+          {
+            "label": "先整改最容易被问责的问题",
+            "effects": {
+              "hiddenDebtRisk": -5,
+              "politicalScore": 2,
+              "score.crisisResponse": 3
+            }
+          },
+          {
+            "label": "统一汇报口径，弱化历史遗留问题",
+            "effects": {
+              "hiddenDebtRisk": 6,
+              "politicalScore": -4,
+              "score.compliance": -5
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "rand_gov_tax_incentive_renewal",
+    "type": "经营",
+    "weight": {
+      "tight": 1,
+      "stable": 1,
+      "loose": 1
+    },
+    "title": "重点企业要求续期税收优惠",
+    "policyDirection": "any",
+    "roles": {
+      "gov": {
+        "body": "辖区重点企业提出续期税收优惠，否则将把新增产线放到外地。优惠会拖累当期财政收入，但失去企业会影响产业链和组织评价。你需要给出可执行的留企方案。",
+        "choices": [
+          {
+            "label": "续期优惠，但绑定新增投资和就业",
+            "effects": {
+              "fiscalRevenue": -3,
+              "industryIndex": 5,
+              "politicalScore": 3,
+              "score.projectProgress": 4
+            }
+          },
+          {
+            "label": "改为分阶段奖补，按贡献兑现",
+            "effects": {
+              "fiscalRevenue": -1,
+              "industryIndex": 3,
+              "score.compliance": 3
+            }
+          },
+          {
+            "label": "拒绝续期，维护财政收入纪律",
+            "effects": {
+              "fiscalRevenue": 2,
+              "industryIndex": -5,
+              "politicalScore": -2,
+              "score.liquidity": 2
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "rand_gov_platform_technical_default",
+    "type": "市场",
+    "weight": {
+      "tight": 3,
+      "stable": 1,
+      "loose": 0.5
+    },
+    "title": "国企平台出现技术性违约",
+    "policyDirection": "any",
+    "roles": {
+      "gov": {
+        "body": "一家区属平台因资金划拨延迟出现技术性违约，虽然次日可以补足，但市场已经开始传播。公开债投资人和省里同时追问原因。你需要迅速止血，防止个案变成区域信用事件。",
+        "choices": [
+          {
+            "label": "财政垫付周转资金并公开处置安排",
+            "effects": {
+              "cash": -3,
+              "hiddenDebtRisk": -10,
+              "politicalScore": 2,
+              "score.crisisResponse": 6
+            }
+          },
+          {
+            "label": "协调银行短贷过桥，平台自行补足",
+            "effects": {
+              "debtRatio": 2,
+              "hiddenDebtRisk": -5,
+              "score.liquidity": 3
+            }
+          },
+          {
+            "label": "低调处理，不扩大政府介入痕迹",
+            "effects": {
+              "cash": 1,
+              "hiddenDebtRisk": 8,
+              "politicalScore": -5
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "rand_gov_industry_transfer_project",
+    "type": "机遇",
+    "weight": {
+      "tight": 0.8,
+      "stable": 1.5,
+      "loose": 2
+    },
+    "title": "上级要求承接国企产业转移项目",
+    "policyDirection": "any",
+    "roles": {
+      "gov": {
+        "body": "上级希望你承接一个国企产业转移项目，项目能提升区域能级，但前期配套投入很重。财政部门担心项目现金流慢，招商部门则认为这是难得窗口。你要决定承接力度。",
+        "choices": [
+          {
+            "label": "全力承接，配套园区基础设施",
+            "effects": {
+              "cash": -4,
+              "industryIndex": 8,
+              "politicalScore": 5,
+              "debtRatio": 5,
+              "score.projectProgress": 6
+            }
+          },
+          {
+            "label": "只承接核心环节，分期建设配套",
+            "effects": {
+              "cash": -2,
+              "industryIndex": 4,
+              "politicalScore": 3,
+              "score.compliance": 2
+            }
+          },
+          {
+            "label": "谨慎论证，暂不作重资产承诺",
+            "effects": {
+              "cash": 1,
+              "industryIndex": -2,
+              "politicalScore": -2,
+              "score.liquidity": 2
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "rand_gov_special_bond_audit",
+    "type": "政策",
+    "weight": {
+      "tight": 2,
+      "stable": 1,
+      "loose": 0.5
+    },
+    "title": "审计关注专项债项目进度",
+    "policyDirection": "any",
+    "roles": {
+      "gov": {
+        "body": "审计部门要求解释专项债资金沉淀和项目进度滞后问题。资金闲置会影响后续额度，也可能被认定为项目准备不足。你需要在保额度和保合规之间补课。",
+        "choices": [
+          {
+            "label": "调整项目清单，把额度转向成熟项目",
+            "effects": {
+              "specialBondQuota": -2,
+              "industryIndex": 3,
+              "politicalScore": 2,
+              "score.compliance": 5
+            }
+          },
+          {
+            "label": "加快施工和支付进度，形成实物工作量",
+            "effects": {
+              "cash": -2,
+              "industryIndex": 4,
+              "score.projectProgress": 4
+            }
+          },
+          {
+            "label": "继续等待原项目审批补件",
+            "effects": {
+              "specialBondQuota": -3,
+              "politicalScore": -3,
+              "score.compliance": -3
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "rand_gov_land_transaction_halves",
+    "type": "市场",
+    "weight": {
+      "tight": 2,
+      "stable": 1,
+      "loose": 0.5
+    },
+    "title": "土地市场月度成交腰斩",
+    "policyDirection": "any",
+    "roles": {
+      "gov": {
+        "body": "本月土地成交额腰斩，财政部门下调全年政府性基金收入预期。土地依赖越高，平台回款和项目资本金越容易断档。你需要快速调整支出和供地节奏。",
+        "choices": [
+          {
+            "label": "压减低效支出，保化债和民生",
+            "effects": {
+              "cash": 2,
+              "landRevenue": -5,
+              "hiddenDebtRisk": -3,
+              "score.liquidity": 4
+            }
+          },
+          {
+            "label": "降低部分地块起拍价换现金回笼",
+            "effects": {
+              "landRevenue": 6,
+              "cash": 2,
+              "politicalScore": -2,
+              "score.crisisResponse": 2
+            }
+          },
+          {
+            "label": "维持供地价格，等待市场修复",
+            "effects": {
+              "landRevenue": -8,
+              "cash": -2,
+              "hiddenDebtRisk": 4
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "rand_gov_major_project_signing",
+    "type": "机遇",
+    "weight": {
+      "tight": 0.5,
+      "stable": 1.5,
+      "loose": 2
+    },
+    "title": "重大产业项目签约成功",
+    "policyDirection": "any",
+    "roles": {
+      "gov": {
+        "body": "一个重大产业项目成功签约，省里和媒体都关注落地进度。项目会提升产业指标，但前期需要供地、配套和奖补。你需要把政绩机会转化为财政可承受的项目。",
+        "choices": [
+          {
+            "label": "成立专班快速推进项目落地",
+            "effects": {
+              "cash": -2,
+              "industryIndex": 7,
+              "politicalScore": 5,
+              "score.projectProgress": 5
+            }
+          },
+          {
+            "label": "分阶段兑现奖补，按投资进度付款",
+            "effects": {
+              "cash": -1,
+              "industryIndex": 4,
+              "politicalScore": 3,
+              "score.compliance": 3
+            }
+          },
+          {
+            "label": "控制配套投入，避免财政过度承诺",
+            "effects": {
+              "cash": 1,
+              "industryIndex": 1,
+              "politicalScore": -1,
+              "score.liquidity": 2
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "rand_gov_platform_fraud_viral",
+    "type": "舆情",
+    "weight": {
+      "tight": 2,
+      "stable": 1,
+      "loose": 0.5
+    },
+    "title": "自媒体曝光平台融资造假",
+    "policyDirection": "any",
+    "roles": {
+      "gov": {
+        "body": "自媒体曝光辖区平台融资材料造假，帖子迅速发酵。即使事实尚未核实，金融机构也会暂停新增授信。你需要同时处理舆情、核查和市场信心。",
+        "choices": [
+          {
+            "label": "公开启动核查并暂停涉事融资",
+            "effects": {
+              "hiddenDebtRisk": -5,
+              "politicalScore": 2,
+              "cash": -1,
+              "score.compliance": 5
+            }
+          },
+          {
+            "label": "先稳定金融机构，再内部核查责任",
+            "effects": {
+              "cash": 1,
+              "hiddenDebtRisk": -2,
+              "score.crisisResponse": 4
+            }
+          },
+          {
+            "label": "要求平台否认并压制传播",
+            "effects": {
+              "hiddenDebtRisk": 8,
+              "politicalScore": -6,
+              "score.compliance": -6
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "rand_gov_neighbor_removed",
+    "type": "政策",
+    "weight": {
+      "tight": 2,
+      "stable": 1,
+      "loose": 0.5
+    },
+    "title": "邻市官员因隐债问题被问责",
+    "policyDirection": "any",
+    "roles": {
+      "gov": {
+        "body": "邻市主要领导因隐债化解不力被问责，省里要求各地举一反三。辖区干部情绪紧张，平台也担心融资被一刀切。你需要把压力转化为真实整改，而不是简单停摆。",
+        "choices": [
+          {
+            "label": "全面复盘隐债台账并压降高风险项目",
+            "effects": {
+              "hiddenDebtRisk": -10,
+              "politicalScore": 3,
+              "industryIndex": -2,
+              "score.compliance": 5
+            }
+          },
+          {
+            "label": "约谈平台负责人，暂停违规融资",
+            "effects": {
+              "hiddenDebtRisk": -6,
+              "politicalScore": 2,
+              "cash": -1,
+              "score.crisisResponse": 3
+            }
+          },
+          {
+            "label": "暂缓所有项目审批，避免新增责任",
+            "effects": {
+              "hiddenDebtRisk": -3,
+              "industryIndex": -6,
+              "politicalScore": -2
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "rand_gov_debt_ratio_media",
+    "type": "舆情",
+    "weight": {
+      "tight": 1.5,
+      "stable": 1,
+      "loose": 0.5
+    },
+    "title": "媒体追问区域债务率排名",
+    "policyDirection": "any",
+    "roles": {
+      "gov": {
+        "body": "媒体在发布会上追问辖区债务率排名和平台偿债能力。回答过硬会显得回避，回答过细又可能引发市场解读。你需要以可验证的化债进展稳定预期。",
+        "choices": [
+          {
+            "label": "披露债务率下降路径和项目现金流安排",
+            "effects": {
+              "debtRatio": -2,
+              "politicalScore": 3,
+              "score.compliance": 4
+            }
+          },
+          {
+            "label": "强调省级支持和重大项目落地",
+            "effects": {
+              "transferPayment": 1,
+              "industryIndex": 2,
+              "score.crisisResponse": 3
+            }
+          },
+          {
+            "label": "回避具体数据，只做原则性回应",
+            "effects": {
+              "politicalScore": -3,
+              "hiddenDebtRisk": 3,
+              "score.compliance": -3
+            }
+          }
+        ]
+      }
+    }
+  }
+]
