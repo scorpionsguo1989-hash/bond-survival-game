@@ -11,7 +11,8 @@ const SCALE_PROFILES = {
 const HEALTH_PROFILES = {
   good: { creditExposure: 15, concentration: 8, initialNavBuffer: 0 },
   medium: { creditExposure: 30, concentration: 12, initialNavBuffer: 0 },
-  weak: { creditExposure: 50, concentration: 14, initialNavBuffer: -0.02 },
+  // weak 调整：creditExposure 50→49（让 weak 玩家有 ~30-50% 通关机会），nav buffer -0.02→-0.015
+  weak: { creditExposure: 49, concentration: 14, initialNavBuffer: -0.015 },
 };
 
 function getInitialMetrics(profile) {
