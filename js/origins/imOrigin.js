@@ -68,8 +68,6 @@ function buildOrigin(inst, scale, health, tag, score) {
       scale: scale.label,
       health: health.label,
       tag: tag.label,
-      region: inst.label,
-      business: scale.label,
     },
     challengeScore: score,
   };
