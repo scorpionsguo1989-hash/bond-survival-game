@@ -46,12 +46,19 @@ function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-const PLATFORM_NAME_PARTS = {
-  prefix: ['淮西', '青阳', '南漳', '滨北', '沂南', '梁州', '雁城', '汾州'],
-  suffix: ['市城市建设投资', '市国有资本运营', '区基础设施投资', '市交通投资'],
-};
+const PLATFORM_NAMES = [
+  '云中城建', '星河基投', '龙脊国投', '凤鸣城发', '天枢建投',
+  '九霄交投', '玄武国控', '麒麟城发', '鲲鹏基建', '青龙资管',
+  '朱雀经开', '白泽城投', '沧溟水务', '太虚新城', '饕餮产投',
+  '烛龙能源',
+];
 
-const DIRECTOR_NAMES = ['张明远', '李振华', '王建国', '赵海涛', '陈志强', '刘伟', '孙永康', '周国栋'];
+const CODENAMES = [
+  '铁算盘', '老城墙', '定海针', '压舱石', '铁账本',
+  '活水源', '稳底盘', '护城河', '定心锚', '搭桥王',
+  '挪腾手', '续命丹', '补天匠', '翻盘手', '守夜人',
+  '拆弹手',
+];
 
 export function generateOrigin(roleId) {
   // 约束随机：内部循环直到挑战值在区间内
@@ -65,8 +72,8 @@ export function generateOrigin(roleId) {
     };
     const score = computeChallengeScore(origin);
     if (score >= TARGET_SCORE_MIN && score <= TARGET_SCORE_MAX) {
-      origin.platformName = pick(PLATFORM_NAME_PARTS.prefix) + pick(PLATFORM_NAME_PARTS.suffix) + '有限公司';
-      origin.directorName = pick(DIRECTOR_NAMES);
+      origin.platformName = pick(PLATFORM_NAMES);
+      origin.directorName = pick(CODENAMES);
       origin.challenges = generateChallenges(origin);
       origin.labels = getLabels(origin);
       return origin;
@@ -116,8 +123,8 @@ function generateFallbackOrigin(roleId) {
     businessType: 'infrastructure',
     healthLevel: 'medium',
     tag: 'leadership_change',
-    platformName: '淮西市城市建设投资有限公司',
-    directorName: '张明远',
+    platformName: '云中城建',
+    directorName: '铁算盘',
   };
   origin.labels = getLabels(origin);
   origin.challenges = generateChallenges(origin);
