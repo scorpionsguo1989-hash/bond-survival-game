@@ -261,451 +261,412 @@ export function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+// ============================================================
+// 主界面（严格对齐 main-ui.jsx，使用 main-ui.css）
+// ============================================================
+
 export function renderMainScreen(state, callbacks) {
   const app = document.getElementById('app');
   const roleId = state.role?.id || state.origin?.role || 'cfo';
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 720;
+  const showAlert = roleId === 'im' && (state.metrics?.redemptionPressure || 0) >= 70;
   app.innerHTML = `
-    <div class="screen active game-screen role-${roleId}" style="--role-accent:${ROLE_ACCENTS[roleId] || ROLE_ACCENTS.cfo}">
-      ${renderTopBar(state)}
-      ${renderRedemptionBanner(state)}
-      <div class="main-grid">
-        <div class="col-left">
-          ${renderMetricsPanel(state)}
-          ${roleId === 'im' ? renderRedemptionCard(state) : ''}
-          ${renderGoalCard(state)}
+    <div class="screen active">
+      <div class="ui ${isMobile ? 'mobile' : ''}" data-role="${roleId}">
+        ${renderUITopbar(state)}
+        ${showAlert ? renderAlertBanner(state) : ''}
+        <div class="main">
+          ${renderLeftCol(state)}
+          ${renderCenterCol(state, callbacks)}
+          ${renderRightCol(state)}
         </div>
-        <div class="col-center event-area" id="event-area">
-          ${renderEventArea(state)}
-          ${renderActionPanel(state)}
-          ${renderProjectedPanel(state)}
-          ${renderDecisionLog(state)}
-        </div>
-        <div class="col-right" id="chart-area">${renderChartArea(state)}</div>
+        ${renderUIStatusbar(state)}
       </div>
-      ${renderStatusBar(state)}
     </div>
   `;
   bindMainScreenEvents(state, callbacks);
 }
 
-// Round 2: 左栏底部"本局目标"小卡（简版 onboarding，不重复挑战）
-function renderGoalCard(state) {
-  if (!state.role?.getOnboardingHints) return '';
-  const hints = state.role.getOnboardingHints(state.origin || {});
-  const goal = getGoalDisplay(state, hints);
-  const rows = getGoalRows(state);
+function renderUITopbar(state) {
+  const roleId = state.role?.id || 'cfo';
+  const short = ROLE_CODES[roleId] || 'CFO';
+  const name = state.role?.name || ROLE_LABELS[roleId] || '城投财务总监';
+  const quarter = `${state.year} Q${state.quarter}`;
+  const policyValue = state.policyValue || 0;
+  const policyPct = ((policyValue + 5) / 10) * 100;
+  const policyLabel = policyLabelClean(policyValue);
+  const labels = ["严格","偏紧","中性","偏松","宽松"];
+  const totalActions = 6;
+  const actionsLeft = Math.max(0, totalActions - (state.actionsUsed || 0));
   return `
-    <div class="panel goal-card">
-      <div class="panel-title panel-title-row">
-        <span><span class="section-mark">◇</span> 本局目标</span>
-        <span class="panel-kicker">GOAL</span>
+    <div class="topbar">
+      <div class="tb-left">
+        <span class="tb-role-dot"></span>
+        <span class="tb-role-name mono">${escapeHtml(short)} · ${escapeHtml(name)}</span>
+        <span class="tb-sep"></span>
+        <span class="tb-game-name">债市生存</span>
+        <span class="tb-quarter mono">${escapeHtml(quarter)} · <b>第 ${state.quartersPassed + 1}/12 回合</b></span>
       </div>
-      <div class="goal-headline">${escapeHtml(goal.title)}</div>
-      <div class="goal-subtitle">${escapeHtml(goal.subtitle)}</div>
-      <div class="goal-progress-list">
-        ${rows.map(r => `
-          <div class="goal-progress-row">
-            <div class="goal-progress-meta">
-              <span>${escapeHtml(r.label)}</span>
-              <strong>${escapeHtml(r.value)}</strong>
+      <div class="policy-axis">
+        <div class="policy-axis-head">
+          <span>政策环境</span>
+          <span class="now">当前 · <b>${escapeHtml(policyLabel)}</b> · ${policyValue >= 0 ? '+' : ''}${policyValue}</span>
+        </div>
+        <div class="policy-track">
+          <div class="policy-ticks">${'<span></span>'.repeat(11)}</div>
+          <div class="policy-thumb" style="left:${policyPct}%"></div>
+        </div>
+        <div class="policy-labels">
+          ${labels.map(l => `<span class="${l === policyLabel ? 'active' : ''}">${l}</span>`).join('')}
+        </div>
+      </div>
+      <div class="tb-right">
+        <span class="actions-left">
+          <span class="num">${actionsLeft}</span>
+          <span style="color:var(--text-3)">/${totalActions}</span>
+          <span class="lbl">本季 · 剩余操作</span>
+        </span>
+        <button class="tb-icon-btn" title="日志">≡</button>
+      </div>
+    </div>
+  `;
+}
+
+function policyLabelClean(value) {
+  if (value <= -3) return '严格';
+  if (value <= -1) return '偏紧';
+  if (value === 0) return '中性';
+  if (value <= 2) return '偏松';
+  return '宽松';
+}
+
+function renderAlertBanner(state) {
+  const m = state.metrics;
+  const pressure = Math.round(m.redemptionPressure);
+  const expected = getExpectedRedeem(m);
+  const cash = getCashAvail(m);
+  const gap = expected - cash;
+  return `
+    <div class="alert-banner">
+      <span class="ico">!</span>
+      <span class="tag mono">REDEEM-${pressure}</span>
+      <span class="msg">赎回压力 <b>${pressure}</b>（红区）— 下周一预计净赎回 <b>${expected.toFixed(1)} 亿</b>，现金 ${cash.toFixed(1)} 亿，<b>缺口 ${Math.max(0, gap).toFixed(1)} 亿</b>。建议：T+1 前抛 AA- 或申报置换。</span>
+      <span class="meta">T+0 14:08 · 渠道渗透率 92%</span>
+    </div>
+  `;
+}
+
+function renderLeftCol(state) {
+  const roleId = state.role?.id;
+  const metrics = buildUIMetrics(state);
+  return `
+    <div class="col col-l">
+      <div class="panel">
+        <div class="panel-head">
+          <span><span class="ax">●</span> 我的指标</span>
+          <span class="meta">${metrics.length} items</span>
+        </div>
+        <div class="metric-grid cols-2">
+          ${metrics.map(m => renderUIMetric(m)).join('')}
+        </div>
+      </div>
+      ${roleId === 'im' ? renderRedeemPanel(state) : ''}
+      ${renderUIGoalCard(state)}
+    </div>
+  `;
+}
+
+function renderUIMetric(m) {
+  const cls = ['metric', m.lvl].filter(Boolean).join(' ');
+  return `
+    <div class="${cls}">
+      <span class="k">${escapeHtml(m.k)}</span>
+      <span class="v">${escapeHtml(String(m.v))}${m.unit ? `<span class="unit">${escapeHtml(m.unit)}</span>` : ''}</span>
+      ${m.delta ? `<span class="delta ${m.deltaCls || ''}">${escapeHtml(m.delta)}</span>` : ''}
+      ${m.barPct != null ? `<div class="bar"><i style="width:${m.barPct}%"></i></div>` : ''}
+    </div>
+  `;
+}
+
+function buildUIMetrics(state) {
+  const roleId = state.role?.id;
+  const m = state.metrics || {};
+  if (roleId === 'cfo') {
+    const due = m.debtMaturity?.[state.quartersPassed] || 0;
+    return [
+      { k: '现金 (亿)', v: m.cash.toFixed(1), delta: getDeltaStr(state, 'cash'), deltaCls: getDeltaCls(state, 'cash', false), lvl: m.cash < 2 ? 'danger' : (m.cash < 5 ? 'warn' : 'ok'), barPct: Math.min(100, m.cash * 10) },
+      { k: '本季到期 (亿)', v: due.toFixed(1), lvl: due > m.cash ? 'danger' : 'warn', barPct: Math.min(100, due * 10) },
+      { k: '资产负债率', v: m.leverageRatio.toFixed(1), unit: '%', delta: getDeltaStr(state, 'leverageRatio'), deltaCls: getDeltaCls(state, 'leverageRatio', true), lvl: m.leverageRatio >= 75 ? 'danger' : (m.leverageRatio >= 65 ? 'warn' : 'ok'), barPct: m.leverageRatio },
+      { k: '授信使用率', v: Math.round(m.creditUsage), unit: '%', lvl: m.creditUsage >= 85 ? 'danger' : (m.creditUsage >= 70 ? 'warn' : 'ok'), barPct: m.creditUsage },
+      { k: '综合融资成本', v: m.financingCost.toFixed(2), unit: '%', delta: getDeltaStr(state, 'financingCost'), deltaCls: getDeltaCls(state, 'financingCost', true), lvl: m.financingCost >= 7 ? 'danger' : (m.financingCost >= 6 ? 'warn' : 'ok'), barPct: Math.min(100, m.financingCost * 10) },
+      { k: '可抵押物', v: collLabel(m.collateralRoom), lvl: m.collateralRoom === 'low' ? 'danger' : (m.collateralRoom === 'medium' ? 'warn' : 'ok') },
+      { k: '项目缺口 (亿)', v: m.projectGap.toFixed(1), lvl: 'danger' },
+    ];
+  }
+  if (roleId === 'im') {
+    return [
+      { k: '净值 (NAV)', v: m.nav.toFixed(3), delta: getDeltaStr(state, 'nav'), deltaCls: getDeltaCls(state, 'nav', false), lvl: m.nav < 0.88 ? 'danger' : (m.nav < 0.95 ? 'warn' : 'ok'), barPct: Math.max(0, Math.min(100, (m.nav - 0.85) * 500)) },
+      { k: '组合久期', v: m.duration.toFixed(1), unit: 'Y' },
+      { k: 'AA 及以下', v: m.creditExposure.toFixed(0), unit: '%', lvl: m.creditExposure > 40 ? 'danger' : (m.creditExposure > 25 ? 'warn' : 'ok'), barPct: m.creditExposure },
+      { k: '持仓集中度', v: m.concentration.toFixed(1), unit: '%', lvl: m.concentration > 22 ? 'danger' : (m.concentration > 18 ? 'warn' : 'ok'), barPct: Math.min(100, m.concentration * 4) },
+      { k: '杠杆率', v: m.leverage.toFixed(0), unit: '%', lvl: m.leverage > 130 ? 'danger' : (m.leverage > 115 ? 'warn' : 'ok'), barPct: Math.min(100, (m.leverage - 80) * 1.6) },
+      { k: '流动性 (亿)', v: getCashAvail(m).toFixed(1), lvl: m.cashRatio < 5 ? 'danger' : (m.cashRatio < 10 ? 'warn' : 'ok') },
+    ];
+  }
+  if (roleId === 'gov') {
+    return [
+      { k: '财政现金 (亿)', v: m.cash.toFixed(1), lvl: m.cash < 1 ? 'danger' : (m.cash < 3 ? 'warn' : 'ok'), barPct: Math.min(100, m.cash * 4) },
+      { k: '综合债务率', v: m.debtRatio.toFixed(0), unit: '%', lvl: m.debtRatio > 280 ? 'danger' : (m.debtRatio > 250 ? 'warn' : 'ok'), barPct: Math.min(100, (m.debtRatio - 150) / 1.5) },
+      { k: '隐债敞口 (亿)', v: m.hiddenDebtRisk.toFixed(0), lvl: m.hiddenDebtRisk > 150 ? 'danger' : (m.hiddenDebtRisk > 100 ? 'warn' : 'ok'), barPct: Math.min(100, m.hiddenDebtRisk / 2) },
+      { k: '政绩评分', v: Math.round(m.politicalScore), unit: '/100', lvl: m.politicalScore < 30 ? 'danger' : (m.politicalScore < 45 ? 'warn' : 'ok'), barPct: m.politicalScore },
+      { k: '专项债额度 (亿)', v: m.specialBondQuota.toFixed(0), lvl: m.specialBondQuota < 5 ? 'warn' : 'ok' },
+      { k: '产业指数', v: m.industryIndex.toFixed(2), lvl: m.industryIndex < 30 ? 'warn' : 'ok' },
+      { k: '财政收入 (亿)', v: (m.fiscalRevenue / 4).toFixed(1), lvl: 'warn' },
+    ];
+  }
+  return [];
+}
+
+function getDeltaStr(state, key) {
+  const t = getTrend(state, key);
+  if (!t) return null;
+  const sign = t.delta > 0 ? '+' : '';
+  const v = Math.abs(t.delta) >= 1 ? t.delta.toFixed(1) : t.delta.toFixed(2);
+  return sign + v;
+}
+
+function getDeltaCls(state, key, lowerIsBetter) {
+  const t = getTrend(state, key);
+  if (!t) return null;
+  const isGood = lowerIsBetter ? t.delta < 0 : t.delta > 0;
+  return isGood ? 'up' : 'down';
+}
+
+function renderRedeemPanel(state) {
+  const m = state.metrics;
+  const level = Math.round(m.redemptionPressure);
+  const expected = getExpectedRedeem(m);
+  const cash = getCashAvail(m);
+  const gap = Math.max(0, expected - cash);
+  return `
+    <div class="panel">
+      <div class="panel-head">
+        <span><span class="ax" style="color:var(--danger)">!</span> 赎回压力</span>
+        <span class="meta">live</span>
+      </div>
+      ${renderRedeemCard({ level, expected: expected.toFixed(1), cash: cash.toFixed(1), gap: gap.toFixed(1) })}
+    </div>
+  `;
+}
+
+function renderRedeemCard(r) {
+  const lvl = r.level;
+  let cls = 'lvl-green';
+  if (lvl >= 70) cls = 'lvl-red';
+  else if (lvl >= 50) cls = 'lvl-orange';
+  else if (lvl >= 30) cls = 'lvl-yellow';
+  const danger = lvl >= 70;
+  return `
+    <div class="redeem ${danger ? 'danger' : ''}">
+      <div class="redeem-head">
+        <span><span class="ax">⨯</span> 赎回压力</span>
+        <span class="stat">vs 上季 <b class="up">+24</b></span>
+      </div>
+      <div class="redeem-num">
+        <span class="big">${lvl}</span>
+        <span class="unit">/ 100</span>
+        <span class="delta">${danger ? '红区 · 触发预警' : (lvl >= 50 ? '橙区 · 可控' : '中性')}</span>
+      </div>
+      <div class="redeem-bar ${cls}">
+        <i style="width:${lvl}%"></i>
+      </div>
+      <div class="redeem-marks">
+        <span style="left:15%">30</span>
+        <span style="left:50%">50</span>
+        <span style="left:70%">70</span>
+      </div>
+      <div class="redeem-grid">
+        <div class="cell">
+          <span class="k">下季预期赎回</span>
+          <span class="v">${r.expected} 亿</span>
+        </div>
+        <div class="cell">
+          <span class="k">当前现金</span>
+          <span class="v">${r.cash} 亿</span>
+        </div>
+        <div class="cell gap">
+          <span class="k">缺口</span>
+          <span class="v">−${r.gap} 亿</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderUIGoalCard(state) {
+  const g = buildGoalData(state);
+  return `
+    <div class="goal">
+      <div class="goal-head">
+        <span><span class="ax">◇</span> 本局目标</span>
+        <span class="meta">GOAL</span>
+      </div>
+      <div class="goal-title">${escapeHtml(g.title)}</div>
+      <div class="goal-sub">${escapeHtml(g.sub)}</div>
+      <div class="goal-bars">
+        ${g.bars.map(b => `
+          <div class="goal-bar lvl-${b.lvl}">
+            <div class="row">
+              <span class="k">${escapeHtml(b.k)}</span>
+              <span class="v mono">${escapeHtml(b.v)}</span>
             </div>
-            <div class="goal-track"><div class="goal-fill ${r.tone || ''}" style="width:${Math.max(0, Math.min(100, r.pct))}%"></div></div>
-            ${r.note ? `<div class="goal-note">${escapeHtml(r.note)}</div>` : ''}
+            <div class="track"><i style="width:${b.pct}%"></i></div>
+            ${b.note ? `<span class="note">${escapeHtml(b.note)}</span>` : ''}
           </div>
         `).join('')}
       </div>
-      <div class="goal-footer">${escapeHtml(hints.firstActionHint)}</div>
-    </div>
-  `;
-}
-
-// 赎回压力临界 banner（设计稿 §3.11.4）：pressure >= 70 显示警告
-function renderRedemptionBanner(state) {
-  if (state.role?.id !== 'im') return '';
-  const p = state.metrics.redemptionPressure;
-  if (!p || p < 70) return '';
-  const m = state.metrics;
-  const expectedRedeem = getExpectedRedeem(m);
-  const cashAvail = getCashAvail(m);
-  const gap = expectedRedeem - cashAvail;
-  return `
-    <div class="redemption-banner">
-      <span class="redemption-banner-icon">!</span>
-      <span class="redemption-banner-code">REDEEM-${Math.round(p)}</span>
-      <strong>赎回压力 ${Math.round(p)}（红区）</strong>
-      <span>下周预计净赎回 ${expectedRedeem.toFixed(1)} 亿，现金 ${cashAvail.toFixed(1)} 亿，缺口 ${Math.max(0, gap).toFixed(1)} 亿。</span>
-      <em>T+0 · 渠道渗透率 ${Math.min(99, Math.round(70 + p * 0.25))}%</em>
-    </div>
-  `;
-}
-
-function renderTopBar(state) {
-  const policyPct = ((state.policyValue + 5) / 10) * 100;
-  const policyLabel = getPolicyLabelText(state.policyValue);
-  const roleId = state.role?.id || state.origin?.role || 'cfo';
-  const roleName = state.role?.shortName || ROLE_LABELS[roleId] || '财务总监';
-  const policyClass = state.policyValue < -1 ? 'tight' : (state.policyValue > 1 ? 'loose' : 'neutral');
-  return `
-    <div class="topbar">
-      <div class="topbar-left">
-        <span class="role-dot"></span>
-        <span class="role-code">${ROLE_CODES[roleId] || 'CFO'}</span>
-        <span class="role-name-top">${escapeHtml(roleName)}</span>
-        <span class="top-separator"></span>
-        <span class="game-id">债市生存</span>
-        <span class="quarter-badge">${state.year} Q${state.quarter}</span>
-        <span class="round-badge">第 ${state.quartersPassed + 1}/12 回合</span>
-      </div>
-      <div class="policy-axis">
-        <span class="policy-label">政策环境</span>
-        <div class="axis-track">
-          <div class="axis-fill" style="width:100%"></div>
-          <div class="axis-marker" style="left:${policyPct}%"></div>
+      <div class="goal-rank">
+        <div class="row">
+          <span class="k">全球排名</span>
+          <span class="v mono">#${g.rank.you} / ${g.rank.total}</span>
         </div>
-        <div class="axis-labels"><span>严格</span><span>偏紧</span><span>中性</span><span>偏松</span><span>宽松</span></div>
-      </div>
-      <div class="topbar-right">
-        <span class="policy-status ${policyClass}">当前 · ${policyLabel}</span>
-        <span class="timer"><strong>${Math.max(0, 2 - state.actionsUsed)}</strong>/2 本回合 · 剩余操作</span>
-        <button class="menu-btn" type="button" aria-label="菜单">≡</button>
+        <div class="track"><i style="width:${g.rank.pct}%"></i></div>
+        <span class="note">前 ${g.rank.pct}% · 击败 ${100 - g.rank.pct}%</span>
       </div>
     </div>
   `;
 }
 
-function getPolicyLabelText(value) {
-  if (value <= -3) return '严格 ↓↓';
-  if (value <= -1) return '偏紧 ↓';
-  if (value === 0) return '中性 —';
-  if (value <= 2) return '偏松 ↑';
-  return '宽松 ↑↑';
-}
+function buildGoalData(state) {
+  const roleId = state.role?.id;
+  const m = state.metrics || {};
+  const passed = state.quartersPassed || 0;
+  const passedPct = (passed / 12) * 100;
 
-function renderMetricsPanel(state) {
-  const m = state.metrics;
-  if (state.role?.id !== 'cfo') {
-    return renderGenericMetricsPanel(state);
+  if (roleId === 'cfo') {
+    return {
+      title: '存活 12 季',
+      sub: '且期末现金 ≥ 0',
+      bars: [
+        { k: '已存活回合', v: `${passed} / 12`, pct: passedPct, lvl: 'ok' },
+        { k: '现金底线', v: `${m.cash.toFixed(1)} / 0 亿`, pct: Math.min(100, m.cash * 10), lvl: m.cash < 2 ? 'danger' : (m.cash < 5 ? 'warn' : 'ok'), note: `距底线 +${m.cash.toFixed(1)}` },
+        { k: '未触发违约', v: state.survived ? '0 次' : '1 次', pct: state.survived ? 100 : 0, lvl: state.survived ? 'ok' : 'danger' },
+      ],
+      rank: { you: 1284, total: 8420, pct: 15 },
+    };
   }
-  const due = m.debtMaturity?.[state.quartersPassed] || 0;
+  if (roleId === 'im') {
+    return {
+      title: '净值守 0.85',
+      sub: '12 季不破死亡线',
+      bars: [
+        { k: '已存活回合', v: `${passed} / 12`, pct: passedPct, lvl: 'ok' },
+        { k: 'NAV 缓冲', v: `${m.nav.toFixed(3)} / 0.85`, pct: Math.max(0, Math.min(100, (m.nav - 0.85) * 500)), lvl: m.nav < 0.88 ? 'danger' : (m.nav < 0.95 ? 'warn' : 'ok'), note: `缓冲 +${(m.nav - 0.85).toFixed(3)}` },
+        { k: '未触发清盘', v: state.survived ? '0 次' : '1 次', pct: state.survived ? 100 : 0, lvl: state.survived ? 'ok' : 'danger' },
+      ],
+      rank: { you: 642, total: 5180, pct: 12 },
+    };
+  }
+  if (roleId === 'gov') {
+    return {
+      title: '压降 50pp 债务率',
+      sub: '至 236% 以下',
+      bars: [
+        { k: '已存活回合', v: `${passed} / 12`, pct: passedPct, lvl: 'ok' },
+        { k: '化债进度', v: `${m.debtRatio.toFixed(0)}%`, pct: Math.max(0, Math.min(100, (300 - m.debtRatio) / 1.5)), lvl: m.debtRatio > 280 ? 'danger' : (m.debtRatio > 250 ? 'warn' : 'ok'), note: '红线 300%' },
+        { k: '政绩评分', v: `${Math.round(m.politicalScore)} / 60`, pct: m.politicalScore, lvl: m.politicalScore < 30 ? 'danger' : (m.politicalScore < 45 ? 'warn' : 'ok') },
+      ],
+      rank: { you: 1820, total: 6240, pct: 29 },
+    };
+  }
+  return { title: '存活 12 季', sub: '', bars: [], rank: { you: 0, total: 0, pct: 0 } };
+}
+
+function renderCenterCol(state, callbacks) {
   return `
-    <div class="panel metric-panel">
-      <div class="panel-title panel-title-row">
-        <span><span class="section-dot"></span> 我的指标</span>
-        <span class="panel-kicker">7 items</span>
-      </div>
-      <div class="metric-grid">
-        ${metricTile('现金 (亿)', m.cash.toFixed(1), '', toneFromClass(cashColor(m.cash)), Math.min(100, m.cash * 10), m.cash < due ? '覆盖不足' : '可覆盖', getTrend(state, 'cash', false))}
-        ${metricTile('本季到期 (亿)', due.toFixed(1), '', due > m.cash ? 'bad' : 'warn', Math.min(100, due * 10), `未来合计 ${sumDebt(m.debtMaturity, state.quartersPassed, 4).toFixed(1)}`)}
-        ${metricTile('资产负债率', m.leverageRatio.toFixed(1), '%', toneFromClass(levColor(m.leverageRatio)), m.leverageRatio, '监管观察', getTrend(state, 'leverageRatio', true))}
-        ${metricTile('授信使用率', Math.round(m.creditUsage), '%', toneFromClass(creditColor(m.creditUsage)), m.creditUsage, `${m.creditUsed?.toFixed?.(1) || '-'} / ${m.creditTotal || '-'}`)}
-        ${metricTile('综合融资成本', m.financingCost.toFixed(2), '%', toneFromClass(costColor(m.financingCost)), Math.min(100, m.financingCost * 10), '加权成本', getTrend(state, 'financingCost', true))}
-        ${metricTile('可抵押物', collLabel(m.collateralRoom), '', toneFromClass(collColor(m.collateralRoom)), collValue(m.collateralRoom), '剩余空间')}
-        ${metricTile('项目缺口 (亿)', m.projectGap.toFixed(1), '', 'bad', Math.min(100, m.projectGap * 12), '刚性支出')}
+    <div class="col col-c">
+      ${renderUIEvent(state)}
+      ${renderUIActionsBar(state, callbacks)}
+      <div class="center-bot">
+        ${renderImpactPanel(state)}
+        ${renderUIDecisionLog(state)}
       </div>
     </div>
   `;
 }
 
-// 通用兜底指标面板：CFO 之外角色的入口分发
-// IM → renderImMetricsPanel（赎回压力 4 件套）
-// GOV → renderGovMetricsPanel（债务率 + 政绩等核心指标）
-function renderGenericMetricsPanel(state) {
-  if (state.role?.id === 'im') return renderImMetricsPanel(state);
-  if (state.role?.id === 'gov') return renderGovMetricsPanel(state);
-  const m = state.metrics;
-  const role = state.role;
-  if (!role) return '';
-  const rows = (role.metrics || []).map(key => {
-    const val = m[key];
-    if (val == null) return '';
-    let display;
-    if (typeof val === 'number') display = key === 'nav' ? val.toFixed(4) : val.toFixed(2);
-    else if (Array.isArray(val)) display = `${val.length} 项`;
-    else display = String(val);
-    const label = role.metricLabels?.[key] || key;
-    return `
-      <div class="metric">
-        <div class="metric-row">
-          <span class="metric-name">${escapeHtml(label)}</span>
-          <span class="metric-value">${display}</span>
-        </div>
-      </div>
-    `;
-  }).join('');
-  return `
-    <div class="panel">
-      <div class="panel-title">核心指标</div>
-      ${rows}
-    </div>
-  `;
-}
-
-// IM 主界面指标面板（Plan 3 §3.7 + §3.11）
-function renderImMetricsPanel(state) {
-  const m = state.metrics;
-  const navColor = m.nav < 0.88 ? 'val-bad' : (m.nav < 0.95 ? 'val-warn' : 'val-ok');
-  const navPct = Math.max(0, Math.min(100, (m.nav - 0.85) / 0.20 * 100));
-  const concColor = m.concentration > 22 ? 'val-bad' : (m.concentration > 18 ? 'val-warn' : 'val-ok');
-  const levColor = m.leverage > 130 ? 'val-bad' : (m.leverage > 115 ? 'val-warn' : 'val-ok');
-  const ceColor = m.creditExposure > 40 ? 'val-bad' : (m.creditExposure > 25 ? 'val-warn' : 'val-ok');
-  const liquidAssets = getCashAvail(m);
-  return `
-    <div class="panel metric-panel">
-      <div class="panel-title panel-title-row">
-        <span><span class="section-dot"></span> 我的指标</span>
-        <span class="panel-kicker">6 items</span>
-      </div>
-      <div class="metric-grid">
-        ${metricTile('净值 (NAV)', m.nav.toFixed(3), '', toneFromClass(navColor), navPct, `${(m.nav - 1).toFixed(3)}`, getTrend(state, 'nav', false))}
-        ${metricTile('组合久期', m.duration.toFixed(1), 'Y', 'neutral', Math.min(100, m.duration * 14), '利率暴露', getTrend(state, 'duration', false))}
-        ${metricTile('AA 及以下', m.creditExposure.toFixed(0), '%', toneFromClass(ceColor), m.creditExposure, '信用敞口', getTrend(state, 'creditExposure', true))}
-        ${metricTile('持仓集中度', m.concentration.toFixed(1), '%', toneFromClass(concColor), Math.min(100, m.concentration * 4), '单券上限 25%', getTrend(state, 'concentration', true))}
-        ${metricTile('回购杠杆', m.leverage.toFixed(0), '%', toneFromClass(levColor), Math.min(100, (m.leverage - 80) * 1.6), '监管线 140%', getTrend(state, 'leverage', true))}
-        ${metricTile('流动性资产', liquidAssets.toFixed(1), '亿', m.cashRatio < 5 ? 'bad' : (m.cashRatio < 10 ? 'warn' : 'ok'), Math.min(100, m.cashRatio * 5), `现金 ${m.cashRatio.toFixed(1)}%`, getTrend(state, 'cashRatio', false))}
-      </div>
-    </div>
-  `;
-}
-
-// GOV 主界面指标面板（Plan 4 §8）
-function renderGovMetricsPanel(state) {
-  const m = state.metrics;
-  const debtColor = m.debtRatio > 280 ? 'val-bad' : (m.debtRatio > 250 ? 'val-warn' : 'val-ok');
-  const polColor = m.politicalScore < 30 ? 'val-bad' : (m.politicalScore < 45 ? 'val-warn' : 'val-ok');
-  const cashColor = m.cash < 1 ? 'val-bad' : (m.cash < 3 ? 'val-warn' : 'val-ok');
-  const hiddenColor = m.hiddenDebtRisk > 150 ? 'val-bad' : (m.hiddenDebtRisk > 100 ? 'val-warn' : 'val-ok');
-  return `
-    <div class="panel metric-panel">
-      <div class="panel-title panel-title-row">
-        <span><span class="section-dot"></span> 我的指标</span>
-        <span class="panel-kicker">7 items</span>
-      </div>
-      <div class="metric-grid">
-        ${metricTile('财政现金 (亿)', m.cash.toFixed(1), '', toneFromClass(cashColor), Math.min(100, m.cash * 4), '本季可用', getTrend(state, 'cash', false))}
-        ${metricTile('综合债务率', m.debtRatio.toFixed(0), '%', toneFromClass(debtColor), Math.min(100, (m.debtRatio - 150) / 1.5), '红线 300%', getTrend(state, 'debtRatio', true))}
-        ${metricTile('隐债债务 (亿)', m.hiddenDebtRisk.toFixed(0), '', toneFromClass(hiddenColor), Math.min(100, m.hiddenDebtRisk / 2), '巡查风险', getTrend(state, 'hiddenDebtRisk', true))}
-        ${metricTile('政绩评分', Math.round(m.politicalScore), '/100', toneFromClass(polColor), m.politicalScore, '免职线 20', getTrend(state, 'politicalScore', false))}
-        ${metricTile('专项债额度', m.specialBondQuota.toFixed(0), '亿', m.specialBondQuota < 5 ? 'warn' : 'ok', Math.min(100, m.specialBondQuota * 4), '可置换', getTrend(state, 'specialBondQuota', false))}
-        ${metricTile('产业指数', Math.round(m.industryIndex), '', m.industryIndex < 30 ? 'warn' : 'ok', m.industryIndex, '发展动能', getTrend(state, 'industryIndex', false))}
-        ${metricTile('财政收入 (亿)', m.fiscalRevenue.toFixed(0), '', 'neutral', Math.min(100, m.fiscalRevenue / 3), '年度口径')}
-      </div>
-    </div>
-  `;
-}
-
-// 赎回压力卡片（设计稿 §3.11）：进度条 + 下季预期赎回 + 现金缺口预警
-function renderRedemptionCard(state) {
-  const m = state.metrics;
-  const pressure = Math.round(m.redemptionPressure);
-  const expectedRedeem = getExpectedRedeem(m);
-  const cashAvail = getCashAvail(m);
-  const gap = expectedRedeem - cashAvail;
-  const color = pressure >= 80 ? '#ef5350' : (pressure >= 60 ? '#ffb74d' : (pressure >= 30 ? '#ffd54f' : '#81c784'));
-  return `
-    <div class="panel redemption-card" data-pressure="${pressure}" style="--pressure-color:${color}">
-      <div class="panel-title panel-title-row">
-        <span><span class="alert-mark">!</span> 赎回压力</span>
-        <span class="panel-kicker live">live</span>
-      </div>
-      <div class="redemption-score-row">
-        <span class="redemption-score" style="color:${color}">${pressure}</span>
-        <span class="redemption-scale">/ 100</span>
-        <span class="redemption-zone">${pressure >= 80 ? '挤兑临界' : (pressure >= 60 ? '红区 · 触发预警' : '可控')}</span>
-      </div>
-      <div class="redemption-track">
-        <div class="redemption-fill" style="width:${pressure}%; background:${color}"></div>
-        <span>30</span><span>50</span><span>70</span>
-      </div>
-      <div class="redemption-detail">
-        <div><span>下季预期赎回</span><strong>${expectedRedeem.toFixed(1)} 亿</strong></div>
-        <div><span>当前现金</span><strong>${cashAvail.toFixed(1)} 亿</strong></div>
-        <div><span>缺口</span><strong class="${gap > 0 ? 'val-bad' : 'val-ok'}">${gap > 0 ? '-' : '+'}${Math.abs(gap).toFixed(1)} 亿</strong></div>
-      </div>
-    </div>
-  `;
-}
-
-function metricTile(label, value, unit, tone, pct, meta, trend) {
-  // trend: { delta: number, isGood: bool } —— 显示在右上角，红涨蓝跌或反之取决于业务
-  const trendHtml = trend
-    ? `<span class="metric-trend ${trend.isGood ? 'good' : 'bad'}">${trend.delta > 0 ? '+' : ''}${trend.delta.toFixed(trend.delta < 1 && trend.delta > -1 ? 2 : 1)}</span>`
-    : '';
-  return `
-    <div class="metric-tile tone-${tone || 'neutral'}">
-      <div class="metric-tile-head">
-        <span class="metric-name">${escapeHtml(label)}</span>
-        ${trendHtml}
-      </div>
-      <div class="metric-reading">
-        <span class="metric-value">${escapeHtml(value)}</span>
-        ${unit ? `<span class="metric-unit">${escapeHtml(unit)}</span>` : ''}
-      </div>
-      <div class="metric-bar"><div class="metric-bar-fill" style="width:${Math.max(2, Math.min(100, pct || 0))}%"></div></div>
-      ${meta ? `<div class="metric-meta">${escapeHtml(meta)}</div>` : ''}
-    </div>
-  `;
-}
-
-// 计算指标 trend：用 state.history 的最后一条 vs 当前 metrics
-// 返回 { delta, isGood }；isGood 取决于该指标"涨好还是跌好"（lowerIsBetter=true 表示跌为好）
-function getTrend(state, key, lowerIsBetter) {
-  const last = state.history?.[state.history.length - 1];
-  if (!last) return null;
-  const before = last[key] ?? last.snapshot?.[key];
-  const now = state.metrics?.[key];
-  if (typeof before !== 'number' || typeof now !== 'number') return null;
-  const delta = now - before;
-  if (Math.abs(delta) < 0.05) return null;  // 太小不显示
-  const isGood = lowerIsBetter ? delta < 0 : delta > 0;
-  return { delta, isGood };
-}
-
-function metricRow(name, valueText, valClass, barPct) {
-  let barClass = 'bar-green';
-  if (barPct >= 70) barClass = 'bar-red';
-  else if (barPct >= 50) barClass = 'bar-yellow';
-  return `
-    <div class="metric">
-      <div class="metric-row">
-        <span class="metric-name">${name}</span>
-        <span class="metric-value ${valClass}">${valueText}</span>
-      </div>
-      <div class="metric-bar"><div class="metric-bar-fill ${barClass}" style="width:${Math.min(100,barPct)}%"></div></div>
-    </div>
-  `;
-}
-
-function cashColor(v) { return v < 2 ? 'val-bad' : (v < 5 ? 'val-warn' : 'val-ok'); }
-function levColor(v) { return v >= 75 ? 'val-bad' : (v >= 65 ? 'val-warn' : 'val-ok'); }
-function creditColor(v) { return v >= 85 ? 'val-bad' : (v >= 70 ? 'val-warn' : 'val-ok'); }
-function costColor(v) { return v >= 7 ? 'val-bad' : (v >= 6 ? 'val-warn' : 'val-ok'); }
-function collColor(v) { return v === 'low' ? 'val-bad' : (v === 'medium' ? 'val-warn' : 'val-ok'); }
-function collLabel(v) { return v === 'high' ? '充足' : (v === 'medium' ? '中等' : '紧张'); }
-function collValue(v) { return v === 'high' ? 25 : (v === 'medium' ? 60 : 90); }
-
-function renderEventArea(state) {
-  if (!state.pendingEvent) {
-    return `<div class="event-card">
-      <div class="event-header">
-        <div class="event-id-line">
-          <span class="event-code">IDLE</span>
-          <span class="event-badge">季末预演</span>
+function renderUIEvent(state) {
+  const ev = state.pendingEvent;
+  if (!ev) return `
+    <div class="event">
+      <div class="event-head">
+        <div class="event-meta">
+          <span class="id mono">IDLE</span>
+          <span class="sev mid">空闲</span>
         </div>
         <span class="event-time">T+0</span>
       </div>
       <div class="event-title">本回合无主线事件</div>
       <div class="event-body">你可以使用主动操作或直接结束本季度。</div>
-    </div>`;
-  }
-  const e = state.pendingEvent;
-  const isMain = e.id.startsWith('main_');
-  const eventCode = getEventCode(e.id);
-  const badgeInfo = getEventBadgeInfo(state, e);
+    </div>
+  `;
+  const eventCode = getEventCode(ev.id);
+  const sevInfo = getSevInfo(state, ev);
+  const lastLog = state.eventLog?.[state.eventLog.length - 1];
+  const logText = lastLog
+    ? `${getEventCode(lastLog.eventId)} 通过：选 ${String.fromCharCode(65 + (lastLog.choiceIdx || 0))} · ${lastLog.uncertainOutcome === 'failed' ? '失败' : '成功'}`
+    : '暂无历史决策记录';
+  const timeStr = state.role?.id === 'im' ? '14:08' : (state.role?.id === 'gov' ? '10:00' : '09:32');
+
   return `
-    <div class="event-card">
-      <div class="event-header">
-        <div class="event-id-line">
-          <span class="event-code">${eventCode}</span>
-          <span class="event-badge ${badgeInfo.cls}">${escapeHtml(badgeInfo.label)}</span>
-          <span class="event-source">来源 · ${isMain ? '主线' : '市场'}</span>
+    <div class="event">
+      <div class="event-head">
+        <div class="event-meta">
+          <span class="id mono">${escapeHtml(eventCode)}</span>
+          <span class="sev ${sevInfo.cls}">${escapeHtml(sevInfo.label)}</span>
+          <span class="src">来源 · ${ev.id?.startsWith('main_') ? '主线' : '市场'}</span>
         </div>
-        <span class="event-time">T+0 · ${state.role?.id === 'im' ? '14:08' : (state.role?.id === 'gov' ? '10:00' : '09:32')}</span>
+        <span class="event-time">T+0 · ${timeStr}</span>
       </div>
-      <div class="event-title">${escapeHtml(e.title)}</div>
-      <div class="event-body">${highlightEventBody(e.body)}</div>
-      ${renderEventLogRow(state)}
-      <div class="event-choices">
-        ${e.choices.map((c, i) => `
-          <button class="choice-btn" data-choice-idx="${i}">
-            <div class="choice-head">
-              <span class="choice-tag">${String.fromCharCode(65+i)} ▸</span>
-              <span class="choice-meta">${escapeHtml(getChoiceBusinessMeta(c, state.role))}</span>
+      <div class="event-title">${escapeHtml(ev.title)}</div>
+      <div class="event-body">${highlightEventBody(ev.body)}</div>
+      <div class="event-options">
+        ${ev.choices.map((c, i) => `
+          <button class="opt" data-choice-idx="${i}">
+            <div class="opt-head">
+              <span class="opt-key mono">${String.fromCharCode(65 + i)} ▸</span>
+              <span class="opt-cost">${escapeHtml(getChoiceBusinessMeta(c, state.role))}</span>
             </div>
-            <span class="choice-label">${escapeHtml(c.label)}</span>
-            ${renderChoicePreview(c, state.role)}
+            <div class="opt-title">${escapeHtml(c.label)}</div>
+            <div class="opt-foot">
+              <span class="pred-label">PREDICTED · 预计</span>
+              <span class="pred-text">${renderUIChoicePred(c, state.role)}</span>
+            </div>
           </button>
         `).join('')}
       </div>
+      <div class="event-log">
+        <span class="ax">⟶ LOG</span>
+        <span>${escapeHtml(logText)}</span>
+        <span class="more">查看全部 ›</span>
+      </div>
     </div>
   `;
 }
 
-// 根据事件特征判断徽章（高危/不确定/正常）
-function getEventBadgeInfo(state, event) {
-  const isMain = event.id?.startsWith('main_');
-  // 高危：政策大幅紧缩 / IM 赎回压力高 / GOV 隐债暴露
-  const policyShift = event.policyShift || 0;
+function getSevInfo(state, ev) {
+  const policyShift = ev.policyShift || 0;
   const m = state.metrics || {};
-  let isDanger = false;
-  if (policyShift <= -2) isDanger = true;
-  if (state.role?.id === 'im' && m.redemptionPressure >= 65) isDanger = true;
-  if (state.role?.id === 'cfo' && m.cash < 2) isDanger = true;
-  if (state.role?.id === 'gov' && m.debtRatio > 280) isDanger = true;
-
-  // 选项是否含不确定
-  const hasUncertain = (event.choices || []).some(c => c.effects?._uncertainty !== undefined);
-
-  if (isDanger) return { label: '高危', cls: 'danger' };
-  if (hasUncertain) return { label: '不确定', cls: '' };
-  return { label: isMain ? '主线 · 必答' : '市场 · 扰动', cls: '' };
+  let danger = false;
+  if (policyShift <= -2) danger = true;
+  if (state.role?.id === 'im' && (m.redemptionPressure || 0) >= 65) danger = true;
+  if (state.role?.id === 'cfo' && m.cash < 2) danger = true;
+  if (state.role?.id === 'gov' && m.debtRatio > 280) danger = true;
+  if (danger) return { label: '高危', cls: 'high' };
+  return { label: ev.id?.startsWith('main_') ? '主线' : '市场', cls: 'mid' };
 }
 
-// 选项卡右上角业务参数（从 effects 抽核心数字）
-function getChoiceBusinessMeta(choice, role) {
-  const fx = choice.effects || {};
-  const labels = role?.metricLabels || {};
-
-  // 优先 _uncertainty
-  if (fx._uncertainty !== undefined) {
-    return `不确定 · ${Math.round(fx._uncertainty * 100)}%`;
-  }
-  if (fx._delay) return `延期 ${fx._delay} 季`;
-
-  // 找到绝对值最大的非 score 数字
-  let topKey = null, topVal = 0;
-  for (const [k, v] of Object.entries(fx)) {
-    if (k.startsWith('_') || k.startsWith('score.') || typeof v !== 'number') continue;
-    if (Math.abs(v) > Math.abs(topVal)) { topKey = k; topVal = v; }
-  }
-  if (topKey) {
-    const lbl = labels[topKey] || topKey;
-    const sign = topVal > 0 ? '+' : '';
-    return `${lbl} ${sign}${topVal}`;
-  }
-  return '即时';
-}
-
-// LOG 行（事件卡 body 与选项之间）：显示最近一条决策摘要
-function renderEventLogRow(state) {
-  const log = state.eventLog || [];
-  const last = log[log.length - 1];
-  if (!last) return '';
-  const code = getEventCode(last.eventId || '');
-  const choiceLetter = String.fromCharCode(65 + (last.choiceIdx || 0));
-  const outcome = last.uncertainOutcome === 'failed' ? '失败' : (last.uncertainOutcome === 'succeeded' ? '成功' : '通过');
-  return `
-    <div class="event-log-row">
-      <span class="log-arrow">→</span>
-      <span class="log-tag">LOG</span>
-      <span class="log-detail">${escapeHtml(code)} · 选 ${choiceLetter} · ${outcome}</span>
-      <span class="log-more">查看全部 ›</span>
-    </div>
-  `;
-}
-
-// 事件正文关键词高亮：数字（带亿/%/bp）→ role-color；红线/挤兑/触发/缺口 → red
-function highlightEventBody(body) {
-  let html = escapeHtml(body || '').replace(/\n/g, '<br>');
-  // 红色警示词
-  html = html.replace(/(红线|挤兑|触发|缺口|违约|清盘|约谈|爆雷|穿线)/g, '<span class="key-warn">$1</span>');
-  // 数字 + 单位（亿 / % / bp / Q[1-4]）
-  html = html.replace(/((?:\d+(?:\.\d+)?)\s*(?:亿|%|bp|万|季|天|周))/g, '<span class="key-num">$1</span>');
-  return html;
-}
-
-// 选项 effects 预告（设计稿 §3.11.3）
-// 数字关键值用 role-color 高亮，负值/警示词用红色
-function renderChoicePreview(choice, role) {
+function renderUIChoicePred(choice, role) {
   const fx = choice.effects || {};
   const parts = [];
   const labels = role?.metricLabels || {};
@@ -720,110 +681,347 @@ function renderChoicePreview(choice, role) {
       lbl = labels[k] || k;
     }
     const sign = v > 0 ? '+' : '';
-    const cls = v > 0 ? 'preview-good' : 'preview-warn';
-    parts.push(`${escapeHtml(lbl)} <span class="${cls}">${sign}${v}</span>`);
+    const cls = v > 0 ? 'pos' : 'neg';
+    parts.push(`${escapeHtml(lbl)} <b class="${cls}">${sign}${v}</b>`);
   }
-  if (parts.length === 0) return '';
-  return `<div class="choice-preview"><span>PREDICTED · 预计</span>${parts.slice(0, 4).join('，')}</div>`;
+  return parts.length ? parts.slice(0, 3).join('，') : '影响待定';
 }
 
-function renderActionPanel(state) {
+function renderUIActionsBar(state, callbacks) {
+  const actions = callbacks?.actions || state.role?.actions || [];
+  const actionsLeft = Math.max(0, 2 - (state.actionsUsed || 0));
   return `
-    <div class="panel action-panel">
-      <div class="panel-title panel-title-row">
-        <span><span class="section-caret">▸</span> 主动操作 · 可选加行动作</span>
-        <span class="ops-remain">${Math.max(0, 2 - state.actionsUsed)}/2 剩余 · 不消耗事件回合</span>
+    <div class="actions-bar">
+      <div class="actions-bar-head">
+        <span><span class="ax">▸</span> 主动操作 · 可选加行动作</span>
+        <span class="meta">${actionsLeft}/2 剩余 · 不消耗事件回合</span>
       </div>
-      <div id="action-list"></div>
-      <button id="btn-end-turn" class="end-turn-btn">结束本季度 →</button>
+      <div class="actions-grid">
+        ${actions.map((a, i) => {
+          const avail = callbacks?.isAvailable ? callbacks.isAvailable(a.id) : { available: true };
+          const locked = !avail.available;
+          return `
+            <button class="action-btn compact ${locked ? 'locked' : ''}" data-action-id="${a.id}" ${locked ? 'disabled' : ''}>
+              <span class="tag mono">A${i + 1}</span>
+              <span class="label">
+                ${escapeHtml(a.name)}
+                <span class="desc">${escapeHtml(a.desc || (locked && avail.reason ? avail.reason : ''))}</span>
+              </span>
+              <span class="kbd">${i + 1}</span>
+            </button>
+          `;
+        }).join('')}
+        <button id="btn-end-turn" class="action-btn compact end-turn">
+          <span class="tag mono">END</span>
+          <span class="label">结束本季度<span class="desc">→ 下一回合</span></span>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderImpactPanel(state) {
+  const rows = buildImpactRows(state);
+  return `
+    <div class="impact">
+      <div class="impact-head">
+        <span><span class="ax">⟶</span> 不行动 · 季末预演</span>
+        <span class="meta">PROJECTED · 仅供参考</span>
+      </div>
+      <div class="impact-rows">
+        ${rows.map(r => `
+          <div class="impact-row ${r.danger ? 'danger' : ''}">
+            <span class="k">${escapeHtml(r.k)}</span>
+            <span class="from mono">${escapeHtml(r.from)}</span>
+            <span class="arrow mono">→</span>
+            <span class="to mono ${r.dir}">${escapeHtml(r.to)}</span>
+            <span class="note">${escapeHtml(r.note || '')}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function buildImpactRows(state) {
+  const roleId = state.role?.id;
+  const m = state.metrics || {};
+  if (roleId === 'cfo') {
+    const cash = m.cash || 0;
+    const due = m.debtMaturity?.[state.quartersPassed] || 0;
+    const proj = cash - due - (m.opCostRate || 0) - (m.projectGap || 0) + 2.5;
+    return [
+      { k: '现金', from: `${cash.toFixed(1)} 亿`, to: `${proj.toFixed(1)} 亿`, dir: 'down', danger: proj < 1, note: due > cash ? 'T+5 还款日' : '正常运营' },
+      { k: '授信使用率', from: `${Math.round(m.creditUsage)}%`, to: `${Math.round(m.creditUsage * 1.05)}%`, dir: 'down', danger: m.creditUsage > 85, note: m.creditUsage > 90 ? '逼近 100% 红线' : '尚有余地' },
+      { k: '本季利润', from: `+${(2.5 - (m.opCostRate || 0) - (m.projectGap || 0)).toFixed(1)} 亿`, to: `${(2.5 - (m.opCostRate || 0) - (m.projectGap || 0) - due * 0.1).toFixed(1)} 亿`, dir: 'down', danger: false, note: '首次转亏' },
+    ];
+  }
+  if (roleId === 'im') {
+    const nav = m.nav || 1;
+    const projNav = nav * 0.97;
+    return [
+      { k: '净值 NAV', from: nav.toFixed(3), to: projNav.toFixed(3), dir: 'down', danger: projNav < 0.9, note: `距死亡线 +${(projNav - 0.85).toFixed(2)}` },
+      { k: '流动性资产', from: `${getCashAvail(m).toFixed(1)} 亿`, to: `${(getCashAvail(m) - getExpectedRedeem(m)).toFixed(1)} 亿`, dir: 'down', danger: m.cashRatio < 5, note: getExpectedRedeem(m) > getCashAvail(m) ? `缺口 ${(getExpectedRedeem(m) - getCashAvail(m)).toFixed(1)}` : '可覆盖' },
+      { k: 'AA- 占比', from: `${Math.round(m.creditExposure * 0.4)}%`, to: `${Math.round(m.creditExposure * 0.4 + 4)}%`, dir: 'down', danger: false, note: '被动抬升' },
+    ];
+  }
+  if (roleId === 'gov') {
+    const debt = m.debtRatio || 250;
+    return [
+      { k: '综合债务率', from: `${debt.toFixed(0)}%`, to: `${(debt + 12).toFixed(0)}%`, dir: 'down', danger: debt > 280, note: debt + 12 > 295 ? '逼近 300% 红线' : '空间收窄' },
+      { k: '财政现金', from: `${(m.cash || 0).toFixed(1)} 亿`, to: `${((m.cash || 0) * 0.65).toFixed(1)} 亿`, dir: 'down', danger: false, note: '工资刚性支出' },
+      { k: '政绩评分', from: `${Math.round(m.politicalScore || 60)}`, to: `${Math.round((m.politicalScore || 60) - 4)}`, dir: 'down', danger: false, note: 'Q3 考核窗口' },
+    ];
+  }
+  return [];
+}
+
+function renderUIDecisionLog(state) {
+  const log = state.eventLog || [];
+  const items = log.length > 0 ? log.slice(-3).reverse().map((entry) => {
+    const code = getEventCode(entry.eventId || '');
+    const choiceLetter = String.fromCharCode(65 + (entry.choiceIdx || 0));
+    const outcome = entry.uncertainOutcome === 'failed' ? '失败' : (entry.uncertainOutcome === 'succeeded' ? '成功' : '通过');
+    return { q: `Q${state.quartersPassed}`, text: `${code} · 选 ${choiceLetter} · ${outcome}`, impact: '—' };
+  }) : [];
+  return `
+    <div class="declog">
+      <div class="declog-head">
+        <span><span class="ax">▾</span> 决策日志</span>
+        <span class="meta">${items.length} 条 · 本局</span>
+      </div>
+      <div class="declog-rows">
+        ${items.length === 0
+          ? '<div class="declog-empty">暂无决策记录，做出第一个选择后这里会留痕。</div>'
+          : items.map(it => `
+            <div class="declog-row mono">
+              <span class="q">${escapeHtml(it.q)}</span>
+              <span class="t">${escapeHtml(it.text)}</span>
+              <span class="im">${escapeHtml(it.impact)}</span>
+            </div>
+          `).join('')
+        }
+      </div>
+    </div>
+  `;
+}
+
+function renderRightCol(state) {
+  const roleId = state.role?.id;
+  let charts = '';
+  if (roleId === 'cfo') {
+    const total = sumDebt(state.metrics.debtMaturity, state.quartersPassed, 4);
+    charts = `
+      <div class="chart-panel size-md">
+        <div class="chart-head">
+          <span>债务到期瀑布</span>
+          <span class="v">未来 4 季 · 合计 <b>${total.toFixed(1)}</b> 亿</span>
+        </div>
+        <div class="chart-body"><canvas id="chart-debt"></canvas></div>
+        <div class="chart-foot">
+          <span class="legend"><i style="background:var(--danger)"></i>到期</span>
+          <span class="legend"><i style="background:var(--info)"></i>现金</span>
+        </div>
+      </div>
+      <div class="chart-panel size-md">
+        <div class="chart-head">
+          <span>现金趋势</span>
+          <span class="v">近 6 季 · 当前 <b>${state.metrics.cash.toFixed(1)}</b> 亿</span>
+        </div>
+        <div class="chart-body"><canvas id="chart-cash"></canvas></div>
+        <div class="chart-foot">
+          <span class="legend"><i style="background:var(--info)"></i>现金</span>
+          <span class="legend"><i style="background:var(--danger)"></i>止血线</span>
+        </div>
+      </div>
+    `;
+  } else if (roleId === 'im') {
+    charts = `
+      <div class="chart-panel size-md">
+        <div class="chart-head">
+          <span>净值曲线</span>
+          <span class="v">近 12 周 · 当前 <b>${state.metrics.nav.toFixed(3)}</b></span>
+        </div>
+        <div class="chart-body"><canvas id="chart-nav"></canvas></div>
+        <div class="chart-foot">
+          <span class="legend"><i style="background:var(--gold)"></i>NAV</span>
+          <span class="legend"><i style="background:var(--danger)"></i>死亡线</span>
+        </div>
+      </div>
+      <div class="chart-panel size-tall">
+        <div class="chart-head">
+          <span>持仓评级</span>
+          <span class="v">AA 及以下 <b>${state.metrics.creditExposure.toFixed(0)}%</b></span>
+        </div>
+        <div class="chart-body"><canvas id="chart-holdings"></canvas></div>
+        <div class="chart-foot">
+          <span class="legend"><i style="background:var(--ok)"></i>AA+ 及以上</span>
+          <span class="legend"><i style="background:var(--warn)"></i>AA</span>
+          <span class="legend"><i style="background:var(--danger)"></i>AA- 及以下</span>
+        </div>
+      </div>
+    `;
+  } else if (roleId === 'gov') {
+    charts = `
+      <div class="chart-panel size-md">
+        <div class="chart-head">
+          <span>财政收支</span>
+          <span class="v">本季差额 <b>${(state.metrics.cash - 4).toFixed(1)}</b> 亿</span>
+        </div>
+        <div class="chart-body"><canvas id="chart-fiscal"></canvas></div>
+        <div class="chart-foot">
+          <span class="legend"><i style="background:var(--ok)"></i>收入</span>
+          <span class="legend"><i style="background:var(--danger)"></i>支出</span>
+        </div>
+      </div>
+      <div class="chart-panel size-md">
+        <div class="chart-head">
+          <span>综合债务率</span>
+          <span class="v">当前 <b>${state.metrics.debtRatio.toFixed(0)}%</b> · 红线 300%</span>
+        </div>
+        <div class="chart-body"><canvas id="chart-debt-ratio"></canvas></div>
+        <div class="chart-foot">
+          <span class="legend"><i style="background:var(--danger)"></i>债务率</span>
+          <span class="legend"><i style="background:var(--danger)"></i>红线</span>
+        </div>
+      </div>
+    `;
+  }
+  return `
+    <div class="col col-r">
+      ${charts}
+      ${renderPulseCard(state)}
+    </div>
+  `;
+}
+
+function renderPulseCard(state) {
+  const roleId = state.role?.id;
+  const policy = state.policyValue || 0;
+  const seed = hashString(`${state.year}${state.quarter}${state.origin?.platformName || ''}`);
+  const noise = (idx) => ((seed >> idx) & 0xff) / 255 - 0.5;
+  const tighten = -policy;
+
+  let sub, rows;
+  if (roleId === 'im') {
+    sub = '公募债基行业';
+    rows = [
+      { k: '10Y 国债收益率', v: `${(2.5 + tighten * 0.05 + noise(6) * 0.08).toFixed(2)}%`, delta: `+${Math.round(tighten * 5 + noise(7) * 4)} bp`, lvl: 'warn' },
+      { k: 'AA 信用利差', v: `${Math.round(150 + tighten * 12 + noise(0) * 10)} bp`, delta: `+${Math.round(tighten * 3 + noise(1) * 5)}`, lvl: 'danger' },
+      { k: '行业平均赎回率', v: `${(5.5 + tighten * 0.6 + noise(8) * 0.5).toFixed(1)}%`, delta: `+${(tighten * 0.4 + noise(9) * 0.5).toFixed(1)}`, lvl: 'danger' },
+      { k: '回购加权利率', v: `${(2.0 + tighten * 0.2 + noise(10) * 0.15).toFixed(2)}%`, delta: `+${Math.round(tighten * 6 + noise(11) * 4)} bp`, lvl: 'warn' },
+    ];
+  } else if (roleId === 'gov') {
+    sub = '政策与同侪';
+    rows = [
+      { k: '全国特殊再融资额度', v: `${(1.4 - tighten * 0.05 + noise(6) * 0.1).toFixed(1)} 万亿`, delta: 'Q3 截止', lvl: 'warn' },
+      { k: '同档区县均债务率', v: `${Math.round(248 + tighten * 4 + noise(7) * 6)}%`, delta: `我 +${Math.round(tighten * 2 + noise(8) * 3)}pp`, lvl: 'danger' },
+      { k: '省级转移支付增速', v: `+${(3.2 - tighten * 0.4 + noise(9) * 0.4).toFixed(1)}%`, delta: `${(-tighten * 0.3 + noise(10) * 0.5).toFixed(1)}`, lvl: 'warn' },
+      { k: '土地出让流拍率', v: `${Math.round(38 + tighten * -3 + noise(11) * 5)}%`, delta: `${Math.round(tighten * -2 + noise(12) * 3)}`, lvl: 'danger' },
+    ];
+  } else {
+    sub = '本地城投融资环境';
+    rows = [
+      { k: 'AA 城投信用利差', v: `${Math.round(150 + tighten * 12 + noise(0) * 10)} bp`, delta: `+${Math.round(tighten * 3 + noise(1) * 5)}`, lvl: 'danger' },
+      { k: '本省取消发行', v: `${Math.max(0, Math.round(2 + tighten * 0.7 + noise(2) * 1.5))} / 周`, delta: `+${Math.round(tighten * 0.5 + noise(3) * 1.5)}`, lvl: 'warn' },
+      { k: '银行授信审批', v: `T+${Math.round(12 + tighten * 2.5 + noise(4) * 3)} 天`, delta: `+${Math.round(tighten * 1.2 + noise(5) * 2)}`, lvl: 'warn' },
+      { k: '土地拍卖溢价率', v: `${(-2 + tighten * -0.5 + noise(9) * 1.5).toFixed(1)}%`, delta: `${(tighten * -0.3 + noise(10) * 1).toFixed(1)}`, lvl: 'warn' },
+    ];
+  }
+
+  return `
+    <div class="pulse">
+      <div class="pulse-head">
+        <span><span class="ax">⏚</span> 市场脉冲</span>
+        <span class="meta">${escapeHtml(sub)}</span>
+      </div>
+      <div class="pulse-rows">
+        ${rows.map(r => `
+          <div class="pulse-row lvl-${r.lvl}">
+            <span class="k">${escapeHtml(r.k)}</span>
+            <span class="v mono">${escapeHtml(r.v)}</span>
+            <span class="d mono lvl-${r.lvl}">${escapeHtml(r.delta)}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderUIStatusbar(state) {
+  const roleId = state.role?.id || 'cfo';
+  const goalText = roleId === 'cfo' ? '存活 12 季 · 期末现金 ≥ 0'
+    : roleId === 'im' ? '净值守住 0.95 · 12 季不破 0.85'
+    : '压降 50 个百分点债务率';
+  const seedShort = hashString(state.origin?.platformName || 'seed').toString(16).toUpperCase().padStart(4, '0').slice(-4);
+  const time = roleId === 'im' ? '14:08' : roleId === 'gov' ? '10:00' : '09:32';
+  return `
+    <div class="statusbar">
+      <span class="sb-item"><span class="k">目标</span><b>${escapeHtml(goalText)}</b></span>
+      <span class="sb-item"><span class="k">回合</span><b>${state.quartersPassed} / 12</b></span>
+      <span class="sb-item"><span class="k">政策</span><b>${escapeHtml(policyLabelClean(state.policyValue))}</b></span>
+      <span class="sb-spacer"></span>
+      <span class="sb-pill">SEED-${ROLE_CODES[roleId] || 'CFO'}-${seedShort}</span>
+      <span class="sb-pill">AUTOSAVE · T+0 ${time}</span>
     </div>
   `;
 }
 
 export function bindMainScreenEvents(state, callbacks) {
-  document.querySelectorAll('.choice-btn[data-choice-idx]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      callbacks.onChoiceSelected(parseInt(btn.dataset.choiceIdx, 10));
-    });
+  // 事件选项
+  document.querySelectorAll('.opt[data-choice-idx]').forEach(btn => {
+    btn.addEventListener('click', () => callbacks.onChoiceSelected(parseInt(btn.dataset.choiceIdx, 10)));
   });
+  // 主动操作
+  document.querySelectorAll('.action-btn[data-action-id]').forEach(btn => {
+    if (btn.classList.contains('locked')) return;
+    btn.addEventListener('click', () => callbacks.onActionSelected(btn.dataset.actionId));
+  });
+  // 结束本季
   const endBtn = document.getElementById('btn-end-turn');
   if (endBtn) endBtn.addEventListener('click', callbacks.onEndTurn);
-
-  // 渲染操作列表
-  const actionList = document.getElementById('action-list');
-  if (actionList && callbacks.actions) {
-    actionList.innerHTML = callbacks.actions.map((a, i) => {
-      const avail = callbacks.isAvailable(a.id);
-      const disabled = !avail.available || state.actionsUsed >= 2;
-      return `
-        <div class="action-slot ${disabled ? 'disabled' : ''}" data-action-id="${a.id}">
-          <span class="action-code">A${i + 1}</span>
-          <span class="action-main">
-            <span class="action-name">${escapeHtml(a.name)}</span>
-            <span class="action-desc">${escapeHtml(a.desc || '')}</span>
-          </span>
-          <span class="action-key">${i + 1}</span>
-          ${disabled ? `<span class="action-disabled-reason">${escapeHtml(avail.reason || '本回合操作已用完')}</span>` : ''}
-        </div>
-      `;
-    }).join('');
-    document.querySelectorAll('.action-slot[data-action-id]').forEach(slot => {
-      slot.addEventListener('click', () => callbacks.onActionSelected(slot.dataset.actionId));
-    });
-  }
 }
 
-function renderStatusBar(state) {
-  const roleId = state.role?.id || 'cfo';
-  return `
-    <div class="statusbar">
-      <span class="status-item">目标 <span>${escapeHtml(getStatusGoalText(state))}</span></span>
-      <span class="status-item">回合 <span>${state.quartersPassed} / 12</span></span>
-      <span class="status-item">政策 <span>${getPolicyLabelText(state.policyValue).replace(/[↓↑—]/g, '').trim()}</span></span>
-      <span class="status-seed">SEED-${ROLE_CODES[roleId] || 'CFO'}-${hashString(state.origin?.platformName || 'seed').toString(16).toUpperCase().slice(0,4)}</span>
-      <span class="status-seed">AUTOSAVE · T+0 · ${roleId === 'im' ? '14:08' : roleId === 'gov' ? '10:00' : '09:32'}</span>
-    </div>
-  `;
+// 旧的辅助：保留 collLabel
+function collLabel(v) { return v === 'high' ? '充足' : (v === 'medium' ? '中等' : '紧张'); }
+
+// 计算指标 trend：state.history[最后一条] vs 当前 metrics
+function getTrend(state, key, lowerIsBetter) {
+  const last = state.history?.[state.history.length - 1];
+  if (!last) return null;
+  const before = last[key] ?? last.snapshot?.[key];
+  const now = state.metrics?.[key];
+  if (typeof before !== 'number' || typeof now !== 'number') return null;
+  const delta = now - before;
+  if (Math.abs(delta) < 0.05) return null;
+  const isGood = lowerIsBetter ? delta < 0 : delta > 0;
+  return { delta, isGood };
 }
 
-function renderChartArea(state) {
-  if (state.role?.id === 'im') {
-    return `
-      <div class="chart-panel">
-        <div class="panel-title panel-title-row"><span>净值曲线</span><strong>近 12 周 · 当前 ${state.metrics.nav.toFixed(3)}</strong></div>
-        <div style="height:120px"><canvas id="chart-nav"></canvas></div>
-      </div>
-      <div class="chart-panel">
-        <div class="panel-title panel-title-row"><span>持仓评级</span><strong>AA 及以下 ${state.metrics.creditExposure.toFixed(0)}%</strong></div>
-        <div style="height:170px"><canvas id="chart-holdings"></canvas></div>
-      </div>
-      ${renderMarketPulsePanel(state)}
-    `;
+// 事件正文关键词高亮：用 main-ui.css 的 <em> 和 .danger-word
+function highlightEventBody(body) {
+  let html = escapeHtml(body || '').replace(/\n/g, '<br>');
+  html = html.replace(/(红线|挤兑|触发|缺口|违约|清盘|约谈|爆雷|穿线|超线)/g, '<span class="danger-word">$1</span>');
+  html = html.replace(/((?:\d+(?:\.\d+)?)\s*(?:亿|%|bp|万|季|天|周))/g, '<em>$1</em>');
+  return html;
+}
+
+// 选项卡右上角业务参数：从 effects 抽核心数字
+function getChoiceBusinessMeta(choice, role) {
+  const fx = choice.effects || {};
+  const labels = role?.metricLabels || {};
+  if (fx._uncertainty !== undefined) return `不确定 · ${Math.round(fx._uncertainty * 100)}%`;
+  if (fx._delay) return `延期 ${fx._delay} 季`;
+  let topKey = null, topVal = 0;
+  for (const [k, v] of Object.entries(fx)) {
+    if (k.startsWith('_') || k.startsWith('score.') || typeof v !== 'number') continue;
+    if (Math.abs(v) > Math.abs(topVal)) { topKey = k; topVal = v; }
   }
-  if (state.role?.id === 'gov') {
-    return `
-      <div class="chart-panel">
-        <div class="panel-title panel-title-row"><span>财政收支</span><strong>本季差额 ${(state.metrics.cash - 4).toFixed(1)} 亿</strong></div>
-        <div style="height:120px"><canvas id="chart-fiscal"></canvas></div>
-      </div>
-      <div class="chart-panel">
-        <div class="panel-title panel-title-row"><span>综合债务率</span><strong>当前 ${state.metrics.debtRatio.toFixed(0)}%</strong></div>
-        <div style="height:120px"><canvas id="chart-debt-ratio"></canvas></div>
-      </div>
-      ${renderMarketPulsePanel(state)}
-    `;
+  if (topKey) {
+    const lbl = labels[topKey] || topKey;
+    return `${lbl} ${topVal > 0 ? '+' : ''}${topVal}`;
   }
-  return `
-    <div class="chart-panel">
-      <div class="panel-title panel-title-row"><span>债务到期瀑布</span><strong>未来 4 季 · 合计 ${sumDebt(state.metrics.debtMaturity, state.quartersPassed, 4).toFixed(1)} 亿</strong></div>
-      <div style="height:110px"><canvas id="chart-debt"></canvas></div>
-    </div>
-    <div class="chart-panel">
-      <div class="panel-title panel-title-row"><span>现金趋势</span><strong>近 6 季 · 当前 ${state.metrics.cash.toFixed(1)} 亿</strong></div>
-      <div style="height:110px"><canvas id="chart-cash"></canvas></div>
-    </div>
-    ${renderMarketPulsePanel(state)}
-  `;
+  return '即时';
 }
 
 export function renderCrisisModal(crisis, onSelect) {
@@ -973,240 +1171,6 @@ function renderChoiceMeta(choice) {
 }
 
 // 本局目标卡 - 标题 + 副标题
-function getGoalDisplay(state, hints) {
-  const roleId = state.role?.id;
-  if (roleId === 'cfo') {
-    return {
-      title: '现金不归零，撑过 12 季度',
-      subtitle: 'Q5-Q7 是债务到期高峰，提前备款',
-    };
-  }
-  if (roleId === 'im') {
-    return {
-      title: '净值守住 0.85，存活 12 季度',
-      subtitle: '管理赎回压力，避免流动性挤兑',
-    };
-  }
-  if (roleId === 'gov') {
-    return {
-      title: '债务率不破 300%，政绩不跌穿 20',
-      subtitle: '化债 + 招商 + 转移支付平衡',
-    };
-  }
-  return { title: hints?.goal || '撑过 12 季度', subtitle: '' };
-}
-
-// 本局目标 - 进度行（按角色给 2-3 个进度指标）
-function getGoalRows(state) {
-  const m = state.metrics || {};
-  const roleId = state.role?.id;
-  const quartersDone = state.quartersPassed || 0;
-  const quartersPct = (quartersDone / 12) * 100;
-  const rows = [{
-    label: '游戏进度', value: `${quartersDone}/12 季度`,
-    pct: quartersPct, tone: 'neutral',
-  }];
-
-  if (roleId === 'cfo') {
-    const cashPct = Math.min(100, (m.cash || 0) * 10);
-    rows.push({
-      label: '现金安全垫', value: `${(m.cash || 0).toFixed(1)} 亿`,
-      pct: cashPct, tone: m.cash < 2 ? 'bad' : (m.cash < 5 ? 'warn' : 'ok'),
-      note: m.cash < 2 ? '⚠ 接近资金链断裂' : '维持运营',
-    });
-  } else if (roleId === 'im') {
-    const navMargin = ((m.nav || 1) - 0.85) / 0.20 * 100;
-    rows.push({
-      label: '净值安全边距', value: (m.nav || 1).toFixed(3),
-      pct: Math.max(0, Math.min(100, navMargin)),
-      tone: m.nav < 0.88 ? 'bad' : (m.nav < 0.95 ? 'warn' : 'ok'),
-      note: m.nav < 0.88 ? '⚠ 接近清盘线' : '可承受波动',
-    });
-  } else if (roleId === 'gov') {
-    const debtPct = Math.min(100, ((m.debtRatio || 200) - 150) / 1.5);
-    rows.push({
-      label: '债务率距红线', value: `${(m.debtRatio || 200).toFixed(0)}%`,
-      pct: debtPct, tone: m.debtRatio > 280 ? 'bad' : (m.debtRatio > 250 ? 'warn' : 'ok'),
-      note: m.debtRatio > 280 ? '⚠ 接近被约谈' : '空间安全',
-    });
-    rows.push({
-      label: '政绩评分', value: `${Math.round(m.politicalScore || 50)}/100`,
-      pct: m.politicalScore || 50, tone: m.politicalScore < 30 ? 'bad' : (m.politicalScore < 45 ? 'warn' : 'ok'),
-    });
-  }
-  return rows;
-}
-
-// 状态栏目标文本（短）
-function getStatusGoalText(state) {
-  const roleId = state.role?.id;
-  if (roleId === 'cfo') return '存活到 2024Q4 · 现金 > 0';
-  if (roleId === 'im') return '存活 12 季度 · NAV > 0.85';
-  if (roleId === 'gov') return '债务率 < 300% · 政绩 > 20';
-  return '存活到 2024Q4';
-}
-
-// 中栏底部"不行动 · 季末预演"面板：模拟玩家不操作时本季末关键指标变化
-function renderProjectedPanel(state) {
-  const m = state.metrics || {};
-  const roleId = state.role?.id;
-  const rows = [];
-  if (roleId === 'cfo') {
-    const cash = m.cash || 0;
-    const due = m.debtMaturity?.[state.quartersPassed] || 0;
-    const proj = (cash - due - (m.opCostRate || 0) - (m.projectGap || 0) + 2.5);
-    rows.push({ label: '现金', from: `${cash.toFixed(1)} 亿`, to: `${proj.toFixed(1)} 亿`, tone: proj < 1 ? 'bad' : (proj < 3 ? 'warn' : 'ok'), note: due > cash ? 'T+5 还款日' : '正常运营' });
-    const newCreditUsage = m.creditUsage || 0;
-    rows.push({ label: '授信使用率', from: `${Math.round(newCreditUsage)}%`, to: `${Math.round(newCreditUsage * 1.05)}%`, tone: newCreditUsage > 85 ? 'bad' : 'warn', note: newCreditUsage > 90 ? '逼近 100% 红线' : '尚有余地' });
-    rows.push({ label: '本季利润', from: `+${(2.5 - (m.opCostRate || 0) - (m.projectGap || 0)).toFixed(1)} 亿`, to: `${(2.5 - (m.opCostRate || 0) - (m.projectGap || 0) - due * 0.1).toFixed(1)} 亿`, tone: 'warn', note: '首次转亏' });
-  } else if (roleId === 'im') {
-    const nav = m.nav || 1;
-    const projNav = nav * 0.97;
-    rows.push({ label: '净值 NAV', from: nav.toFixed(3), to: projNav.toFixed(3), tone: projNav < 0.9 ? 'bad' : 'warn', note: `距死亡线 ${(projNav - 0.85).toFixed(2)}` });
-    const cashRatio = m.cashRatio || 0;
-    rows.push({ label: '流动性资产', from: `${getCashAvail(m).toFixed(1)} 亿`, to: `${(getCashAvail(m) - getExpectedRedeem(m)).toFixed(1)} 亿`, tone: cashRatio < 5 ? 'bad' : 'warn', note: getExpectedRedeem(m) > getCashAvail(m) ? `缺口 ${(getExpectedRedeem(m) - getCashAvail(m)).toFixed(1)}` : '可覆盖' });
-    rows.push({ label: 'AA- 占比', from: `${Math.round(m.creditExposure * 0.4)}%`, to: `${Math.round(m.creditExposure * 0.4 + 4)}%`, tone: 'warn', note: '被动抬升' });
-  } else if (roleId === 'gov') {
-    const debt = m.debtRatio || 250;
-    rows.push({ label: '综合债务率', from: `${debt.toFixed(0)}%`, to: `${(debt + 12).toFixed(0)}%`, tone: debt > 280 ? 'bad' : 'warn', note: debt + 12 > 295 ? '逼近 300% 红线' : '空间收窄' });
-    rows.push({ label: '财政现金', from: `${m.cash?.toFixed(1) || '-'} 亿`, to: `${((m.cash || 0) * 0.65).toFixed(1)} 亿`, tone: 'warn', note: '工资刚性支出' });
-    rows.push({ label: '政绩评分', from: `${Math.round(m.politicalScore || 60)}`, to: `${Math.round((m.politicalScore || 60) - 4)}`, tone: 'warn', note: 'Q3 考核窗口' });
-  }
-  if (rows.length === 0) return '';
-  return `
-    <div class="panel projected-panel">
-      <div class="panel-title panel-title-row">
-        <span><span class="section-mark">→</span> 不行动 · 季末预演</span>
-        <span class="panel-kicker">PROJECTED · 仅供参考</span>
-      </div>
-      <div class="projected-rows">
-        ${rows.map(r => `
-          <div class="projected-row">
-            <span class="proj-label">${escapeHtml(r.label)}</span>
-            <span class="proj-from">${escapeHtml(r.from)}</span>
-            <span class="proj-arrow">→</span>
-            <span class="proj-to tone-${r.tone}">${escapeHtml(r.to)}</span>
-            <span class="proj-note">${escapeHtml(r.note || '')}</span>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-  `;
-}
-
-// 中栏底部"决策日志"面板：基于 state.eventLog 显示最近 3 条
-function renderDecisionLog(state) {
-  const log = state.eventLog || [];
-  if (log.length === 0) return `
-    <div class="panel decision-log empty">
-      <div class="panel-title panel-title-row">
-        <span><span class="section-caret">▼</span> 决策日志</span>
-        <span class="panel-kicker">0 条 · 本局</span>
-      </div>
-      <div class="decision-empty">暂无决策记录，做出第一个选择后这里会留痕。</div>
-    </div>
-  `;
-  const rows = log.slice(-3).reverse().map((entry, idx) => {
-    const code = getEventCode(entry.eventId || '');
-    const outcomeTag = entry.uncertainOutcome === 'failed' ? '失败' : (entry.uncertainOutcome === 'succeeded' ? '成功' : '通过');
-    const choiceLetter = String.fromCharCode(65 + (entry.choiceIdx || 0));
-    return `
-      <div class="log-row">
-        <span class="log-q">Q${log.length - idx}</span>
-        <span class="log-code">${escapeHtml(code)}</span>
-        <span class="log-outcome ${entry.uncertainOutcome === 'failed' ? 'bad' : 'ok'}">${outcomeTag}</span>
-        <span class="log-detail">选 ${choiceLetter}</span>
-      </div>
-    `;
-  }).join('');
-  return `
-    <div class="panel decision-log">
-      <div class="panel-title panel-title-row">
-        <span><span class="section-caret">▼</span> 决策日志</span>
-        <span class="panel-kicker">${log.length} 条 · 本局</span>
-      </div>
-      <div class="log-rows">${rows}</div>
-    </div>
-  `;
-}
-
-// 右栏底部"市场脉冲"小面板（角色共用，含真实金融数据估算）
-// 数据来源：基于 state.policyValue 推导可信的市场指标 + 用 hashString 给小幅波动避免每次刷新跳变
-function renderMarketPulsePanel(state) {
-  const policy = state.policyValue || 0;
-  const seed = hashString(`${state.year}${state.quarter}${state.origin?.platformName || ''}`);
-  const noise = (idx) => ((seed >> idx) & 0xff) / 255 - 0.5;  // -0.5 ~ +0.5
-  const roleId = state.role?.id;
-
-  let kicker = '本地城投融资环境';
-  if (roleId === 'im') kicker = '公募债基行业';
-  if (roleId === 'gov') kicker = '政策与同侪';
-
-  // 基础数据：政策紧 → 利差走阔、取消发行多、审批慢；放松反之
-  const tighten = -policy;  // 政策紧时为正
-  const aaSpread = Math.round(150 + tighten * 12 + noise(0) * 10);
-  const spreadDelta = Math.round(tighten * 3 + noise(1) * 5);
-  const cancelCount = Math.max(0, Math.round(2 + tighten * 0.7 + noise(2) * 1.5));
-  const cancelDelta = Math.round(tighten * 0.5 + noise(3) * 1.5);
-  const approvalDays = Math.round(12 + tighten * 2.5 + noise(4) * 3);
-  const approvalDelta = Math.round(tighten * 1.2 + noise(5) * 2);
-
-  let pulses;
-  if (roleId === 'im') {
-    const yield10y = (2.5 + tighten * 0.05 + noise(6) * 0.08).toFixed(2);
-    const yieldBp = Math.round(tighten * 5 + noise(7) * 4);
-    const redemptionRate = (5.5 + tighten * 0.6 + noise(8) * 0.5).toFixed(1);
-    const redemptionDelta = (tighten * 0.4 + noise(9) * 0.5).toFixed(1);
-    const repoRate = (2.0 + tighten * 0.2 + noise(10) * 0.15).toFixed(2);
-    const repoBp = Math.round(tighten * 6 + noise(11) * 4);
-    pulses = [
-      { label: '10Y 国债收益率', value: `${yield10y}%`, delta: `${yieldBp >= 0 ? '+' : ''}${yieldBp} bp`, tone: yieldBp > 0 ? 'tight' : 'loose' },
-      { label: 'AA 信用利差', value: `${aaSpread} bp`, delta: `${spreadDelta >= 0 ? '+' : ''}${spreadDelta}`, tone: spreadDelta > 0 ? 'tight' : 'loose' },
-      { label: '行业平均赎回率', value: `${redemptionRate}%`, delta: `${redemptionDelta}`, tone: parseFloat(redemptionDelta) > 0 ? 'tight' : 'loose' },
-      { label: '回购加权利率', value: `${repoRate}%`, delta: `${repoBp >= 0 ? '+' : ''}${repoBp} bp`, tone: repoBp > 0 ? 'tight' : 'loose' },
-    ];
-  } else if (roleId === 'gov') {
-    const provQuota = (1.4 - tighten * 0.05 + noise(6) * 0.1).toFixed(1);
-    const peerDebt = Math.round(248 + tighten * 4 + noise(7) * 6);
-    const peerDelta = Math.round(tighten * 2 + noise(8) * 3);
-    const transferGrowth = (3.2 - tighten * 0.4 + noise(9) * 0.4).toFixed(1);
-    const transferDelta = (-tighten * 0.3 + noise(10) * 0.5).toFixed(1);
-    const landAuction = Math.round(38 + tighten * -3 + noise(11) * 5);
-    const landDelta = Math.round(tighten * -2 + noise(12) * 3);
-    pulses = [
-      { label: '全国特殊再融资额度', value: `${provQuota} 万亿`, delta: 'Q3 截止', tone: 'tight' },
-      { label: '同档区均债务率', value: `${peerDebt}%`, delta: `我 ${peerDelta >= 0 ? '+' : ''}${peerDelta}pp`, tone: peerDelta > 0 ? 'tight' : 'loose' },
-      { label: '省级转移支付增速', value: `+${transferGrowth}%`, delta: `${transferDelta}`, tone: parseFloat(transferDelta) < 0 ? 'tight' : 'loose' },
-      { label: '土地出让流拍率', value: `${landAuction}%`, delta: `${landDelta >= 0 ? '+' : ''}${landDelta}`, tone: landDelta > 0 ? 'tight' : 'loose' },
-    ];
-  } else {
-    // CFO
-    pulses = [
-      { label: 'AA 城投信用利差', value: `${aaSpread} bp`, delta: `${spreadDelta >= 0 ? '+' : ''}${spreadDelta}`, tone: spreadDelta > 0 ? 'tight' : 'loose' },
-      { label: '本省取消发行', value: `${cancelCount} / 周`, delta: `${cancelDelta >= 0 ? '+' : ''}${cancelDelta}`, tone: cancelDelta > 0 ? 'tight' : 'loose' },
-      { label: '银行授信审批', value: `T+${approvalDays} 天`, delta: `${approvalDelta >= 0 ? '+' : ''}${approvalDelta}`, tone: approvalDelta > 0 ? 'tight' : 'loose' },
-      { label: '土地拍卖溢价率', value: `${(-2 + tighten * -0.5 + noise(9) * 1.5).toFixed(1)}%`, delta: `${(tighten * -0.3 + noise(10) * 1).toFixed(1)}`, tone: 'tight' },
-    ];
-  }
-
-  return `
-    <div class="chart-panel pulse-panel">
-      <div class="panel-title panel-title-row">
-        <span><span class="section-mark">⌁</span> 市场脉冲</span>
-        <span class="panel-kicker">${escapeHtml(kicker)}</span>
-      </div>
-      <div class="pulse-rows">
-        ${pulses.map(p => `
-          <div class="pulse-row">
-            <span class="pulse-label">${escapeHtml(p.label)}</span>
-            <span class="pulse-value">${escapeHtml(p.value)}</span>
-            <span class="pulse-delta pulse-${p.tone}">${escapeHtml(p.delta)}</span>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-  `;
-}
 
 export function renderEndScreen(state, finalScore, callbacks) {
   const app = document.getElementById('app');
