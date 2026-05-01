@@ -30,11 +30,30 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角随机事件文案 — 待 Codex T10 填充]",
+        "body": "长端利率突然上行，组合里久期较长的城投债先出现估值回撤。交易员报价变宽，想减仓需要接受折价。你要决定是先控久期，还是等利率回落。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "压降久期，先控制净值波动",
+            "effects": {
+              "duration": -0.5,
+              "nav": -0.005,
+              "score.crisisResponse": 3
+            }
+          },
+          {
+            "label": "保留高票息短债，等待曲线稳定",
+            "effects": {
+              "cashRatio": 1,
+              "score.liquidity": 2
+            }
+          },
+          {
+            "label": "逆势拉久期博利率回落",
+            "effects": {
+              "duration": 0.6,
+              "redemptionPressure": 5,
+              "score.costControl": 2
+            }
           }
         ]
       }
@@ -71,11 +90,31 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角随机事件文案 — 待 Codex T10 填充]",
+        "body": "评级机构下调区域展望后，白名单账户开始询价减仓。你持有的同区域 AA+ 城投成交收益率上行，净值承压但尚未触及清盘线。此时关键是区分区域 beta 和个券 alpha。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "降低该区域弱主体仓位",
+            "effects": {
+              "creditExposure": -5,
+              "cashRatio": 1,
+              "score.compliance": 3
+            }
+          },
+          {
+            "label": "保留区域龙头，卖出边缘平台",
+            "effects": {
+              "creditExposure": -3,
+              "concentration": 1,
+              "score.projectProgress": 2
+            }
+          },
+          {
+            "label": "维持仓位并向渠道解释主体差异",
+            "effects": {
+              "redemptionPressure": -3,
+              "nav": -0.005,
+              "score.crisisResponse": 2
+            }
           }
         ]
       }
@@ -112,11 +151,30 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角随机事件文案 — 待 Codex T10 填充]",
+        "body": "持仓主体的在建项目承包商催款，市场担心工程款拖欠会传导到平台现金流。公开债还没有违约迹象，但短端估值已经开始反映流动性压力。买方需要判断这是经营扰动还是偿债风险前兆。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "卖出短端流动性较差的相关债券",
+            "effects": {
+              "cashRatio": 1.5,
+              "creditExposure": -3,
+              "score.liquidity": 3
+            }
+          },
+          {
+            "label": "观察财政拨款进度，暂不交易",
+            "effects": {
+              "redemptionPressure": 3,
+              "score.compliance": 1
+            }
+          },
+          {
+            "label": "认为项目重要性高，逢低加仓",
+            "effects": {
+              "cashRatio": -1,
+              "concentration": 2,
+              "nav": -0.005
+            }
           }
         ]
       }
@@ -153,11 +211,29 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角随机事件文案 — 待 Codex T10 填充]",
+        "body": "委托代建应收账款回收困难，说明平台现金流周转慢于预期。虽然这类信息不一定立刻体现在公告里，但二级市场会提前下调估值。组合管理上需要减少对财政回款节奏的单点押注。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "降低应收占比高主体的敞口",
+            "effects": {
+              "creditExposure": -4,
+              "cashRatio": 1,
+              "score.projectProgress": 3
+            }
+          },
+          {
+            "label": "只保留短久期到期确定性强的券",
+            "effects": {
+              "duration": -0.3,
+              "score.liquidity": 2
+            }
+          },
+          {
+            "label": "继续持有等待回款兑现",
+            "effects": {
+              "nav": -0.005,
+              "redemptionPressure": 4
+            }
           }
         ]
       }
@@ -193,11 +269,30 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角随机事件文案 — 待 Codex T10 填充]",
+        "body": "监管窗口指导压降非标，会提高尾部城投再融资难度。公开债投资人通常会重新评估非标占比和债务结构透明度。对投资经理来说，这是一次合规筛选，而不是简单的价格波动。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "清理非标依赖度高的主体",
+            "effects": {
+              "creditExposure": -6,
+              "cashRatio": 1,
+              "score.compliance": 4
+            }
+          },
+          {
+            "label": "保留有银行授信替代的主体",
+            "effects": {
+              "creditExposure": -2,
+              "score.projectProgress": 2
+            }
+          },
+          {
+            "label": "认为公开债优先兑付，继续吃票息",
+            "effects": {
+              "creditExposure": 3,
+              "redemptionPressure": 4,
+              "score.costControl": 2
+            }
           }
         ]
       }
@@ -234,11 +329,30 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角随机事件文案 — 待 Codex T10 填充]",
+        "body": "审计组进驻会让市场重新审视区域债务口径，尤其是表外融资和资金用途。你持仓里的信息披露弱主体会被交易员主动压价。现在卖出会损失一部分净值，但能减少后续不确定性。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "卖出披露弱、结构复杂的平台",
+            "effects": {
+              "creditExposure": -5,
+              "cashRatio": 1,
+              "nav": -0.005,
+              "score.compliance": 4
+            }
+          },
+          {
+            "label": "保留审计后可能受益的规范主体",
+            "effects": {
+              "concentration": 1,
+              "score.projectProgress": 2
+            }
+          },
+          {
+            "label": "等待检查结果，避免误伤持仓",
+            "effects": {
+              "redemptionPressure": 5,
+              "score.crisisResponse": -1
+            }
           }
         ]
       }
@@ -275,11 +389,30 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角随机事件文案 — 待 Codex T10 填充]",
+        "body": "政策性银行主动对接重点项目，市场会把它理解为再融资支持增强。相关区域城投利差可能收窄，但利好更偏向清单内项目平台。追买前要看支持范围，而不是只看新闻标题。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "买入清单内平台的中短债",
+            "effects": {
+              "cashRatio": -1,
+              "nav": 0.01,
+              "score.projectProgress": 3
+            }
+          },
+          {
+            "label": "拉长强主体久期，吃利差压缩",
+            "effects": {
+              "duration": 0.4,
+              "nav": 0.008,
+              "score.costControl": 2
+            }
+          },
+          {
+            "label": "认为利好已充分定价，暂不追高",
+            "effects": {
+              "cashRatio": 1,
+              "score.liquidity": 2
+            }
           }
         ]
       }
@@ -317,11 +450,31 @@
         ]
       },
       "im": {
-        "body": "[TODO IM 视角随机事件文案 — 待 Codex T10 填充]",
+        "body": "优质资产注入预期改善了平台报表和市场叙事，但资产能否产生现金流仍要打问号。二级市场通常先交易预期，后续再验证质量。你可以参与估值修复，但不能把概念当成偿债现金。",
         "choices": [
           {
-            "label": "[TODO]",
-            "effects": {}
+            "label": "小幅加仓资产注入确定性高的平台",
+            "effects": {
+              "cashRatio": -1,
+              "nav": 0.008,
+              "concentration": 1,
+              "score.projectProgress": 3
+            }
+          },
+          {
+            "label": "等待资产划转公告后再行动",
+            "effects": {
+              "cashRatio": 1,
+              "score.compliance": 2
+            }
+          },
+          {
+            "label": "大幅买入资产注入概念券",
+            "effects": {
+              "cashRatio": -2,
+              "concentration": 3,
+              "redemptionPressure": 4
+            }
           }
         ]
       }

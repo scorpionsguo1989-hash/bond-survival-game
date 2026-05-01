@@ -1,0 +1,172 @@
+[
+  {
+    "id": "rand_im_rating_downgrade",
+    "type": "IM专属",
+    "title": "重仓券评级下调",
+    "policyDirection": "any",
+    "weight": { "tight": 2, "stable": 1, "loose": 0.5 },
+    "roles": {
+      "im": {
+        "body": "你持有的一只 AAA 城投债被下调到 AA+，交易员报价瞬间下移。虽然主体仍在区域核心名单内，但部分账户的评级门槛已经触发。处理不好会同时伤净值和客户信心。",
+        "choices": [
+          { "label": "立即减仓止损，先满足白名单约束", "effects": { "aum": -3, "cashRatio": 1.5, "nav": -0.005, "score.crisisResponse": 3 } },
+          { "label": "保留核心仓位，等待评级跟踪说明", "effects": { "redemptionPressure": 5, "score.compliance": 1 } },
+          { "label": "加仓博评级错杀修复", "effects": { "concentration": 2, "creditExposure": 3, "nav": -0.01 } }
+        ]
+      }
+    }
+  },
+  {
+    "id": "rand_im_large_subscription",
+    "type": "IM专属",
+    "title": "客户大额申购",
+    "policyDirection": "loose",
+    "weight": { "tight": 0.5, "stable": 1, "loose": 2 },
+    "roles": {
+      "im": {
+        "body": "渠道突然带来一笔大额申购，组合规模可以快速扩张。问题是当下收益率已经下行，新钱如果马上追买，未来净值安全垫会变薄。你需要安排建仓节奏。",
+        "choices": [
+          { "label": "先放现金和短债，分批建仓", "effects": { "aum": 20, "cashRatio": 4, "duration": -0.2, "score.liquidity": 3 } },
+          { "label": "直接买入高等级城投，快速提升收益", "effects": { "aum": 20, "cashRatio": -3, "duration": 0.3, "score.development": 3 } },
+          { "label": "下沉买高票息券，冲短期排名", "effects": { "aum": 20, "cashRatio": -4, "creditExposure": 6, "concentration": 2 } }
+        ]
+      }
+    }
+  },
+  {
+    "id": "rand_im_rating_limit_guidance",
+    "type": "IM专属",
+    "title": "协会窗口指导限制下沉",
+    "policyDirection": "tight",
+    "weight": { "tight": 2, "stable": 1, "loose": 0.5 },
+    "roles": {
+      "im": {
+        "body": "基金业协会窗口指导，要求产品说明与实际信用下沉程度匹配。渠道开始追问 AA 及以下仓位和集中度，合规压力上升。继续靠下沉拉收益会越来越难解释。",
+        "choices": [
+          { "label": "主动压降 AA 及以下占比", "effects": { "creditExposure": -8, "cashRatio": 1, "score.compliance": 5 } },
+          { "label": "保留短久期下沉仓位，控制占比", "effects": { "duration": -0.3, "creditExposure": -2, "score.costControl": 2 } },
+          { "label": "维持仓位，用投资说明解释风险", "effects": { "redemptionPressure": 6, "score.compliance": -3, "score.development": 2 } }
+        ]
+      }
+    }
+  },
+  {
+    "id": "rand_im_repo_rate_spike",
+    "type": "IM专属",
+    "title": "回购利率飙升",
+    "policyDirection": "tight",
+    "weight": { "tight": 3, "stable": 1, "loose": 0.3 },
+    "roles": {
+      "im": {
+        "body": "市场隔夜和 7 天回购利率快速上行，杠杆仓位的融资成本被动抬升。高杠杆组合会出现净值拖累，且交易对手开始提高质押折扣。现在降杠杆会牺牲收益，但能减少踩踏风险。",
+        "choices": [
+          { "label": "主动降杠杆，减少融资依赖", "effects": { "leverage": -12, "cashRatio": -1, "score.compliance": 4 } },
+          { "label": "卖出流动性好债券补保证金", "effects": { "aum": -5, "cashRatio": 2, "nav": -0.005, "score.liquidity": 3 } },
+          { "label": "维持杠杆等待资金面恢复", "effects": { "nav": -0.015, "redemptionPressure": 8, "score.costControl": -2 } }
+        ]
+      }
+    }
+  },
+  {
+    "id": "rand_im_putback_cash",
+    "type": "IM专属",
+    "title": "持仓债券触发回售",
+    "policyDirection": "any",
+    "weight": { "tight": 1, "stable": 1, "loose": 1 },
+    "roles": {
+      "im": {
+        "body": "一只持仓债券进入回售期，发行人选择全额兑付回售资金。组合现金比例被动提高，但也面临再投资收益下降。你需要决定是补仓还是保留流动性。",
+        "choices": [
+          { "label": "保留现金，等待更好的买点", "effects": { "cashRatio": 3, "aum": -2, "score.liquidity": 3 } },
+          { "label": "换入高等级中短债", "effects": { "cashRatio": -1, "duration": 0.2, "score.compliance": 2 } },
+          { "label": "换入高票息弱资质债券", "effects": { "cashRatio": -2, "creditExposure": 5, "nav": 0.005 } }
+        ]
+      }
+    }
+  },
+  {
+    "id": "rand_im_peer_nav_slump",
+    "type": "IM专属",
+    "title": "同业基金净值暴跌",
+    "policyDirection": "tight",
+    "weight": { "tight": 2, "stable": 1, "loose": 0.5 },
+    "roles": {
+      "im": {
+        "body": "同业一只重仓城投的产品单日净值大幅下跌，渠道开始集中排查类似持仓。你的组合没有同款券，但客户很难区分细节。市场恐慌会先影响赎回压力。",
+        "choices": [
+          { "label": "主动披露组合风险暴露并安抚渠道", "effects": { "redemptionPressure": -8, "score.compliance": 2, "score.crisisResponse": 3 } },
+          { "label": "顺势降低相似区域仓位", "effects": { "creditExposure": -5, "cashRatio": 1, "nav": -0.005 } },
+          { "label": "不回应，避免引发更多关注", "effects": { "redemptionPressure": 10, "score.compliance": -2 } }
+        ]
+      }
+    }
+  },
+  {
+    "id": "rand_im_channel_duration_cut",
+    "type": "IM专属",
+    "title": "渠道要求紧急压久期",
+    "policyDirection": "tight",
+    "weight": { "tight": 2, "stable": 1, "loose": 0.5 },
+    "roles": {
+      "im": {
+        "body": "渠道反馈客户风险偏好下降，要求你把组合久期压下来。压久期能降低波动，但也可能错过后续利率下行收益。客户行为开始反向约束投资动作。",
+        "choices": [
+          { "label": "按渠道要求压久期", "effects": { "duration": -0.6, "redemptionPressure": -6, "score.liquidity": 3 } },
+          { "label": "只压低评级长券，保留高等级久期", "effects": { "duration": -0.3, "creditExposure": -3, "score.projectProgress": 2 } },
+          { "label": "坚持原久期判断", "effects": { "duration": 0.2, "redemptionPressure": 5, "score.costControl": 2 } }
+        ]
+      }
+    }
+  },
+  {
+    "id": "rand_im_technical_default",
+    "type": "IM专属",
+    "title": "重仓券技术性违约",
+    "policyDirection": "tight",
+    "weight": { "tight": 2, "stable": 0.8, "loose": 0.3 },
+    "roles": {
+      "im": {
+        "body": "一只重仓券因资金划付延迟出现技术性违约，发行人解释称次日可补足。市场不会等解释完全兑现，相关报价先被打折。组合集中度越高，净值冲击越明显。",
+        "choices": [
+          { "label": "立刻减仓，避免技术违约变实质违约", "effects": { "concentration": -3, "cashRatio": 1.5, "nav": -0.015, "score.crisisResponse": 4 } },
+          { "label": "等待次日兑付确认", "effects": { "redemptionPressure": 8, "score.compliance": 1 } },
+          { "label": "相信兑付补足并加仓摊低成本", "effects": { "concentration": 4, "creditExposure": 4, "nav": -0.02 } }
+        ]
+      }
+    }
+  },
+  {
+    "id": "rand_im_sales_manager_leave",
+    "type": "IM专属",
+    "title": "客户经理离职",
+    "policyDirection": "any",
+    "weight": { "tight": 1, "stable": 1, "loose": 1 },
+    "roles": {
+      "im": {
+        "body": "负责你产品的大客户经理离职，几个机构客户开始重新评估是否继续持有。投资表现没有变化，但客户关系的稳定性下降。AUM 风险有时来自渠道，而不是市场。",
+        "choices": [
+          { "label": "主动拜访重点客户，解释组合策略", "effects": { "redemptionPressure": -10, "score.crisisResponse": 3, "score.compliance": -1 } },
+          { "label": "用更高流动性仓位应对潜在赎回", "effects": { "cashRatio": 2, "duration": -0.2, "score.liquidity": 3 } },
+          { "label": "不调整组合，等待新客户经理接手", "effects": { "aum": -8, "redemptionPressure": 8 } }
+        ]
+      }
+    }
+  },
+  {
+    "id": "rand_im_regulatory_spot_check",
+    "type": "IM专属",
+    "title": "监管现场检查抽中组合",
+    "policyDirection": "any",
+    "weight": { "tight": 1.5, "stable": 1, "loose": 0.8 },
+    "roles": {
+      "im": {
+        "body": "监管现场检查抽中你的组合，重点查看集中度、杠杆和产品说明书一致性。组合本身未必有重大问题，但文档和交易留痕必须经得起检查。高收益策略开始面对合规成本。",
+        "choices": [
+          { "label": "主动压降集中度和杠杆", "effects": { "concentration": -3, "leverage": -8, "score.compliance": 5 } },
+          { "label": "补充投资决策留痕和压力测试", "effects": { "cashRatio": -0.5, "redemptionPressure": -3, "score.compliance": 3 } },
+          { "label": "维持组合，只做材料解释", "effects": { "score.compliance": -4, "redemptionPressure": 4 } }
+        ]
+      }
+    }
+  }
+]
