@@ -105,6 +105,8 @@ export function renderMainScreen(state, callbacks) {
         <div class="col-center event-area" id="event-area">
           ${renderEventArea(state)}
           ${renderActionPanel(state)}
+          ${renderProjectedPanel(state)}
+          ${renderDecisionLog(state)}
         </div>
         <div class="col-right" id="chart-area">${renderChartArea(state)}</div>
       </div>
@@ -220,11 +222,11 @@ function renderMetricsPanel(state) {
         <span class="panel-kicker">7 items</span>
       </div>
       <div class="metric-grid">
-        ${metricTile('现金 (亿)', m.cash.toFixed(1), '', toneFromClass(cashColor(m.cash)), Math.min(100, m.cash * 10), m.cash < due ? '覆盖不足' : '可覆盖')}
+        ${metricTile('现金 (亿)', m.cash.toFixed(1), '', toneFromClass(cashColor(m.cash)), Math.min(100, m.cash * 10), m.cash < due ? '覆盖不足' : '可覆盖', getTrend(state, 'cash', false))}
         ${metricTile('本季到期 (亿)', due.toFixed(1), '', due > m.cash ? 'bad' : 'warn', Math.min(100, due * 10), `未来合计 ${sumDebt(m.debtMaturity, state.quartersPassed, 4).toFixed(1)}`)}
-        ${metricTile('资产负债率', m.leverageRatio.toFixed(1), '%', toneFromClass(levColor(m.leverageRatio)), m.leverageRatio, '监管观察')}
+        ${metricTile('资产负债率', m.leverageRatio.toFixed(1), '%', toneFromClass(levColor(m.leverageRatio)), m.leverageRatio, '监管观察', getTrend(state, 'leverageRatio', true))}
         ${metricTile('授信使用率', Math.round(m.creditUsage), '%', toneFromClass(creditColor(m.creditUsage)), m.creditUsage, `${m.creditUsed?.toFixed?.(1) || '-'} / ${m.creditTotal || '-'}`)}
-        ${metricTile('综合融资成本', m.financingCost.toFixed(2), '%', toneFromClass(costColor(m.financingCost)), Math.min(100, m.financingCost * 10), '加权成本')}
+        ${metricTile('综合融资成本', m.financingCost.toFixed(2), '%', toneFromClass(costColor(m.financingCost)), Math.min(100, m.financingCost * 10), '加权成本', getTrend(state, 'financingCost', true))}
         ${metricTile('可抵押物', collLabel(m.collateralRoom), '', toneFromClass(collColor(m.collateralRoom)), collValue(m.collateralRoom), '剩余空间')}
         ${metricTile('项目缺口 (亿)', m.projectGap.toFixed(1), '', 'bad', Math.min(100, m.projectGap * 12), '刚性支出')}
       </div>
@@ -282,12 +284,12 @@ function renderImMetricsPanel(state) {
         <span class="panel-kicker">6 items</span>
       </div>
       <div class="metric-grid">
-        ${metricTile('净值 (NAV)', m.nav.toFixed(3), '', toneFromClass(navColor), navPct, `${(m.nav - 1).toFixed(3)}`)}
-        ${metricTile('组合久期', m.duration.toFixed(1), 'Y', 'neutral', Math.min(100, m.duration * 14), '利率暴露')}
-        ${metricTile('AA 及以下', m.creditExposure.toFixed(0), '%', toneFromClass(ceColor), m.creditExposure, '信用敞口')}
-        ${metricTile('持仓集中度', m.concentration.toFixed(1), '%', toneFromClass(concColor), Math.min(100, m.concentration * 4), '单券上限 25%')}
-        ${metricTile('回购杠杆', m.leverage.toFixed(0), '%', toneFromClass(levColor), Math.min(100, (m.leverage - 80) * 1.6), '监管线 140%')}
-        ${metricTile('流动性资产', liquidAssets.toFixed(1), '亿', m.cashRatio < 5 ? 'bad' : (m.cashRatio < 10 ? 'warn' : 'ok'), Math.min(100, m.cashRatio * 5), `现金 ${m.cashRatio.toFixed(1)}%`)}
+        ${metricTile('净值 (NAV)', m.nav.toFixed(3), '', toneFromClass(navColor), navPct, `${(m.nav - 1).toFixed(3)}`, getTrend(state, 'nav', false))}
+        ${metricTile('组合久期', m.duration.toFixed(1), 'Y', 'neutral', Math.min(100, m.duration * 14), '利率暴露', getTrend(state, 'duration', false))}
+        ${metricTile('AA 及以下', m.creditExposure.toFixed(0), '%', toneFromClass(ceColor), m.creditExposure, '信用敞口', getTrend(state, 'creditExposure', true))}
+        ${metricTile('持仓集中度', m.concentration.toFixed(1), '%', toneFromClass(concColor), Math.min(100, m.concentration * 4), '单券上限 25%', getTrend(state, 'concentration', true))}
+        ${metricTile('回购杠杆', m.leverage.toFixed(0), '%', toneFromClass(levColor), Math.min(100, (m.leverage - 80) * 1.6), '监管线 140%', getTrend(state, 'leverage', true))}
+        ${metricTile('流动性资产', liquidAssets.toFixed(1), '亿', m.cashRatio < 5 ? 'bad' : (m.cashRatio < 10 ? 'warn' : 'ok'), Math.min(100, m.cashRatio * 5), `现金 ${m.cashRatio.toFixed(1)}%`, getTrend(state, 'cashRatio', false))}
       </div>
     </div>
   `;
@@ -307,12 +309,12 @@ function renderGovMetricsPanel(state) {
         <span class="panel-kicker">7 items</span>
       </div>
       <div class="metric-grid">
-        ${metricTile('财政现金 (亿)', m.cash.toFixed(1), '', toneFromClass(cashColor), Math.min(100, m.cash * 4), '本季可用')}
-        ${metricTile('综合债务率', m.debtRatio.toFixed(0), '%', toneFromClass(debtColor), Math.min(100, (m.debtRatio - 150) / 1.5), '红线 300%')}
-        ${metricTile('隐债债务 (亿)', m.hiddenDebtRisk.toFixed(0), '', toneFromClass(hiddenColor), Math.min(100, m.hiddenDebtRisk / 2), '巡查风险')}
-        ${metricTile('政绩评分', Math.round(m.politicalScore), '/100', toneFromClass(polColor), m.politicalScore, '免职线 20')}
-        ${metricTile('专项债额度', m.specialBondQuota.toFixed(0), '亿', m.specialBondQuota < 5 ? 'warn' : 'ok', Math.min(100, m.specialBondQuota * 4), '可置换')}
-        ${metricTile('产业指数', Math.round(m.industryIndex), '', m.industryIndex < 30 ? 'warn' : 'ok', m.industryIndex, '发展动能')}
+        ${metricTile('财政现金 (亿)', m.cash.toFixed(1), '', toneFromClass(cashColor), Math.min(100, m.cash * 4), '本季可用', getTrend(state, 'cash', false))}
+        ${metricTile('综合债务率', m.debtRatio.toFixed(0), '%', toneFromClass(debtColor), Math.min(100, (m.debtRatio - 150) / 1.5), '红线 300%', getTrend(state, 'debtRatio', true))}
+        ${metricTile('隐债债务 (亿)', m.hiddenDebtRisk.toFixed(0), '', toneFromClass(hiddenColor), Math.min(100, m.hiddenDebtRisk / 2), '巡查风险', getTrend(state, 'hiddenDebtRisk', true))}
+        ${metricTile('政绩评分', Math.round(m.politicalScore), '/100', toneFromClass(polColor), m.politicalScore, '免职线 20', getTrend(state, 'politicalScore', false))}
+        ${metricTile('专项债额度', m.specialBondQuota.toFixed(0), '亿', m.specialBondQuota < 5 ? 'warn' : 'ok', Math.min(100, m.specialBondQuota * 4), '可置换', getTrend(state, 'specialBondQuota', false))}
+        ${metricTile('产业指数', Math.round(m.industryIndex), '', m.industryIndex < 30 ? 'warn' : 'ok', m.industryIndex, '发展动能', getTrend(state, 'industryIndex', false))}
         ${metricTile('财政收入 (亿)', m.fiscalRevenue.toFixed(0), '', 'neutral', Math.min(100, m.fiscalRevenue / 3), '年度口径')}
       </div>
     </div>
@@ -351,11 +353,16 @@ function renderRedemptionCard(state) {
   `;
 }
 
-function metricTile(label, value, unit, tone, pct, meta) {
+function metricTile(label, value, unit, tone, pct, meta, trend) {
+  // trend: { delta: number, isGood: bool } —— 显示在右上角，红涨蓝跌或反之取决于业务
+  const trendHtml = trend
+    ? `<span class="metric-trend ${trend.isGood ? 'good' : 'bad'}">${trend.delta > 0 ? '+' : ''}${trend.delta.toFixed(trend.delta < 1 && trend.delta > -1 ? 2 : 1)}</span>`
+    : '';
   return `
     <div class="metric-tile tone-${tone || 'neutral'}">
       <div class="metric-tile-head">
         <span class="metric-name">${escapeHtml(label)}</span>
+        ${trendHtml}
       </div>
       <div class="metric-reading">
         <span class="metric-value">${escapeHtml(value)}</span>
@@ -365,6 +372,20 @@ function metricTile(label, value, unit, tone, pct, meta) {
       ${meta ? `<div class="metric-meta">${escapeHtml(meta)}</div>` : ''}
     </div>
   `;
+}
+
+// 计算指标 trend：用 state.history 的最后一条 vs 当前 metrics
+// 返回 { delta, isGood }；isGood 取决于该指标"涨好还是跌好"（lowerIsBetter=true 表示跌为好）
+function getTrend(state, key, lowerIsBetter) {
+  const last = state.history?.[state.history.length - 1];
+  if (!last) return null;
+  const before = last[key] ?? last.snapshot?.[key];
+  const now = state.metrics?.[key];
+  if (typeof before !== 'number' || typeof now !== 'number') return null;
+  const delta = now - before;
+  if (Math.abs(delta) < 0.05) return null;  // 太小不显示
+  const isGood = lowerIsBetter ? delta < 0 : delta > 0;
+  return { delta, isGood };
 }
 
 function metricRow(name, valueText, valClass, barPct) {
@@ -769,27 +790,161 @@ function getStatusGoalText(state) {
   return '存活到 2024Q4';
 }
 
-// 右栏底部"市场脉冲"小面板（角色共用）
+// 中栏底部"不行动 · 季末预演"面板：模拟玩家不操作时本季末关键指标变化
+function renderProjectedPanel(state) {
+  const m = state.metrics || {};
+  const roleId = state.role?.id;
+  const rows = [];
+  if (roleId === 'cfo') {
+    const cash = m.cash || 0;
+    const due = m.debtMaturity?.[state.quartersPassed] || 0;
+    const proj = (cash - due - (m.opCostRate || 0) - (m.projectGap || 0) + 2.5);
+    rows.push({ label: '现金', from: `${cash.toFixed(1)} 亿`, to: `${proj.toFixed(1)} 亿`, tone: proj < 1 ? 'bad' : (proj < 3 ? 'warn' : 'ok'), note: due > cash ? 'T+5 还款日' : '正常运营' });
+    const newCreditUsage = m.creditUsage || 0;
+    rows.push({ label: '授信使用率', from: `${Math.round(newCreditUsage)}%`, to: `${Math.round(newCreditUsage * 1.05)}%`, tone: newCreditUsage > 85 ? 'bad' : 'warn', note: newCreditUsage > 90 ? '逼近 100% 红线' : '尚有余地' });
+    rows.push({ label: '本季利润', from: `+${(2.5 - (m.opCostRate || 0) - (m.projectGap || 0)).toFixed(1)} 亿`, to: `${(2.5 - (m.opCostRate || 0) - (m.projectGap || 0) - due * 0.1).toFixed(1)} 亿`, tone: 'warn', note: '首次转亏' });
+  } else if (roleId === 'im') {
+    const nav = m.nav || 1;
+    const projNav = nav * 0.97;
+    rows.push({ label: '净值 NAV', from: nav.toFixed(3), to: projNav.toFixed(3), tone: projNav < 0.9 ? 'bad' : 'warn', note: `距死亡线 ${(projNav - 0.85).toFixed(2)}` });
+    const cashRatio = m.cashRatio || 0;
+    rows.push({ label: '流动性资产', from: `${getCashAvail(m).toFixed(1)} 亿`, to: `${(getCashAvail(m) - getExpectedRedeem(m)).toFixed(1)} 亿`, tone: cashRatio < 5 ? 'bad' : 'warn', note: getExpectedRedeem(m) > getCashAvail(m) ? `缺口 ${(getExpectedRedeem(m) - getCashAvail(m)).toFixed(1)}` : '可覆盖' });
+    rows.push({ label: 'AA- 占比', from: `${Math.round(m.creditExposure * 0.4)}%`, to: `${Math.round(m.creditExposure * 0.4 + 4)}%`, tone: 'warn', note: '被动抬升' });
+  } else if (roleId === 'gov') {
+    const debt = m.debtRatio || 250;
+    rows.push({ label: '综合债务率', from: `${debt.toFixed(0)}%`, to: `${(debt + 12).toFixed(0)}%`, tone: debt > 280 ? 'bad' : 'warn', note: debt + 12 > 295 ? '逼近 300% 红线' : '空间收窄' });
+    rows.push({ label: '财政现金', from: `${m.cash?.toFixed(1) || '-'} 亿`, to: `${((m.cash || 0) * 0.65).toFixed(1)} 亿`, tone: 'warn', note: '工资刚性支出' });
+    rows.push({ label: '政绩评分', from: `${Math.round(m.politicalScore || 60)}`, to: `${Math.round((m.politicalScore || 60) - 4)}`, tone: 'warn', note: 'Q3 考核窗口' });
+  }
+  if (rows.length === 0) return '';
+  return `
+    <div class="panel projected-panel">
+      <div class="panel-title panel-title-row">
+        <span><span class="section-mark">→</span> 不行动 · 季末预演</span>
+        <span class="panel-kicker">PROJECTED · 仅供参考</span>
+      </div>
+      <div class="projected-rows">
+        ${rows.map(r => `
+          <div class="projected-row">
+            <span class="proj-label">${escapeHtml(r.label)}</span>
+            <span class="proj-from">${escapeHtml(r.from)}</span>
+            <span class="proj-arrow">→</span>
+            <span class="proj-to tone-${r.tone}">${escapeHtml(r.to)}</span>
+            <span class="proj-note">${escapeHtml(r.note || '')}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// 中栏底部"决策日志"面板：基于 state.eventLog 显示最近 3 条
+function renderDecisionLog(state) {
+  const log = state.eventLog || [];
+  if (log.length === 0) return `
+    <div class="panel decision-log empty">
+      <div class="panel-title panel-title-row">
+        <span><span class="section-caret">▼</span> 决策日志</span>
+        <span class="panel-kicker">0 条 · 本局</span>
+      </div>
+      <div class="decision-empty">暂无决策记录，做出第一个选择后这里会留痕。</div>
+    </div>
+  `;
+  const rows = log.slice(-3).reverse().map((entry, idx) => {
+    const code = getEventCode(entry.eventId || '');
+    const outcomeTag = entry.uncertainOutcome === 'failed' ? '失败' : (entry.uncertainOutcome === 'succeeded' ? '成功' : '通过');
+    const choiceLetter = String.fromCharCode(65 + (entry.choiceIdx || 0));
+    return `
+      <div class="log-row">
+        <span class="log-q">Q${log.length - idx}</span>
+        <span class="log-code">${escapeHtml(code)}</span>
+        <span class="log-outcome ${entry.uncertainOutcome === 'failed' ? 'bad' : 'ok'}">${outcomeTag}</span>
+        <span class="log-detail">选 ${choiceLetter}</span>
+      </div>
+    `;
+  }).join('');
+  return `
+    <div class="panel decision-log">
+      <div class="panel-title panel-title-row">
+        <span><span class="section-caret">▼</span> 决策日志</span>
+        <span class="panel-kicker">${log.length} 条 · 本局</span>
+      </div>
+      <div class="log-rows">${rows}</div>
+    </div>
+  `;
+}
+
+// 右栏底部"市场脉冲"小面板（角色共用，含真实金融数据估算）
+// 数据来源：基于 state.policyValue 推导可信的市场指标 + 用 hashString 给小幅波动避免每次刷新跳变
 function renderMarketPulsePanel(state) {
   const policy = state.policyValue || 0;
-  const dir = policy < -1 ? '收紧' : (policy > 1 ? '放松' : '震荡');
-  const dirTone = policy < -1 ? 'tight' : (policy > 1 ? 'loose' : 'neutral');
-  const pulses = [
-    { label: '政策方向', value: dir, tone: dirTone },
-    { label: '政策值', value: `${policy >= 0 ? '+' : ''}${policy}`, tone: 'neutral' },
-    { label: '本回合事件', value: state.pendingEvent ? '已推送' : '空窗', tone: state.pendingEvent ? 'tight' : 'neutral' },
-  ];
+  const seed = hashString(`${state.year}${state.quarter}${state.origin?.platformName || ''}`);
+  const noise = (idx) => ((seed >> idx) & 0xff) / 255 - 0.5;  // -0.5 ~ +0.5
+  const roleId = state.role?.id;
+
+  let kicker = '本地城投融资环境';
+  if (roleId === 'im') kicker = '公募债基行业';
+  if (roleId === 'gov') kicker = '政策与同侪';
+
+  // 基础数据：政策紧 → 利差走阔、取消发行多、审批慢；放松反之
+  const tighten = -policy;  // 政策紧时为正
+  const aaSpread = Math.round(150 + tighten * 12 + noise(0) * 10);
+  const spreadDelta = Math.round(tighten * 3 + noise(1) * 5);
+  const cancelCount = Math.max(0, Math.round(2 + tighten * 0.7 + noise(2) * 1.5));
+  const cancelDelta = Math.round(tighten * 0.5 + noise(3) * 1.5);
+  const approvalDays = Math.round(12 + tighten * 2.5 + noise(4) * 3);
+  const approvalDelta = Math.round(tighten * 1.2 + noise(5) * 2);
+
+  let pulses;
+  if (roleId === 'im') {
+    const yield10y = (2.5 + tighten * 0.05 + noise(6) * 0.08).toFixed(2);
+    const yieldBp = Math.round(tighten * 5 + noise(7) * 4);
+    const redemptionRate = (5.5 + tighten * 0.6 + noise(8) * 0.5).toFixed(1);
+    const redemptionDelta = (tighten * 0.4 + noise(9) * 0.5).toFixed(1);
+    const repoRate = (2.0 + tighten * 0.2 + noise(10) * 0.15).toFixed(2);
+    const repoBp = Math.round(tighten * 6 + noise(11) * 4);
+    pulses = [
+      { label: '10Y 国债收益率', value: `${yield10y}%`, delta: `${yieldBp >= 0 ? '+' : ''}${yieldBp} bp`, tone: yieldBp > 0 ? 'tight' : 'loose' },
+      { label: 'AA 信用利差', value: `${aaSpread} bp`, delta: `${spreadDelta >= 0 ? '+' : ''}${spreadDelta}`, tone: spreadDelta > 0 ? 'tight' : 'loose' },
+      { label: '行业平均赎回率', value: `${redemptionRate}%`, delta: `${redemptionDelta}`, tone: parseFloat(redemptionDelta) > 0 ? 'tight' : 'loose' },
+      { label: '回购加权利率', value: `${repoRate}%`, delta: `${repoBp >= 0 ? '+' : ''}${repoBp} bp`, tone: repoBp > 0 ? 'tight' : 'loose' },
+    ];
+  } else if (roleId === 'gov') {
+    const provQuota = (1.4 - tighten * 0.05 + noise(6) * 0.1).toFixed(1);
+    const peerDebt = Math.round(248 + tighten * 4 + noise(7) * 6);
+    const peerDelta = Math.round(tighten * 2 + noise(8) * 3);
+    const transferGrowth = (3.2 - tighten * 0.4 + noise(9) * 0.4).toFixed(1);
+    const transferDelta = (-tighten * 0.3 + noise(10) * 0.5).toFixed(1);
+    const landAuction = Math.round(38 + tighten * -3 + noise(11) * 5);
+    const landDelta = Math.round(tighten * -2 + noise(12) * 3);
+    pulses = [
+      { label: '全国特殊再融资额度', value: `${provQuota} 万亿`, delta: 'Q3 截止', tone: 'tight' },
+      { label: '同档区均债务率', value: `${peerDebt}%`, delta: `我 ${peerDelta >= 0 ? '+' : ''}${peerDelta}pp`, tone: peerDelta > 0 ? 'tight' : 'loose' },
+      { label: '省级转移支付增速', value: `+${transferGrowth}%`, delta: `${transferDelta}`, tone: parseFloat(transferDelta) < 0 ? 'tight' : 'loose' },
+      { label: '土地出让流拍率', value: `${landAuction}%`, delta: `${landDelta >= 0 ? '+' : ''}${landDelta}`, tone: landDelta > 0 ? 'tight' : 'loose' },
+    ];
+  } else {
+    // CFO
+    pulses = [
+      { label: 'AA 城投信用利差', value: `${aaSpread} bp`, delta: `${spreadDelta >= 0 ? '+' : ''}${spreadDelta}`, tone: spreadDelta > 0 ? 'tight' : 'loose' },
+      { label: '本省取消发行', value: `${cancelCount} / 周`, delta: `${cancelDelta >= 0 ? '+' : ''}${cancelDelta}`, tone: cancelDelta > 0 ? 'tight' : 'loose' },
+      { label: '银行授信审批', value: `T+${approvalDays} 天`, delta: `${approvalDelta >= 0 ? '+' : ''}${approvalDelta}`, tone: approvalDelta > 0 ? 'tight' : 'loose' },
+      { label: '土地拍卖溢价率', value: `${(-2 + tighten * -0.5 + noise(9) * 1.5).toFixed(1)}%`, delta: `${(tighten * -0.3 + noise(10) * 1).toFixed(1)}`, tone: 'tight' },
+    ];
+  }
+
   return `
     <div class="chart-panel pulse-panel">
       <div class="panel-title panel-title-row">
         <span><span class="section-mark">⌁</span> 市场脉冲</span>
-        <span class="panel-kicker">PULSE</span>
+        <span class="panel-kicker">${escapeHtml(kicker)}</span>
       </div>
       <div class="pulse-rows">
         ${pulses.map(p => `
           <div class="pulse-row">
             <span class="pulse-label">${escapeHtml(p.label)}</span>
-            <span class="pulse-value pulse-${p.tone}">${escapeHtml(p.value)}</span>
+            <span class="pulse-value">${escapeHtml(p.value)}</span>
+            <span class="pulse-delta pulse-${p.tone}">${escapeHtml(p.delta)}</span>
           </div>
         `).join('')}
       </div>
