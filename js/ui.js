@@ -413,32 +413,41 @@ function collValue(v) { return v === 'high' ? 25 : (v === 'medium' ? 60 : 90); }
 
 function renderEventArea(state) {
   if (!state.pendingEvent) {
-    return `<div class="event-card"><div class="event-header"><div><span class="event-code">IDLE</span><span class="event-badge">季末预演</span></div><span class="event-time">T+0</span></div>
-            <div class="event-title">本回合无主线事件</div>
-            <div class="event-body">你可以使用主动操作或直接结束本季度。</div></div>`;
+    return `<div class="event-card">
+      <div class="event-header">
+        <div class="event-id-line">
+          <span class="event-code">IDLE</span>
+          <span class="event-badge">季末预演</span>
+        </div>
+        <span class="event-time">T+0</span>
+      </div>
+      <div class="event-title">本回合无主线事件</div>
+      <div class="event-body">你可以使用主动操作或直接结束本季度。</div>
+    </div>`;
   }
   const e = state.pendingEvent;
   const isMain = e.id.startsWith('main_');
   const eventCode = getEventCode(e.id);
-  const badge = getEventBadge(state, e);
+  const badgeInfo = getEventBadgeInfo(state, e);
   return `
     <div class="event-card">
       <div class="event-header">
         <div class="event-id-line">
           <span class="event-code">${eventCode}</span>
-          <span class="event-badge">${badge}</span>
+          <span class="event-badge ${badgeInfo.cls}">${escapeHtml(badgeInfo.label)}</span>
           <span class="event-source">来源 · ${isMain ? '主线' : '市场'}</span>
         </div>
         <span class="event-time">T+0 · ${state.role?.id === 'im' ? '14:08' : (state.role?.id === 'gov' ? '10:00' : '09:32')}</span>
       </div>
       <div class="event-title">${escapeHtml(e.title)}</div>
-      <div class="event-body">${escapeHtml(e.body).replace(/\n/g, '<br>')}</div>
+      <div class="event-body">${highlightEventBody(e.body)}</div>
+      ${renderEventLogRow(state)}
       <div class="event-choices">
         ${e.choices.map((c, i) => `
           <button class="choice-btn" data-choice-idx="${i}">
             <div class="choice-head">
               <span class="choice-tag">${String.fromCharCode(65+i)} ▸</span>
-              ${renderChoiceMeta(c)}
+              <span class="choice-meta">${escapeHtml(getChoiceBusinessMeta(c, state.role))}</span>
             </div>
             <span class="choice-label">${escapeHtml(c.label)}</span>
             ${renderChoicePreview(c, state.role)}
@@ -449,26 +458,101 @@ function renderEventArea(state) {
   `;
 }
 
+// 根据事件特征判断徽章（高危/不确定/正常）
+function getEventBadgeInfo(state, event) {
+  const isMain = event.id?.startsWith('main_');
+  // 高危：政策大幅紧缩 / IM 赎回压力高 / GOV 隐债暴露
+  const policyShift = event.policyShift || 0;
+  const m = state.metrics || {};
+  let isDanger = false;
+  if (policyShift <= -2) isDanger = true;
+  if (state.role?.id === 'im' && m.redemptionPressure >= 65) isDanger = true;
+  if (state.role?.id === 'cfo' && m.cash < 2) isDanger = true;
+  if (state.role?.id === 'gov' && m.debtRatio > 280) isDanger = true;
+
+  // 选项是否含不确定
+  const hasUncertain = (event.choices || []).some(c => c.effects?._uncertainty !== undefined);
+
+  if (isDanger) return { label: '高危', cls: 'danger' };
+  if (hasUncertain) return { label: '不确定', cls: '' };
+  return { label: isMain ? '主线 · 必答' : '市场 · 扰动', cls: '' };
+}
+
+// 选项卡右上角业务参数（从 effects 抽核心数字）
+function getChoiceBusinessMeta(choice, role) {
+  const fx = choice.effects || {};
+  const labels = role?.metricLabels || {};
+
+  // 优先 _uncertainty
+  if (fx._uncertainty !== undefined) {
+    return `不确定 · ${Math.round(fx._uncertainty * 100)}%`;
+  }
+  if (fx._delay) return `延期 ${fx._delay} 季`;
+
+  // 找到绝对值最大的非 score 数字
+  let topKey = null, topVal = 0;
+  for (const [k, v] of Object.entries(fx)) {
+    if (k.startsWith('_') || k.startsWith('score.') || typeof v !== 'number') continue;
+    if (Math.abs(v) > Math.abs(topVal)) { topKey = k; topVal = v; }
+  }
+  if (topKey) {
+    const lbl = labels[topKey] || topKey;
+    const sign = topVal > 0 ? '+' : '';
+    return `${lbl} ${sign}${topVal}`;
+  }
+  return '即时';
+}
+
+// LOG 行（事件卡 body 与选项之间）：显示最近一条决策摘要
+function renderEventLogRow(state) {
+  const log = state.eventLog || [];
+  const last = log[log.length - 1];
+  if (!last) return '';
+  const code = getEventCode(last.eventId || '');
+  const choiceLetter = String.fromCharCode(65 + (last.choiceIdx || 0));
+  const outcome = last.uncertainOutcome === 'failed' ? '失败' : (last.uncertainOutcome === 'succeeded' ? '成功' : '通过');
+  return `
+    <div class="event-log-row">
+      <span class="log-arrow">→</span>
+      <span class="log-tag">LOG</span>
+      <span class="log-detail">${escapeHtml(code)} · 选 ${choiceLetter} · ${outcome}</span>
+      <span class="log-more">查看全部 ›</span>
+    </div>
+  `;
+}
+
+// 事件正文关键词高亮：数字（带亿/%/bp）→ role-color；红线/挤兑/触发/缺口 → red
+function highlightEventBody(body) {
+  let html = escapeHtml(body || '').replace(/\n/g, '<br>');
+  // 红色警示词
+  html = html.replace(/(红线|挤兑|触发|缺口|违约|清盘|约谈|爆雷|穿线)/g, '<span class="key-warn">$1</span>');
+  // 数字 + 单位（亿 / % / bp / Q[1-4]）
+  html = html.replace(/((?:\d+(?:\.\d+)?)\s*(?:亿|%|bp|万|季|天|周))/g, '<span class="key-num">$1</span>');
+  return html;
+}
+
 // 选项 effects 预告（设计稿 §3.11.3）
-// 把数值型 effects 翻译成"赎回压力 -8 / 现金 +1.5%"等可读字串
+// 数字关键值用 role-color 高亮，负值/警示词用红色
 function renderChoicePreview(choice, role) {
   const fx = choice.effects || {};
-  const previews = [];
+  const parts = [];
   const labels = role?.metricLabels || {};
   const dimLabels = role?.dimensionLabels || {};
   for (const [k, v] of Object.entries(fx)) {
     if (k.startsWith('_') || typeof v !== 'number') continue;
+    let lbl;
     if (k.startsWith('score.')) {
       const dim = k.slice(6);
-      const lbl = dimLabels[dim] || dim;
-      previews.push(`${lbl} ${v > 0 ? '+' : ''}${v}`);
+      lbl = dimLabels[dim] || dim;
     } else {
-      const lbl = labels[k] || k;
-      previews.push(`${lbl} ${v > 0 ? '+' : ''}${v}`);
+      lbl = labels[k] || k;
     }
+    const sign = v > 0 ? '+' : '';
+    const cls = v > 0 ? 'preview-good' : 'preview-warn';
+    parts.push(`${escapeHtml(lbl)} <span class="${cls}">${sign}${v}</span>`);
   }
-  if (previews.length === 0) return '';
-  return `<div class="choice-preview"><span>PREDICTED · 预计</span>${escapeHtml(previews.slice(0, 4).join('，'))}</div>`;
+  if (parts.length === 0) return '';
+  return `<div class="choice-preview"><span>PREDICTED · 预计</span>${parts.slice(0, 4).join('，')}</div>`;
 }
 
 function renderActionPanel(state) {
