@@ -51,8 +51,8 @@ describe('IM getInitialMetrics', () => {
 
   it('applies weak profile NAV buffer and higher credit exposure', () => {
     const m = ROLE_IM.getInitialMetrics({ scale: 'small', healthLevel: 'weak', tag: 'pending_redemption' });
-    expect(m.nav).toBe(0.985);  // weak buffer -0.015 (post integration tuning)
-    expect(m.creditExposure).toBe(49);  // softened from 50 to give weak ~30% chance
+    expect(m.nav).toBe(0.98);
+    expect(m.creditExposure).toBe(50);
     expect(m.redemptionPressure).toBe(35);
   });
 });

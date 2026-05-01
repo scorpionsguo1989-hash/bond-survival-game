@@ -11,8 +11,7 @@ const SCALE_PROFILES = {
 const HEALTH_PROFILES = {
   good: { creditExposure: 15, concentration: 8, initialNavBuffer: 0 },
   medium: { creditExposure: 30, concentration: 12, initialNavBuffer: 0 },
-  // weak 调整：creditExposure 50→49（让 weak 玩家有 ~30-50% 通关机会），nav buffer -0.02→-0.015
-  weak: { creditExposure: 49, concentration: 14, initialNavBuffer: -0.015 },
+  weak: { creditExposure: 50, concentration: 14, initialNavBuffer: -0.02 },
 };
 
 function getInitialMetrics(profile) {
@@ -39,7 +38,7 @@ function advanceTurn(state) {
   //   - 政策影响 0.005（政策紧时久期长会更痛）
   //   - 信用惩罚 0.009（政策紧时高信用敞口吃亏）
   const policyContrib = policyValue * 0.005 * (duration / 3);
-  const creditPenalty = (policyValue < 0 ? Math.abs(policyValue) : 0) * (creditExposure / 100) * 0.013;
+  const creditPenalty = (policyValue < 0 ? Math.abs(policyValue) : 0) * (creditExposure / 100) * 0.015;
   const baseYield = 0.009;
   const leverageMultiplier = leverage / 100;
   const navDelta = (baseYield + policyContrib - creditPenalty) * leverageMultiplier;
