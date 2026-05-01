@@ -68,12 +68,13 @@ async function showLeaderboard() {
 }
 
 function loadCurrentTurnEvent() {
-  const main = findMainEvent(eventData.main, state.year, state.quarter);
+  const roleId = state.origin?.role || 'cfo';
+  const main = findMainEvent(eventData.main, state.year, state.quarter, roleId);
   if (main) {
     state = { ...state, pendingEvent: main };
   } else {
     const dir = getPolicyDirection(state.policyValue);
-    const sampled = sampleRandomEvents(eventData.random, dir, { min: 1, max: 1 });
+    const sampled = sampleRandomEvents(eventData.random, dir, { min: 1, max: 1 }, roleId);
     state = { ...state, pendingEvent: sampled[0] || null };
   }
 }

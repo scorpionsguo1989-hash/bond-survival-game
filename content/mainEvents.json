@@ -1,458 +1,1054 @@
 [
   {
     "id": "main_2022_q1_a",
-    "trigger": { "year": 2022, "quarter": 1 },
+    "trigger": {
+      "year": 2022,
+      "quarter": 1
+    },
     "title": "银行收紧城投贷款额度",
-    "body": "监管窗口指导下发，辖区内商业银行对城投平台新增贷款全面收紧。主开户行通知：现有授信到期后续做需总行审批，流程预计6-8周。",
     "policyShift": -1,
-    "choices": [
-      {
-        "label": "启动备用银行授信申请，贡献部分存款作对价",
-        "effects": { "cash": -0.5, "creditUsed": -1.5, "score.合规指数": 5 }
+    "roles": {
+      "cfo": {
+        "body": "监管窗口指导下发，辖区内商业银行对城投平台新增贷款全面收紧。主开户行通知：现有授信到期后续做需总行审批，流程预计6-8周。",
+        "choices": [
+          {
+            "label": "启动备用银行授信申请，贡献部分存款作对价",
+            "effects": {
+              "cash": -0.5,
+              "creditUsed": -1.5,
+              "score.compliance": 5
+            }
+          },
+          {
+            "label": "向主管局汇报，争取政策性银行专项额度介入",
+            "effects": {
+              "score.projectProgress": 3,
+              "_uncertainty": 0.4
+            }
+          },
+          {
+            "label": "加快存量资产处置，用土地抵押换流动性",
+            "effects": {
+              "cash": 2,
+              "collateralRoom": "downgrade",
+              "score.liquidity": -3
+            }
+          }
+        ]
       },
-      {
-        "label": "向主管局汇报，争取政策性银行专项额度介入",
-        "effects": { "score.项目推进": 3, "_uncertainty": 0.4 }
-      },
-      {
-        "label": "加快存量资产处置，用土地抵押换流动性",
-        "effects": { "cash": 2.0, "collateralRoom": "downgrade", "score.流动性管理": -3 }
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": "main_2022_q1_b",
-    "trigger": { "year": 2022, "quarter": 1 },
+    "trigger": {
+      "year": 2022,
+      "quarter": 1
+    },
     "title": "地方隐性债务专项审计启动",
-    "body": "省级审计组进驻辖区，对所有城投平台开展隐性债务专项审计。你的平台部分融资租赁和应收账款融资存在合规隐患，审计组要求限期整改。",
     "policyShift": -1,
-    "choices": [
-      {
-        "label": "全面配合审计，主动整改所有违规融资",
-        "effects": { "cash": -0.8, "score.合规指数": 8, "score.综合发展": 2 }
+    "roles": {
+      "cfo": {
+        "body": "省级审计组进驻辖区，对所有城投平台开展隐性债务专项审计。你的平台部分融资租赁和应收账款融资存在合规隐患，审计组要求限期整改。",
+        "choices": [
+          {
+            "label": "全面配合审计，主动整改所有违规融资",
+            "effects": {
+              "cash": -0.8,
+              "score.compliance": 8,
+              "score.development": 2
+            }
+          },
+          {
+            "label": "仅整改明显违规项目，保留灰色地带融资通道",
+            "effects": {
+              "score.compliance": 2,
+              "score.liquidity": 3
+            }
+          },
+          {
+            "label": "申请延期整改，优先保障在建项目进度",
+            "effects": {
+              "score.projectProgress": 4,
+              "score.compliance": -3,
+              "_uncertainty": 0.5
+            }
+          }
+        ]
       },
-      {
-        "label": "仅整改明显违规项目，保留灰色地带融资通道",
-        "effects": { "score.合规指数": 2, "score.流动性管理": 3 }
-      },
-      {
-        "label": "申请延期整改，优先保障在建项目进度",
-        "effects": { "score.项目推进": 4, "score.合规指数": -3, "_uncertainty": 0.5 }
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": "main_2022_q2_a",
-    "trigger": { "year": 2022, "quarter": 2 },
+    "trigger": {
+      "year": 2022,
+      "quarter": 2
+    },
     "title": "土地出让金大幅下滑",
-    "body": "房地产市场持续降温，本季度土地出让收入仅完成预算的30%。地方财政对城投的补贴和注资收紧，公司经营压力加大。",
     "policyShift": 0,
-    "choices": [
-      {
-        "label": "压缩非必要项目支出，优先保障偿债资金",
-        "effects": { "cash": 0.8, "score.项目推进": -4, "score.流动性管理": 3 }
+    "roles": {
+      "cfo": {
+        "body": "房地产市场持续降温，本季度土地出让收入仅完成预算的30%。地方财政对城投的补贴和注资收紧，公司经营压力加大。",
+        "choices": [
+          {
+            "label": "压缩非必要项目支出，优先保障偿债资金",
+            "effects": {
+              "cash": 0.8,
+              "score.projectProgress": -4,
+              "score.liquidity": 3
+            }
+          },
+          {
+            "label": "向上级争取财政贴息补助",
+            "effects": {
+              "cash": 1.5,
+              "_uncertainty": 0.4,
+              "score.compliance": 2
+            }
+          },
+          {
+            "label": "加大市场化运营收入，开拓新业务",
+            "effects": {
+              "cash": 0.5,
+              "score.development": 5
+            }
+          }
+        ]
       },
-      {
-        "label": "向上级争取财政贴息补助",
-        "effects": { "cash": 1.5, "_uncertainty": 0.4, "score.合规指数": 2 }
-      },
-      {
-        "label": "加大市场化运营收入，开拓新业务",
-        "effects": { "cash": 0.5, "score.综合发展": 5 }
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": "main_2022_q2_b",
-    "trigger": { "year": 2022, "quarter": 2 },
+    "trigger": {
+      "year": 2022,
+      "quarter": 2
+    },
     "title": "上级要求加快重点项目建设",
-    "body": "省政府下达基础设施投资计划，要求城投平台加快推进在建项目。项目资金缺口进一步扩大，但完成任务有利于争取后续政策支持。",
     "policyShift": 0,
-    "choices": [
-      {
-        "label": "全力推进项目，通过短期融资补充资金",
-        "effects": { "cash": -1.0, "score.项目推进": 6, "financingCost": 0.3 }
+    "roles": {
+      "cfo": {
+        "body": "省政府下达基础设施投资计划，要求城投平台加快推进在建项目。项目资金缺口进一步扩大，但完成任务有利于争取后续政策支持。",
+        "choices": [
+          {
+            "label": "全力推进项目，通过短期融资补充资金",
+            "effects": {
+              "cash": -1,
+              "score.projectProgress": 6,
+              "financingCost": 0.3
+            }
+          },
+          {
+            "label": "向上级如实汇报资金困难，申请调减任务量",
+            "effects": {
+              "score.compliance": 3,
+              "score.projectProgress": -2
+            }
+          },
+          {
+            "label": "引入社会资本合作(PPP模式)分担投资",
+            "effects": {
+              "cash": 1,
+              "score.development": 4,
+              "_uncertainty": 0.3
+            }
+          }
+        ]
       },
-      {
-        "label": "向上级如实汇报资金困难，申请调减任务量",
-        "effects": { "score.合规指数": 3, "score.项目推进": -2 }
-      },
-      {
-        "label": "引入社会资本合作(PPP模式)分担投资",
-        "effects": { "cash": 1.0, "score.综合发展": 4, "_uncertainty": 0.3 }
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": "main_2022_q3_a",
-    "trigger": { "year": 2022, "quarter": 3 },
+    "trigger": {
+      "year": 2022,
+      "quarter": 3
+    },
     "title": "某省城投私募债违约",
-    "body": "邻省一笔城投私募债违约，引发市场恐慌。信用利差快速走阔，新发行难度加大，投资人对中西部城投警惕性提升。",
     "policyShift": -1,
-    "choices": [
-      {
-        "label": "暂停新增披露，低调等市场情绪平复",
-        "effects": { "score.合规指数": 2 }
+    "roles": {
+      "cfo": {
+        "body": "邻省一笔城投私募债违约，引发市场恐慌。信用利差快速走阔，新发行难度加大，投资人对中西部城投警惕性提升。",
+        "choices": [
+          {
+            "label": "暂停新增披露，低调等市场情绪平复",
+            "effects": {
+              "score.compliance": 2
+            }
+          },
+          {
+            "label": "主动召开投资人沟通会，展示偿债计划",
+            "effects": {
+              "cash": -0.3,
+              "financingCost": -0.2,
+              "score.crisisResponse": 6
+            }
+          },
+          {
+            "label": "趁市场恐慌锁定一笔长期低息贷款",
+            "effects": {
+              "cash": 3,
+              "financingCost": 0.4,
+              "creditUsed": 3
+            }
+          }
+        ]
       },
-      {
-        "label": "主动召开投资人沟通会，展示偿债计划",
-        "effects": { "cash": -0.3, "financingCost": -0.2, "score.危机应对": 6 }
-      },
-      {
-        "label": "趁市场恐慌锁定一笔长期低息贷款",
-        "effects": { "cash": 3.0, "financingCost": 0.4, "creditUsed": 3 }
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": "main_2022_q3_b",
-    "trigger": { "year": 2022, "quarter": 3 },
+    "trigger": {
+      "year": 2022,
+      "quarter": 3
+    },
     "title": "信用评级机构下调区域展望",
-    "body": "某评级机构将你所在区域的城投信用展望由稳定调整为负面。市场对区域内城投债认购热情下降，部分机构投资者开始减持。",
     "policyShift": -1,
-    "choices": [
-      {
-        "label": "紧急聘请投行准备投资者路演材料",
-        "effects": { "cash": -0.5, "financingCost": -0.3, "score.危机应对": 5 }
+    "roles": {
+      "cfo": {
+        "body": "某评级机构将你所在区域的城投信用展望由稳定调整为负面。市场对区域内城投债认购热情下降，部分机构投资者开始减持。",
+        "choices": [
+          {
+            "label": "紧急聘请投行准备投资者路演材料",
+            "effects": {
+              "cash": -0.5,
+              "financingCost": -0.3,
+              "score.crisisResponse": 5
+            }
+          },
+          {
+            "label": "加快推进信息披露透明化建设",
+            "effects": {
+              "score.compliance": 6,
+              "score.development": 2
+            }
+          },
+          {
+            "label": "通过非公开渠道维护重点投资人关系",
+            "effects": {
+              "financingCost": 0.2,
+              "score.liquidity": 4,
+              "score.compliance": -2
+            }
+          }
+        ]
       },
-      {
-        "label": "加快推进信息披露透明化建设",
-        "effects": { "score.合规指数": 6, "score.综合发展": 2 }
-      },
-      {
-        "label": "通过非公开渠道维护重点投资人关系",
-        "effects": { "financingCost": 0.2, "score.流动性管理": 4, "score.合规指数": -2 }
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": "main_2022_q4_a",
-    "trigger": { "year": 2022, "quarter": 4 },
+    "trigger": {
+      "year": 2022,
+      "quarter": 4
+    },
     "title": "理财赎回潮蔓延",
-    "body": "债市大幅调整，理财产品破净潮起，机构投资者大量赎回，二级市场成交几乎冰封。你的部分债券估值下跌，质押融资也受影响。",
     "policyShift": -1,
-    "choices": [
-      {
-        "label": "动用授信抢做回购，给市场注入流动性",
-        "effects": { "cash": 1.5, "creditUsed": 2, "score.危机应对": 5 }
+    "roles": {
+      "cfo": {
+        "body": "债市大幅调整，理财产品破净潮起，机构投资者大量赎回，二级市场成交几乎冰封。你的部分债券估值下跌，质押融资也受影响。",
+        "choices": [
+          {
+            "label": "动用授信抢做回购，给市场注入流动性",
+            "effects": {
+              "cash": 1.5,
+              "creditUsed": 2,
+              "score.crisisResponse": 5
+            }
+          },
+          {
+            "label": "按兵不动，等待政策面安抚",
+            "effects": {
+              "_uncertainty": 0.5,
+              "score.compliance": 1
+            }
+          }
+        ]
       },
-      {
-        "label": "按兵不动，等待政策面安抚",
-        "effects": { "_uncertainty": 0.5, "score.合规指数": 1 }
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": "main_2022_q4_b",
-    "trigger": { "year": 2022, "quarter": 4 },
+    "trigger": {
+      "year": 2022,
+      "quarter": 4
+    },
     "title": "年末集中到期还款高峰",
-    "body": "第四季度迎来全年最大到期还款高峰，多笔债务集中到期。叠加年末银行信贷额度收紧，资金调配面临严峻考验。",
     "policyShift": 0,
-    "choices": [
-      {
-        "label": "提前与债权人协商展期，争取时间窗口",
-        "effects": { "financingCost": 0.3, "score.流动性管理": 5, "score.危机应对": 3 }
+    "roles": {
+      "cfo": {
+        "body": "第四季度迎来全年最大到期还款高峰，多笔债务集中到期。叠加年末银行信贷额度收紧，资金调配面临严峻考验。",
+        "choices": [
+          {
+            "label": "提前与债权人协商展期，争取时间窗口",
+            "effects": {
+              "financingCost": 0.3,
+              "score.liquidity": 5,
+              "score.crisisResponse": 3
+            }
+          },
+          {
+            "label": "加速回收应收账款补充现金",
+            "effects": {
+              "cash": 1.5,
+              "score.liquidity": 3
+            }
+          },
+          {
+            "label": "发行短期融资券滚续到期债务",
+            "effects": {
+              "cash": 2,
+              "financingCost": 0.5,
+              "score.costControl": -3
+            }
+          }
+        ]
       },
-      {
-        "label": "加速回收应收账款补充现金",
-        "effects": { "cash": 1.5, "score.流动性管理": 3 }
-      },
-      {
-        "label": "发行短期融资券滚续到期债务",
-        "effects": { "cash": 2.0, "financingCost": 0.5, "score.融资成本控制": -3 }
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": "main_2023_q1_a",
-    "trigger": { "year": 2023, "quarter": 1 },
+    "trigger": {
+      "year": 2023,
+      "quarter": 1
+    },
     "title": "化债政策信号释放",
-    "body": "中央经济工作会议明确提出有效防范化解重点领域风险，市场预期化债政策即将出台。专项债限额上调讨论升温。",
     "policyShift": 2,
-    "choices": [
-      {
-        "label": "提前布局，与地方财政沟通争取纳入化债试点",
-        "effects": { "score.项目推进": 5, "score.合规指数": 3 }
+    "roles": {
+      "cfo": {
+        "body": "中央经济工作会议明确提出有效防范化解重点领域风险，市场预期化债政策即将出台。专项债限额上调讨论升温。",
+        "choices": [
+          {
+            "label": "提前布局，与地方财政沟通争取纳入化债试点",
+            "effects": {
+              "score.projectProgress": 5,
+              "score.compliance": 3
+            }
+          },
+          {
+            "label": "保持观望，先确保短期兑付安全",
+            "effects": {
+              "score.liquidity": 2
+            }
+          }
+        ]
       },
-      {
-        "label": "保持观望，先确保短期兑付安全",
-        "effects": { "score.流动性管理": 2 }
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": "main_2023_q1_b",
-    "trigger": { "year": 2023, "quarter": 1 },
+    "trigger": {
+      "year": 2023,
+      "quarter": 1
+    },
     "title": "专项债提前批额度下达",
-    "body": "财政部提前下达今年专项债额度，规模超出市场预期。地方政府获得大量低成本资金，城投平台有望获得项目配套资金支持。",
     "policyShift": 1,
-    "choices": [
-      {
-        "label": "积极申报项目争取专项债资金支持",
-        "effects": { "cash": 2.0, "score.项目推进": 5, "_uncertainty": 0.6 }
+    "roles": {
+      "cfo": {
+        "body": "财政部提前下达今年专项债额度，规模超出市场预期。地方政府获得大量低成本资金，城投平台有望获得项目配套资金支持。",
+        "choices": [
+          {
+            "label": "积极申报项目争取专项债资金支持",
+            "effects": {
+              "cash": 2,
+              "score.projectProgress": 5,
+              "_uncertainty": 0.6
+            }
+          },
+          {
+            "label": "利用政策窗口置换存量高息债务",
+            "effects": {
+              "financingCost": -0.5,
+              "score.costControl": 4
+            }
+          },
+          {
+            "label": "保持稳健，不追求规模扩张",
+            "effects": {
+              "score.compliance": 3,
+              "score.development": 2
+            }
+          }
+        ]
       },
-      {
-        "label": "利用政策窗口置换存量高息债务",
-        "effects": { "financingCost": -0.5, "score.融资成本控制": 4 }
-      },
-      {
-        "label": "保持稳健，不追求规模扩张",
-        "effects": { "score.合规指数": 3, "score.综合发展": 2 }
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": "main_2023_q2_a",
-    "trigger": { "year": 2023, "quarter": 2 },
+    "trigger": {
+      "year": 2023,
+      "quarter": 2
+    },
     "title": "城投平台市场化转型试点启动",
-    "body": "上级部门选定部分城投平台作为市场化转型试点。转型意味着剥离政府融资功能，但也能获得更灵活的经营空间和市场认可。",
     "policyShift": 0,
-    "choices": [
-      {
-        "label": "积极申请成为转型试点平台",
-        "effects": { "cash": -0.5, "leverageRatio": -3, "score.综合发展": 7 }
+    "roles": {
+      "cfo": {
+        "body": "上级部门选定部分城投平台作为市场化转型试点。转型意味着剥离政府融资功能，但也能获得更灵活的经营空间和市场认可。",
+        "choices": [
+          {
+            "label": "积极申请成为转型试点平台",
+            "effects": {
+              "cash": -0.5,
+              "leverageRatio": -3,
+              "score.development": 7
+            }
+          },
+          {
+            "label": "观望其他平台转型效果后再决定",
+            "effects": {
+              "score.compliance": 2
+            }
+          },
+          {
+            "label": "借转型名义优化资产结构",
+            "effects": {
+              "cash": 1,
+              "collateralRoom": "downgrade",
+              "score.development": 4
+            }
+          }
+        ]
       },
-      {
-        "label": "观望其他平台转型效果后再决定",
-        "effects": { "score.合规指数": 2 }
-      },
-      {
-        "label": "借转型名义优化资产结构",
-        "effects": { "cash": 1.0, "collateralRoom": "downgrade", "score.综合发展": 4 }
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": "main_2023_q2_b",
-    "trigger": { "year": 2023, "quarter": 2 },
+    "trigger": {
+      "year": 2023,
+      "quarter": 2
+    },
     "title": "地方财政收入持续承压",
-    "body": "受房地产下行和经济放缓影响，地方一般公共预算收入增速转负。财政对城投的应付款项出现拖欠，部分在建项目面临停工风险。",
     "policyShift": 0,
-    "choices": [
-      {
-        "label": "垫付项目资金继续施工，争取后续财政返还",
-        "effects": { "cash": -1.5, "score.项目推进": 5, "_uncertainty": 0.5 }
+    "roles": {
+      "cfo": {
+        "body": "受房地产下行和经济放缓影响，地方一般公共预算收入增速转负。财政对城投的应付款项出现拖欠，部分在建项目面临停工风险。",
+        "choices": [
+          {
+            "label": "垫付项目资金继续施工，争取后续财政返还",
+            "effects": {
+              "cash": -1.5,
+              "score.projectProgress": 5,
+              "_uncertainty": 0.5
+            }
+          },
+          {
+            "label": "暂停部分非核心项目降低资金占用",
+            "effects": {
+              "cash": 0.5,
+              "score.projectProgress": -3,
+              "score.liquidity": 3
+            }
+          },
+          {
+            "label": "与财政局协商将应付款转为质押融资",
+            "effects": {
+              "cash": 1,
+              "score.liquidity": 4
+            }
+          }
+        ]
       },
-      {
-        "label": "暂停部分非核心项目降低资金占用",
-        "effects": { "cash": 0.5, "score.项目推进": -3, "score.流动性管理": 3 }
-      },
-      {
-        "label": "与财政局协商将应付款转为质押融资",
-        "effects": { "cash": 1.0, "score.流动性管理": 4 }
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": "main_2023_q3_a",
-    "trigger": { "year": 2023, "quarter": 3 },
+    "trigger": {
+      "year": 2023,
+      "quarter": 3
+    },
     "title": "一揽子化债方案出台",
-    "body": "国务院正式部署一揽子化债方案，特殊再融资债重启，专项债额度大幅扩容。城投平台迎来罕见的政策窗口期，但名单和额度竞争激烈。",
     "policyShift": 2,
-    "choices": [
-      {
-        "label": "全力争取最大额度，置换高息存量债务",
-        "effects": { "cash": 1.0, "financingCost": -1.2, "score.融资成本控制": 8 }
+    "roles": {
+      "cfo": {
+        "body": "国务院正式部署一揽子化债方案，特殊再融资债重启，专项债额度大幅扩容。城投平台迎来罕见的政策窗口期，但名单和额度竞争激烈。",
+        "choices": [
+          {
+            "label": "全力争取最大额度，置换高息存量债务",
+            "effects": {
+              "cash": 1,
+              "financingCost": -1.2,
+              "score.costControl": 8
+            }
+          },
+          {
+            "label": "适度参与，不过度依赖政策红利",
+            "effects": {
+              "financingCost": -0.5,
+              "score.compliance": 4,
+              "score.development": 3
+            }
+          },
+          {
+            "label": "推动市场化转型，借机剥离非主业资产",
+            "effects": {
+              "cash": 2,
+              "leverageRatio": -3,
+              "score.development": 6
+            }
+          }
+        ]
       },
-      {
-        "label": "适度参与，不过度依赖政策红利",
-        "effects": { "financingCost": -0.5, "score.合规指数": 4, "score.综合发展": 3 }
-      },
-      {
-        "label": "推动市场化转型，借机剥离非主业资产",
-        "effects": { "cash": 2.0, "leverageRatio": -3, "score.综合发展": 6 }
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": "main_2023_q3_b",
-    "trigger": { "year": 2023, "quarter": 3 },
+    "trigger": {
+      "year": 2023,
+      "quarter": 3
+    },
     "title": "央行设立应急流动性支持工具",
-    "body": "央行联合金融监管总局设立城投应急流动性支持贷款(SPV)，为债务压力较大的平台提供低息过桥资金。申请需满足信息披露和合规条件。",
     "policyShift": 1,
-    "choices": [
-      {
-        "label": "立即申请SPV资金支持",
-        "effects": { "cash": 3.0, "financingCost": -0.3, "score.流动性管理": 5, "_uncertainty": 0.6 }
+    "roles": {
+      "cfo": {
+        "body": "央行联合金融监管总局设立城投应急流动性支持贷款(SPV)，为债务压力较大的平台提供低息过桥资金。申请需满足信息披露和合规条件。",
+        "choices": [
+          {
+            "label": "立即申请SPV资金支持",
+            "effects": {
+              "cash": 3,
+              "financingCost": -0.3,
+              "score.liquidity": 5,
+              "_uncertainty": 0.6
+            }
+          },
+          {
+            "label": "先满足披露条件再申请，确保合规",
+            "effects": {
+              "cash": 1.5,
+              "score.compliance": 5,
+              "score.liquidity": 3
+            }
+          },
+          {
+            "label": "不申请，避免被贴上困难平台标签",
+            "effects": {
+              "score.development": 4,
+              "score.compliance": 2
+            }
+          }
+        ]
       },
-      {
-        "label": "先满足披露条件再申请，确保合规",
-        "effects": { "cash": 1.5, "score.合规指数": 5, "score.流动性管理": 3 }
-      },
-      {
-        "label": "不申请，避免被贴上困难平台标签",
-        "effects": { "score.综合发展": 4, "score.合规指数": 2 }
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": "main_2023_q4_a",
-    "trigger": { "year": 2023, "quarter": 4 },
+    "trigger": {
+      "year": 2023,
+      "quarter": 4
+    },
     "title": "上级考核城投债务化解进度",
-    "body": "省政府对各地城投平台年度化债目标完成情况进行考核。考核结果将直接影响明年政策支持力度和领导班子评价。",
     "policyShift": 0,
-    "choices": [
-      {
-        "label": "全面梳理化债成果如实汇报",
-        "effects": { "score.合规指数": 5, "score.综合发展": 3 }
+    "roles": {
+      "cfo": {
+        "body": "省政府对各地城投平台年度化债目标完成情况进行考核。考核结果将直接影响明年政策支持力度和领导班子评价。",
+        "choices": [
+          {
+            "label": "全面梳理化债成果如实汇报",
+            "effects": {
+              "score.compliance": 5,
+              "score.development": 3
+            }
+          },
+          {
+            "label": "适度包装指标数据突出亮点",
+            "effects": {
+              "score.compliance": -2,
+              "score.crisisResponse": 3,
+              "_uncertainty": 0.5
+            }
+          },
+          {
+            "label": "如实汇报困难争取额外支持",
+            "effects": {
+              "cash": 1,
+              "score.compliance": 4,
+              "_uncertainty": 0.4
+            }
+          }
+        ]
       },
-      {
-        "label": "适度包装指标数据突出亮点",
-        "effects": { "score.合规指数": -2, "score.危机应对": 3, "_uncertainty": 0.5 }
-      },
-      {
-        "label": "如实汇报困难争取额外支持",
-        "effects": { "cash": 1.0, "score.合规指数": 4, "_uncertainty": 0.4 }
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": "main_2023_q4_b",
-    "trigger": { "year": 2023, "quarter": 4 },
+    "trigger": {
+      "year": 2023,
+      "quarter": 4
+    },
     "title": "信用债市场年末回暖",
-    "body": "受化债政策提振，城投债二级市场价格普遍上涨，一级市场发行重启。部分机构开始抄底城投债，融资环境明显改善。",
     "policyShift": 1,
-    "choices": [
-      {
-        "label": "抓住窗口期加大发债力度",
-        "effects": { "cash": 3.0, "financingCost": 0.2, "score.融资成本控制": 3 }
+    "roles": {
+      "cfo": {
+        "body": "受化债政策提振，城投债二级市场价格普遍上涨，一级市场发行重启。部分机构开始抄底城投债，融资环境明显改善。",
+        "choices": [
+          {
+            "label": "抓住窗口期加大发债力度",
+            "effects": {
+              "cash": 3,
+              "financingCost": 0.2,
+              "score.costControl": 3
+            }
+          },
+          {
+            "label": "发行中长期债券锁定低成本资金",
+            "effects": {
+              "cash": 1.5,
+              "financingCost": -0.5,
+              "score.liquidity": 5
+            }
+          },
+          {
+            "label": "保持谨慎，避免过度加杠杆",
+            "effects": {
+              "score.compliance": 4,
+              "score.development": 2
+            }
+          }
+        ]
       },
-      {
-        "label": "发行中长期债券锁定低成本资金",
-        "effects": { "cash": 1.5, "financingCost": -0.5, "score.流动性管理": 5 }
-      },
-      {
-        "label": "保持谨慎，避免过度加杠杆",
-        "effects": { "score.合规指数": 4, "score.综合发展": 2 }
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": "main_2024_q1_a",
-    "trigger": { "year": 2024, "quarter": 1 },
+    "trigger": {
+      "year": 2024,
+      "quarter": 1
+    },
     "title": "非标全面收紧，监管新规落地",
-    "body": "金融监管总局对城投非标融资发布新规，定融、信托等渠道全面收紧。存量非标需限期压降。",
     "policyShift": -1,
-    "choices": [
-      {
-        "label": "提前压降非标存量，承担一次性置换成本",
-        "effects": { "cash": -1.0, "financingCost": -0.3, "score.合规指数": 7 }
+    "roles": {
+      "cfo": {
+        "body": "金融监管总局对城投非标融资发布新规，定融、信托等渠道全面收紧。存量非标需限期压降。",
+        "choices": [
+          {
+            "label": "提前压降非标存量，承担一次性置换成本",
+            "effects": {
+              "cash": -1,
+              "financingCost": -0.3,
+              "score.compliance": 7
+            }
+          },
+          {
+            "label": "申请分阶段整改，争取过渡期",
+            "effects": {
+              "_uncertainty": 0.3,
+              "score.projectProgress": -2
+            }
+          }
+        ]
       },
-      {
-        "label": "申请分阶段整改，争取过渡期",
-        "effects": { "_uncertainty": 0.3, "score.项目推进": -2 }
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": "main_2024_q1_b",
-    "trigger": { "year": 2024, "quarter": 1 },
+    "trigger": {
+      "year": 2024,
+      "quarter": 1
+    },
     "title": "新一轮隐性债务摸底排查",
-    "body": "财政部开展新一轮地方隐性债务统计摸底，要求所有城投平台如实上报全口径债务数据。数据将作为后续化债政策制定的重要依据。",
     "policyShift": -1,
-    "choices": [
-      {
-        "label": "全面如实上报所有债务口径",
-        "effects": { "score.合规指数": 7, "score.综合发展": 3 }
+    "roles": {
+      "cfo": {
+        "body": "财政部开展新一轮地方隐性债务统计摸底，要求所有城投平台如实上报全口径债务数据。数据将作为后续化债政策制定的重要依据。",
+        "choices": [
+          {
+            "label": "全面如实上报所有债务口径",
+            "effects": {
+              "score.compliance": 7,
+              "score.development": 3
+            }
+          },
+          {
+            "label": "重点上报纳入化债的债务，保留经营性口径",
+            "effects": {
+              "score.compliance": 2,
+              "score.liquidity": 3
+            }
+          },
+          {
+            "label": "趁机梳理优化债务结构",
+            "effects": {
+              "financingCost": -0.3,
+              "score.compliance": 4,
+              "score.costControl": 3
+            }
+          }
+        ]
       },
-      {
-        "label": "重点上报纳入化债的债务，保留经营性口径",
-        "effects": { "score.合规指数": 2, "score.流动性管理": 3 }
-      },
-      {
-        "label": "趁机梳理优化债务结构",
-        "effects": { "financingCost": -0.3, "score.合规指数": 4, "score.融资成本控制": 3 }
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": "main_2024_q2_a",
-    "trigger": { "year": 2024, "quarter": 2 },
+    "trigger": {
+      "year": 2024,
+      "quarter": 2
+    },
     "title": "城投整合提速",
-    "body": "上级要求弱平台并入强平台，整合重组成为大趋势。你的平台被列入潜在被整合名单。",
     "policyShift": 0,
-    "choices": [
-      {
-        "label": "主动申请作为整合主体，吸纳兄弟平台资源",
-        "effects": { "cash": 1.5, "creditTotal": 5, "score.综合发展": 5 }
+    "roles": {
+      "cfo": {
+        "body": "上级要求弱平台并入强平台，整合重组成为大趋势。你的平台被列入潜在被整合名单。",
+        "choices": [
+          {
+            "label": "主动申请作为整合主体，吸纳兄弟平台资源",
+            "effects": {
+              "cash": 1.5,
+              "creditTotal": 5,
+              "score.development": 5
+            }
+          },
+          {
+            "label": "接受被整合，配合资产剥离",
+            "effects": {
+              "cash": -0.5,
+              "score.compliance": 5
+            }
+          },
+          {
+            "label": "推动市场化重组，引入战略投资者",
+            "effects": {
+              "cash": 2,
+              "leverageRatio": -5,
+              "score.development": 6,
+              "_uncertainty": 0.3
+            }
+          }
+        ]
       },
-      {
-        "label": "接受被整合，配合资产剥离",
-        "effects": { "cash": -0.5, "score.合规指数": 5 }
-      },
-      {
-        "label": "推动市场化重组，引入战略投资者",
-        "effects": { "cash": 2.0, "leverageRatio": -5, "score.综合发展": 6, "_uncertainty": 0.3 }
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": "main_2024_q2_b",
-    "trigger": { "year": 2024, "quarter": 2 },
+    "trigger": {
+      "year": 2024,
+      "quarter": 2
+    },
     "title": "产业基金注资机会",
-    "body": "省级产业引导基金启动新一轮投资，城投平台可申请作为载体或LP参与。注资能改善资产质量和信用评级，但需配套产业项目。",
     "policyShift": 0,
-    "choices": [
-      {
-        "label": "申请产业基金注资，承诺配套项目落地",
-        "effects": { "cash": 2.5, "score.综合发展": 6, "score.项目推进": 3, "_uncertainty": 0.5 }
+    "roles": {
+      "cfo": {
+        "body": "省级产业引导基金启动新一轮投资，城投平台可申请作为载体或LP参与。注资能改善资产质量和信用评级，但需配套产业项目。",
+        "choices": [
+          {
+            "label": "申请产业基金注资，承诺配套项目落地",
+            "effects": {
+              "cash": 2.5,
+              "score.development": 6,
+              "score.projectProgress": 3,
+              "_uncertainty": 0.5
+            }
+          },
+          {
+            "label": "作为LP小额参与，先建立合作关系",
+            "effects": {
+              "cash": -0.5,
+              "score.development": 4
+            }
+          },
+          {
+            "label": "不参与，专注核心主业和存量债务化解",
+            "effects": {
+              "score.compliance": 2,
+              "score.liquidity": 2
+            }
+          }
+        ]
       },
-      {
-        "label": "作为LP小额参与，先建立合作关系",
-        "effects": { "cash": -0.5, "score.综合发展": 4 }
-      },
-      {
-        "label": "不参与，专注核心主业和存量债务化解",
-        "effects": { "score.合规指数": 2, "score.流动性管理": 2 }
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": "main_2024_q3_a",
-    "trigger": { "year": 2024, "quarter": 3 },
+    "trigger": {
+      "year": 2024,
+      "quarter": 3
+    },
     "title": "利率持续下行，再融资成本改善",
-    "body": "央行多次降息，债券市场利率创新低。新发行成本显著下降，存量高息债务置换窗口打开。",
     "policyShift": 1,
-    "choices": [
-      {
-        "label": "大规模置换存量高息债务",
-        "effects": { "financingCost": -0.8, "score.融资成本控制": 6 }
+    "roles": {
+      "cfo": {
+        "body": "央行多次降息，债券市场利率创新低。新发行成本显著下降，存量高息债务置换窗口打开。",
+        "choices": [
+          {
+            "label": "大规模置换存量高息债务",
+            "effects": {
+              "financingCost": -0.8,
+              "score.costControl": 6
+            }
+          },
+          {
+            "label": "拉长债务久期，锁定低息",
+            "effects": {
+              "financingCost": -0.5,
+              "score.liquidity": 4
+            }
+          }
+        ]
       },
-      {
-        "label": "拉长债务久期，锁定低息",
-        "effects": { "financingCost": -0.5, "score.流动性管理": 4 }
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": "main_2024_q3_b",
-    "trigger": { "year": 2024, "quarter": 3 },
+    "trigger": {
+      "year": 2024,
+      "quarter": 3
+    },
     "title": "政策性银行加大城投支持力度",
-    "body": "国开行和农发行加大对城投基础设施项目的信贷支持。政策性贷款利率低、期限长，但审批条件严格，需配合调整经营模式。",
     "policyShift": 1,
-    "choices": [
-      {
-        "label": "积极申请政策性贷款置换商业贷款",
-        "effects": { "cash": 2.0, "financingCost": -0.6, "score.融资成本控制": 5, "_uncertainty": 0.5 }
+    "roles": {
+      "cfo": {
+        "body": "国开行和农发行加大对城投基础设施项目的信贷支持。政策性贷款利率低、期限长，但审批条件严格，需配合调整经营模式。",
+        "choices": [
+          {
+            "label": "积极申请政策性贷款置换商业贷款",
+            "effects": {
+              "cash": 2,
+              "financingCost": -0.6,
+              "score.costControl": 5,
+              "_uncertainty": 0.5
+            }
+          },
+          {
+            "label": "利用政策行担保发行低息债券",
+            "effects": {
+              "financingCost": -0.4,
+              "score.costControl": 4,
+              "score.compliance": 3
+            }
+          },
+          {
+            "label": "与政策行建立长期合作框架协议",
+            "effects": {
+              "score.development": 5,
+              "score.compliance": 3
+            }
+          }
+        ]
       },
-      {
-        "label": "利用政策行担保发行低息债券",
-        "effects": { "financingCost": -0.4, "score.融资成本控制": 4, "score.合规指数": 3 }
-      },
-      {
-        "label": "与政策行建立长期合作框架协议",
-        "effects": { "score.综合发展": 5, "score.合规指数": 3 }
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
       }
-    ]
+    }
   },
   {
     "id": "main_2024_q4_final",
-    "trigger": { "year": 2024, "quarter": 4 },
+    "trigger": {
+      "year": 2024,
+      "quarter": 4
+    },
     "title": "终局结算",
-    "body": "三年生存挑战即将结束。综合评估你的表现，结算最终成绩。",
     "policyShift": 0,
-    "choices": [
-      { "label": "查看最终成绩", "effects": { "_finalize": true } }
-    ]
+    "roles": {
+      "cfo": {
+        "body": "三年生存挑战即将结束。综合评估你的表现，结算最终成绩。",
+        "choices": [
+          {
+            "label": "查看最终成绩",
+            "effects": {
+              "_finalize": true
+            }
+          }
+        ]
+      },
+      "im": {
+        "body": "[TODO IM 视角文案 — 待 Codex T9 填充]",
+        "choices": [
+          {
+            "label": "[TODO]",
+            "effects": {}
+          }
+        ]
+      }
+    }
   }
 ]
