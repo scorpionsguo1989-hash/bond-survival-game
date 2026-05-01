@@ -4,3 +4,5 @@ node_modules/
 dist/
 api/node_modules/
 api/leaderboard.db
+api/leaderboard.db-shm
+api/leaderboard.db-wal

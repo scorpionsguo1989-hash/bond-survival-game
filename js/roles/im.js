@@ -33,15 +33,13 @@ function advanceTurn(state) {
   const { policyValue, metrics } = state;
   let { nav, aum, cashRatio, duration, concentration, creditExposure, redemptionPressure, leverage } = metrics;
 
-  // NAV 漂移公式（T11 平衡性调参后）：
-  //   - 票息基础收益 0.8%/季（年化 ~3.2%，反映债基真实票息扣管理费后水平）
-  //   - 政策影响放大到 0.005（政策紧时久期长会更痛）
-  //   - 信用惩罚翻倍到 0.012（政策紧时高信用敞口直接吃亏）
-  // worst case (政策 -3 + ce 50% + duration 2.5): -2.0%/季 → 12 季度 NAV ≈ 0.785 (穿线)
-  // baseline (政策 0 + ce 15% + duration 2.5): +0.8%/季 → 12 季度 NAV ≈ 1.10 (通关)
+  // NAV 漂移公式（联调调参后，目标通关率 ~70%）：
+  //   - 票息基础收益 1.0%/季（年化 ~4%）
+  //   - 政策影响 0.005（政策紧时久期长会更痛）
+  //   - 信用惩罚 0.009（政策紧时高信用敞口吃亏）
   const policyContrib = policyValue * 0.005 * (duration / 3);
-  const creditPenalty = (policyValue < 0 ? Math.abs(policyValue) : 0) * (creditExposure / 100) * 0.012;
-  const baseYield = 0.008;
+  const creditPenalty = (policyValue < 0 ? Math.abs(policyValue) : 0) * (creditExposure / 100) * 0.013;
+  const baseYield = 0.009;
   const leverageMultiplier = leverage / 100;
   const navDelta = (baseYield + policyContrib - creditPenalty) * leverageMultiplier;
   nav = round(nav * (1 + navDelta), 4);
@@ -50,8 +48,10 @@ function advanceTurn(state) {
   const policyMomentum = policyValue < -2 ? 8 : 0;
   redemptionPressure = clamp(redemptionPressure + navMomentum + policyMomentum, 0, 100);
 
-  if (redemptionPressure >= 50 && aum > 0) {
-    const redeemRatio = (redemptionPressure - 40) / 200;
+  // 赎回触发阈值 60，redeemRatio 公式更温和
+  // 设计：good 玩家不会触发，medium 偶尔触发但能撑过去，weak 持续触发但仍有机会
+  if (redemptionPressure >= 60 && aum > 0) {
+    const redeemRatio = (redemptionPressure - 55) / 350;  // 1.4% - 13%
     const redeemAmount = aum * redeemRatio;
     aum = round(aum - redeemAmount, 2);
     cashRatio = aum > 0 ? round((cashRatio * (aum + redeemAmount) - redeemAmount * 100) / aum, 2) : 0;
@@ -94,7 +94,7 @@ function getOnboardingHints(profile) {
     topRisks: [
       '净值跌穿 0.85 → 产品清盘',
       '单券集中度超 25% → 监管约谈',
-      '回购杠杆超 140% → 强制降杠杆',
+      '赎回压力失控 → 现金穿底 → NAV 加速下跌',
       heavy ? '当前持仓重仓弱资质，赎回潮容易踩踏' : null,
     ].filter(Boolean),
     firstActionHint: heavy
@@ -124,6 +124,8 @@ export const ROLE_IM = {
     { metric: 'nav', op: '<=', threshold: 0.85, reason: '净值跌穿 0.85，产品被迫清盘' },
     { metric: 'concentration', op: '>', threshold: 25, reason: '单券集中度超 25%，被监管约谈处罚' },
     { metric: 'leverage', op: '>', threshold: 140, reason: '杠杆超 140%，触发监管强制降杠杆' },
+    // 流动性挤兑硬死亡：极端情况兜底（cashRatio 极度恶化时仍未死于 NAV）
+    { metric: 'cashRatio', op: '<', threshold: -300, reason: '流动性彻底枯竭，组合被强制清算' },
   ],
   scoreWeights: {
     liquidity: 1.2,

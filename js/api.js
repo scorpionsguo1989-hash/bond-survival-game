@@ -1,6 +1,10 @@
 // js/api.js
 
-const API_BASE = '/api';
+// 本地开发：前端 :8080 + API :3000，需要绝对 URL 跨端口
+// 生产：nginx 反代 /api → :3000，用相对路径走同源
+const API_BASE = (typeof location !== 'undefined' && location.port === '8080')
+  ? 'http://localhost:3000/api'
+  : '/api';
 
 export async function submitScore(data) {
   try {

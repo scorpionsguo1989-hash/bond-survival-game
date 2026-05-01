@@ -2186,11 +2186,22 @@
     "policyShift": 0,
     "roles": {
       "cfo": {
-        "body": "三年生存挑战即将结束。综合评估你的表现，结算最终成绩。",
+        "body": "三年生存挑战即将结束。年末账面留点余粮，明年开局更稳；还是把现金一次性兑掉冲刺数据？",
         "choices": [
           {
-            "label": "查看最终成绩",
+            "label": "保守收尾，留足现金过年关",
             "effects": {
+              "score.liquidity": 4,
+              "score.compliance": 2,
+              "_finalize": true
+            }
+          },
+          {
+            "label": "全力冲刺，把现金一次性投入兑付与项目",
+            "effects": {
+              "cash": -1,
+              "score.projectProgress": 4,
+              "score.development": 3,
               "_finalize": true
             }
           }

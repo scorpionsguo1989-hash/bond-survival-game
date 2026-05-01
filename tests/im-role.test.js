@@ -25,8 +25,9 @@ describe('IM role definition', () => {
     expect(ROLE_IM.actions).toHaveLength(5);
   });
 
-  it('has 3 death conditions', () => {
-    expect(ROLE_IM.deathConditions).toHaveLength(3);
+  it('has 4 death conditions (incl. liquidity squeeze)', () => {
+    expect(ROLE_IM.deathConditions).toHaveLength(4);
+    expect(ROLE_IM.deathConditions.map(d => d.metric)).toContain('cashRatio');
   });
 
   it('uses IM-specific dimension labels', () => {
@@ -95,8 +96,8 @@ describe('IM advanceTurn', () => {
     expect(ROLE_IM.advanceTurn(minState).metrics.leverage).toBe(100);
   });
 
-  it('triggers partial redemption when pressure >= 50', () => {
-    const state = baseState({ metrics: { ...baseState().metrics, redemptionPressure: 60, aum: 200, cashRatio: 20 } });
+  it('triggers partial redemption when pressure >= 60 (post-tuning threshold)', () => {
+    const state = baseState({ metrics: { ...baseState().metrics, redemptionPressure: 70, aum: 200, cashRatio: 20 } });
     const { metrics } = ROLE_IM.advanceTurn(state);
     expect(metrics.aum).toBeLessThan(200);
     expect(metrics.cashRatio).toBeLessThan(20);
