@@ -8,37 +8,76 @@ const REGION_LABELS = {
 const HEALTH_LABELS = { good: '财务健康', medium: '财务一般', weak: '财务承压' };
 const ROLE_LABELS = { cfo: '财务总监', im: '投资经理', gov: '地方官员' };
 
-export function renderFateCard(origin, onAccept) {
+export function renderFateCard(origin, role, onAccept) {
   const app = document.getElementById('app');
+  // role 可选；若未传，按 origin.role 兜底
+  const roleName = role?.name || ROLE_LABELS[origin.role] || '城投财务总监';
+  // 命运卡 onboarding（Plan 3 §3.10）
+  const hints = role?.getOnboardingHints ? role.getOnboardingHints(origin) : null;
+  // 通用 fate-tags 渲染：CFO/IM origin 字段集不同，挑选可用的
+  const tagsHtml = renderFateTags(origin);
+  // 通用 challenges：CFO 有 challenges 字段，IM 无 → fallback 用 onboarding.topRisks 显示
+  const challengesList = origin.challenges && origin.challenges.length > 0
+    ? origin.challenges
+    : (hints ? hints.topRisks : []);
   app.innerHTML = `
     <div class="screen active">
       <div class="fate-container">
         <div class="fate-title">债市生存游戏</div>
         <div class="fate-subtitle">你的命运已定</div>
         <div class="fate-card">
-          <div class="role-badge">角色 · 城投财务总监</div>
+          <div class="role-badge">角色 · ${escapeHtml(roleName)}</div>
           <div class="role-name">${escapeHtml(origin.directorName)}</div>
           <div class="role-org">${escapeHtml(origin.platformName)}</div>
-          <div class="fate-tags">
-            <span class="tag tag-region">${origin.labels.region}</span>
-            <span class="tag tag-type">${origin.labels.business}</span>
-            <span class="tag tag-warn">⚠ ${origin.labels.tag}</span>
-          </div>
+          <div class="fate-tags">${tagsHtml}</div>
           <div class="challenges">
             <div class="challenges-title">你这局的三大挑战</div>
-            ${origin.challenges.map((c, i) => `
+            ${challengesList.slice(0, 3).map((c, i) => `
               <div class="challenge-item">
                 <span class="challenge-num">0${i+1}</span>
                 <span class="challenge-text">${escapeHtml(c)}</span>
               </div>
             `).join('')}
           </div>
+          ${hints ? renderOnboardingCard(hints) : ''}
           <button id="btn-accept-fate" class="start-btn">接受命运，开始游戏 →</button>
         </div>
       </div>
     </div>
   `;
   document.getElementById('btn-accept-fate').addEventListener('click', onAccept);
+}
+
+function renderFateTags(origin) {
+  const tags = [];
+  if (origin.labels?.region) tags.push(`<span class="tag tag-region">${escapeHtml(origin.labels.region)}</span>`);
+  if (origin.labels?.business) tags.push(`<span class="tag tag-type">${escapeHtml(origin.labels.business)}</span>`);
+  if (origin.labels?.inst) tags.push(`<span class="tag tag-region">${escapeHtml(origin.labels.inst)}</span>`);
+  if (origin.labels?.scale) tags.push(`<span class="tag tag-type">${escapeHtml(origin.labels.scale)}</span>`);
+  if (origin.labels?.health) tags.push(`<span class="tag tag-type">${escapeHtml(origin.labels.health)}</span>`);
+  if (origin.labels?.tag) tags.push(`<span class="tag tag-warn">⚠ ${escapeHtml(origin.labels.tag)}</span>`);
+  return tags.join('');
+}
+
+function renderOnboardingCard(hints) {
+  return `
+    <div class="onboarding-card">
+      <div class="onb-section">
+        <div class="onb-title">🎯 本局目标</div>
+        <div class="onb-content">${escapeHtml(hints.goal)}</div>
+      </div>
+      <div class="onb-section">
+        <div class="onb-title">⚠ 致命风险</div>
+        <ul class="onb-list">
+          ${hints.topRisks.map(r => `<li>${escapeHtml(r)}</li>`).join('')}
+        </ul>
+      </div>
+      <div class="onb-section">
+        <div class="onb-title">💡 推荐首操作</div>
+        <div class="onb-content">${escapeHtml(hints.firstActionHint)}</div>
+      </div>
+    </div>
+  `;
 }
 
 export function escapeHtml(str) {
@@ -64,10 +103,11 @@ export function renderMainScreen(state, callbacks) {
 function renderTopBar(state) {
   const policyPct = ((state.policyValue + 5) / 10) * 100;
   const policyLabel = getPolicyLabelText(state.policyValue);
+  const roleName = state.role?.shortName || ROLE_LABELS[state.origin?.role] || '财务总监';
   return `
     <div class="topbar">
       <div class="topbar-left">
-        <span class="game-id">债市生存 · 财务总监</span>
+        <span class="game-id">债市生存 · ${escapeHtml(roleName)}</span>
         <span class="quarter-badge">${state.year}年 Q${state.quarter}</span>
         <div class="policy-axis">
           <span class="policy-label">政策环境</span>
@@ -93,6 +133,10 @@ function getPolicyLabelText(value) {
 
 function renderMetricsPanel(state) {
   const m = state.metrics;
+  // IM 等其他角色：T8 实装专属面板。当前给基础占位符，避免显示 NaN
+  if (state.role?.id !== 'cfo') {
+    return renderGenericMetricsPanel(state);
+  }
   return `
     <div class="panel">
       <div class="panel-title">核心指标</div>
@@ -107,6 +151,37 @@ function renderMetricsPanel(state) {
           <span class="metric-value val-bad">-${m.projectGap.toFixed(1)}亿/季</span>
         </div>
       </div>
+    </div>
+  `;
+}
+
+// 通用兜底指标面板：渲染 state.role.metrics + state.role.metricLabels
+// T8 会被 mainScreenIM 替代为完整的 IM 指标可视化（含赎回压力卡 / 因果链 / 临界 banner）
+function renderGenericMetricsPanel(state) {
+  const m = state.metrics;
+  const role = state.role;
+  if (!role) return '';
+  const rows = (role.metrics || []).map(key => {
+    const val = m[key];
+    if (val == null) return '';
+    let display;
+    if (typeof val === 'number') display = key === 'nav' ? val.toFixed(4) : val.toFixed(2);
+    else if (Array.isArray(val)) display = `${val.length} 项`;
+    else display = String(val);
+    const label = role.metricLabels?.[key] || key;
+    return `
+      <div class="metric">
+        <div class="metric-row">
+          <span class="metric-name">${escapeHtml(label)}</span>
+          <span class="metric-value">${display}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+  return `
+    <div class="panel">
+      <div class="panel-title">核心指标</div>
+      ${rows}
     </div>
   `;
 }

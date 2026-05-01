@@ -1,8 +1,7 @@
 // js/main.js
-import { generateOrigin } from './origins.js';
+import { generateOrigin } from './origins/index.js';
 import { createInitialState, advanceTurn, applyEventChoice, checkDeath, isGameOver, detectCrisis } from './engine.js';
 import { findMainEvent, sampleRandomEvents, getPolicyDirection, loadEvents } from './eventEngine.js';
-import { CFO_ACTIONS, applyAction, isActionAvailable } from './actions.js';
 import { computeFinalScore } from './score.js';
 import { saveGame, loadGame, clearSave, pushHistoryRecord } from './storage.js';
 import { renderFateCard, renderMainScreen, renderCrisisModal, renderEndScreen, generateShareCard, downloadShareCard, renderLeaderboardModal, renderNicknamePrompt } from './ui.js';
@@ -43,7 +42,7 @@ function startNewGame() {
   const origin = generateOrigin();
   state = createInitialState(origin);
   loadCurrentTurnEvent();
-  renderFateCard(origin, () => {
+  renderFateCard(origin, state.role, () => {
     enterMainScreen();
   });
 
@@ -88,17 +87,20 @@ function enterMainScreen() {
   }
 
   renderMainScreen(state, {
-    actions: CFO_ACTIONS,
-    isAvailable: id => isActionAvailable(state, id),
+    actions: state.role.actions,
+    isAvailable: id => state.role.isActionAvailable(state, id),
     onChoiceSelected: handleEventChoice,
     onActionSelected: handleActionSelected,
     onEndTurn: handleEndTurn,
   });
 
-  requestAnimationFrame(() => {
-    renderDebtWaterfall(state);
-    renderCashTrend(state);
-  });
+  // CFO 专属图表（IM 在 T8 接入自己的图表）
+  if (state.role.id === 'cfo') {
+    requestAnimationFrame(() => {
+      renderDebtWaterfall(state);
+      renderCashTrend(state);
+    });
+  }
 
   saveGame(state);
 }
@@ -110,7 +112,8 @@ function handleEventChoice(idx) {
 }
 
 function handleActionSelected(actionId) {
-  const action = CFO_ACTIONS.find(a => a.id === actionId);
+  const action = state.role.actions.find(a => a.id === actionId);
+  if (!action) return;
   const params = {};
   let aborted = false;
   for (const p of action.params) {
@@ -128,7 +131,7 @@ function handleActionSelected(actionId) {
     params[p.key] = v;
   }
   if (aborted || Object.keys(params).length === 0) return;
-  state = applyAction(state, actionId, params);
+  state = state.role.applyActionEffects(state, actionId, params);
   enterMainScreen();
 }
 
