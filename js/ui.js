@@ -7,6 +7,8 @@ const REGION_LABELS = {
 };
 const HEALTH_LABELS = { good: '财务健康', medium: '财务一般', weak: '财务承压' };
 const ROLE_LABELS = { cfo: '财务总监', im: '投资经理', gov: '地方官员' };
+const ROLE_CODES = { cfo: 'CFO', im: 'PM', gov: 'GOV' };
+const ROLE_ACCENTS = { cfo: '#4fc3f7', im: '#ffd54f', gov: '#ef5350' };
 
 export function renderFateCard(origin, role, onAccept) {
   const app = document.getElementById('app');
@@ -89,17 +91,15 @@ export function escapeHtml(str) {
 
 export function renderMainScreen(state, callbacks) {
   const app = document.getElementById('app');
-  // Plan 5 Round 2 布局：
-  //   左栏 = 角色状态（指标 + 本局目标 onboarding 简版）
-  //   中栏 = 决策流（事件 → 操作）
-  //   右栏 = 图表
+  const roleId = state.role?.id || state.origin?.role || 'cfo';
   app.innerHTML = `
-    <div class="screen active">
+    <div class="screen active game-screen role-${roleId}" style="--role-accent:${ROLE_ACCENTS[roleId] || ROLE_ACCENTS.cfo}">
       ${renderTopBar(state)}
       ${renderRedemptionBanner(state)}
       <div class="main-grid">
         <div class="col-left">
           ${renderMetricsPanel(state)}
+          ${roleId === 'im' ? renderRedemptionCard(state) : ''}
           ${renderGoalCard(state)}
         </div>
         <div class="col-center event-area" id="event-area">
@@ -118,11 +118,29 @@ export function renderMainScreen(state, callbacks) {
 function renderGoalCard(state) {
   if (!state.role?.getOnboardingHints) return '';
   const hints = state.role.getOnboardingHints(state.origin || {});
+  const goal = getGoalDisplay(state, hints);
+  const rows = getGoalRows(state);
   return `
     <div class="panel goal-card">
-      <div class="panel-title">本局目标</div>
-      <div class="goal-content">${escapeHtml(hints.goal)}</div>
-      <div class="goal-hint">💡 ${escapeHtml(hints.firstActionHint)}</div>
+      <div class="panel-title panel-title-row">
+        <span><span class="section-mark">◇</span> 本局目标</span>
+        <span class="panel-kicker">GOAL</span>
+      </div>
+      <div class="goal-headline">${escapeHtml(goal.title)}</div>
+      <div class="goal-subtitle">${escapeHtml(goal.subtitle)}</div>
+      <div class="goal-progress-list">
+        ${rows.map(r => `
+          <div class="goal-progress-row">
+            <div class="goal-progress-meta">
+              <span>${escapeHtml(r.label)}</span>
+              <strong>${escapeHtml(r.value)}</strong>
+            </div>
+            <div class="goal-track"><div class="goal-fill ${r.tone || ''}" style="width:${Math.max(0, Math.min(100, r.pct))}%"></div></div>
+            ${r.note ? `<div class="goal-note">${escapeHtml(r.note)}</div>` : ''}
+          </div>
+        `).join('')}
+      </div>
+      <div class="goal-footer">${escapeHtml(hints.firstActionHint)}</div>
     </div>
   `;
 }
@@ -132,28 +150,51 @@ function renderRedemptionBanner(state) {
   if (state.role?.id !== 'im') return '';
   const p = state.metrics.redemptionPressure;
   if (!p || p < 70) return '';
-  return `<div class="redemption-banner">⚠ 赎回压力 ${Math.round(p)}，接近挤兑临界值（≥80 触发挤兑），建议立即处理</div>`;
+  const m = state.metrics;
+  const expectedRedeem = getExpectedRedeem(m);
+  const cashAvail = getCashAvail(m);
+  const gap = expectedRedeem - cashAvail;
+  return `
+    <div class="redemption-banner">
+      <span class="redemption-banner-icon">!</span>
+      <span class="redemption-banner-code">REDEEM-${Math.round(p)}</span>
+      <strong>赎回压力 ${Math.round(p)}（红区）</strong>
+      <span>下周预计净赎回 ${expectedRedeem.toFixed(1)} 亿，现金 ${cashAvail.toFixed(1)} 亿，缺口 ${Math.max(0, gap).toFixed(1)} 亿。</span>
+      <em>T+0 · 渠道渗透率 ${Math.min(99, Math.round(70 + p * 0.25))}%</em>
+    </div>
+  `;
 }
 
 function renderTopBar(state) {
   const policyPct = ((state.policyValue + 5) / 10) * 100;
   const policyLabel = getPolicyLabelText(state.policyValue);
-  const roleName = state.role?.shortName || ROLE_LABELS[state.origin?.role] || '财务总监';
+  const roleId = state.role?.id || state.origin?.role || 'cfo';
+  const roleName = state.role?.shortName || ROLE_LABELS[roleId] || '财务总监';
+  const policyClass = state.policyValue < -1 ? 'tight' : (state.policyValue > 1 ? 'loose' : 'neutral');
   return `
     <div class="topbar">
       <div class="topbar-left">
-        <span class="game-id">债市生存 · ${escapeHtml(roleName)}</span>
-        <span class="quarter-badge">${state.year}年 Q${state.quarter}</span>
-        <div class="policy-axis">
-          <span class="policy-label">政策环境</span>
-          <div class="axis-track">
-            <div class="axis-fill" style="width:100%"></div>
-            <div class="axis-marker" style="left:${policyPct}%"></div>
-          </div>
-          <span class="policy-status">${policyLabel}</span>
-        </div>
+        <span class="role-dot"></span>
+        <span class="role-code">${ROLE_CODES[roleId] || 'CFO'}</span>
+        <span class="role-name-top">${escapeHtml(roleName)}</span>
+        <span class="top-separator"></span>
+        <span class="game-id">债市生存</span>
+        <span class="quarter-badge">${state.year} Q${state.quarter}</span>
+        <span class="round-badge">第 ${state.quartersPassed + 1}/12 回合</span>
       </div>
-      <span class="timer">剩余操作：${2 - state.actionsUsed}次 / 本回合</span>
+      <div class="policy-axis">
+        <span class="policy-label">政策环境</span>
+        <div class="axis-track">
+          <div class="axis-fill" style="width:100%"></div>
+          <div class="axis-marker" style="left:${policyPct}%"></div>
+        </div>
+        <div class="axis-labels"><span>严格</span><span>偏紧</span><span>中性</span><span>偏松</span><span>宽松</span></div>
+      </div>
+      <div class="topbar-right">
+        <span class="policy-status ${policyClass}">当前 · ${policyLabel}</span>
+        <span class="timer"><strong>${Math.max(0, 2 - state.actionsUsed)}</strong>/2 本回合 · 剩余操作</span>
+        <button class="menu-btn" type="button" aria-label="菜单">≡</button>
+      </div>
     </div>
   `;
 }
@@ -168,23 +209,24 @@ function getPolicyLabelText(value) {
 
 function renderMetricsPanel(state) {
   const m = state.metrics;
-  // IM 等其他角色：T8 实装专属面板。当前给基础占位符，避免显示 NaN
   if (state.role?.id !== 'cfo') {
     return renderGenericMetricsPanel(state);
   }
+  const due = m.debtMaturity?.[state.quartersPassed] || 0;
   return `
-    <div class="panel">
-      <div class="panel-title">核心指标</div>
-      ${metricRow('现金余量', m.cash.toFixed(1) + '亿', cashColor(m.cash), Math.min(100, m.cash * 10))}
-      ${metricRow('资产负债率', m.leverageRatio.toFixed(1) + '%', levColor(m.leverageRatio), m.leverageRatio)}
-      ${metricRow('授信使用率', m.creditUsage + '%', creditColor(m.creditUsage), m.creditUsage)}
-      ${metricRow('综合融资成本', m.financingCost.toFixed(2) + '%', costColor(m.financingCost), Math.min(100, m.financingCost * 10))}
-      ${metricRow('抵押物剩余', collLabel(m.collateralRoom), collColor(m.collateralRoom), collValue(m.collateralRoom))}
-      <div class="metric">
-        <div class="metric-row">
-          <span class="metric-name">项目投资缺口</span>
-          <span class="metric-value val-bad">-${m.projectGap.toFixed(1)}亿/季</span>
-        </div>
+    <div class="panel metric-panel">
+      <div class="panel-title panel-title-row">
+        <span><span class="section-dot"></span> 我的指标</span>
+        <span class="panel-kicker">7 items</span>
+      </div>
+      <div class="metric-grid">
+        ${metricTile('现金 (亿)', m.cash.toFixed(1), '', toneFromClass(cashColor(m.cash)), Math.min(100, m.cash * 10), m.cash < due ? '覆盖不足' : '可覆盖')}
+        ${metricTile('本季到期 (亿)', due.toFixed(1), '', due > m.cash ? 'bad' : 'warn', Math.min(100, due * 10), `未来合计 ${sumDebt(m.debtMaturity, state.quartersPassed, 4).toFixed(1)}`)}
+        ${metricTile('资产负债率', m.leverageRatio.toFixed(1), '%', toneFromClass(levColor(m.leverageRatio)), m.leverageRatio, '监管观察')}
+        ${metricTile('授信使用率', Math.round(m.creditUsage), '%', toneFromClass(creditColor(m.creditUsage)), m.creditUsage, `${m.creditUsed?.toFixed?.(1) || '-'} / ${m.creditTotal || '-'}`)}
+        ${metricTile('综合融资成本', m.financingCost.toFixed(2), '%', toneFromClass(costColor(m.financingCost)), Math.min(100, m.financingCost * 10), '加权成本')}
+        ${metricTile('可抵押物', collLabel(m.collateralRoom), '', toneFromClass(collColor(m.collateralRoom)), collValue(m.collateralRoom), '剩余空间')}
+        ${metricTile('项目缺口 (亿)', m.projectGap.toFixed(1), '', 'bad', Math.min(100, m.projectGap * 12), '刚性支出')}
       </div>
     </div>
   `;
@@ -232,15 +274,21 @@ function renderImMetricsPanel(state) {
   const concColor = m.concentration > 22 ? 'val-bad' : (m.concentration > 18 ? 'val-warn' : 'val-ok');
   const levColor = m.leverage > 130 ? 'val-bad' : (m.leverage > 115 ? 'val-warn' : 'val-ok');
   const ceColor = m.creditExposure > 40 ? 'val-bad' : (m.creditExposure > 25 ? 'val-warn' : 'val-ok');
+  const liquidAssets = getCashAvail(m);
   return `
-    <div class="panel">
-      <div class="panel-title">核心指标</div>
-      ${metricRow('组合净值 (NAV)', m.nav.toFixed(4), navColor, navPct)}
-      ${metricRow('久期', m.duration.toFixed(1) + '年', 'val-ok', Math.min(100, m.duration * 14))}
-      ${metricRow('单券集中度', m.concentration.toFixed(1) + '%', concColor, Math.min(100, m.concentration * 4))}
-      ${metricRow('AA 及以下', m.creditExposure.toFixed(0) + '%', ceColor, m.creditExposure)}
-      ${metricRow('回购杠杆', m.leverage.toFixed(0) + '%', levColor, Math.min(100, (m.leverage - 100) * 2.5))}
-      ${renderRedemptionCard(state)}
+    <div class="panel metric-panel">
+      <div class="panel-title panel-title-row">
+        <span><span class="section-dot"></span> 我的指标</span>
+        <span class="panel-kicker">6 items</span>
+      </div>
+      <div class="metric-grid">
+        ${metricTile('净值 (NAV)', m.nav.toFixed(3), '', toneFromClass(navColor), navPct, `${(m.nav - 1).toFixed(3)}`)}
+        ${metricTile('组合久期', m.duration.toFixed(1), 'Y', 'neutral', Math.min(100, m.duration * 14), '利率暴露')}
+        ${metricTile('AA 及以下', m.creditExposure.toFixed(0), '%', toneFromClass(ceColor), m.creditExposure, '信用敞口')}
+        ${metricTile('持仓集中度', m.concentration.toFixed(1), '%', toneFromClass(concColor), Math.min(100, m.concentration * 4), '单券上限 25%')}
+        ${metricTile('回购杠杆', m.leverage.toFixed(0), '%', toneFromClass(levColor), Math.min(100, (m.leverage - 80) * 1.6), '监管线 140%')}
+        ${metricTile('流动性资产', liquidAssets.toFixed(1), '亿', m.cashRatio < 5 ? 'bad' : (m.cashRatio < 10 ? 'warn' : 'ok'), Math.min(100, m.cashRatio * 5), `现金 ${m.cashRatio.toFixed(1)}%`)}
+      </div>
     </div>
   `;
 }
@@ -253,19 +301,19 @@ function renderGovMetricsPanel(state) {
   const cashColor = m.cash < 1 ? 'val-bad' : (m.cash < 3 ? 'val-warn' : 'val-ok');
   const hiddenColor = m.hiddenDebtRisk > 150 ? 'val-bad' : (m.hiddenDebtRisk > 100 ? 'val-warn' : 'val-ok');
   return `
-    <div class="panel">
-      <div class="panel-title">核心指标</div>
-      ${metricRow('现金（季度）', m.cash.toFixed(1) + '亿', cashColor, Math.min(100, m.cash * 10))}
-      ${metricRow('综合债务率', m.debtRatio.toFixed(1) + '%', debtColor, Math.min(100, (m.debtRatio - 150) / 1.5))}
-      ${metricRow('隐债敞口', m.hiddenDebtRisk.toFixed(0) + '亿', hiddenColor, Math.min(100, m.hiddenDebtRisk / 2))}
-      ${metricRow('政绩评分', Math.round(m.politicalScore), polColor, m.politicalScore)}
-      ${metricRow('专项债额度', m.specialBondQuota.toFixed(1) + '亿', 'val-ok', Math.min(100, m.specialBondQuota * 4))}
-      ${metricRow('产业指数', Math.round(m.industryIndex), m.industryIndex < 30 ? 'val-warn' : 'val-ok', m.industryIndex)}
-      <div class="metric">
-        <div class="metric-row">
-          <span class="metric-name">财政收入（年）</span>
-          <span class="metric-value val-ok">${m.fiscalRevenue.toFixed(0)}亿</span>
-        </div>
+    <div class="panel metric-panel">
+      <div class="panel-title panel-title-row">
+        <span><span class="section-dot"></span> 我的指标</span>
+        <span class="panel-kicker">7 items</span>
+      </div>
+      <div class="metric-grid">
+        ${metricTile('财政现金 (亿)', m.cash.toFixed(1), '', toneFromClass(cashColor), Math.min(100, m.cash * 4), '本季可用')}
+        ${metricTile('综合债务率', m.debtRatio.toFixed(0), '%', toneFromClass(debtColor), Math.min(100, (m.debtRatio - 150) / 1.5), '红线 300%')}
+        ${metricTile('隐债债务 (亿)', m.hiddenDebtRisk.toFixed(0), '', toneFromClass(hiddenColor), Math.min(100, m.hiddenDebtRisk / 2), '巡查风险')}
+        ${metricTile('政绩评分', Math.round(m.politicalScore), '/100', toneFromClass(polColor), m.politicalScore, '免职线 20')}
+        ${metricTile('专项债额度', m.specialBondQuota.toFixed(0), '亿', m.specialBondQuota < 5 ? 'warn' : 'ok', Math.min(100, m.specialBondQuota * 4), '可置换')}
+        ${metricTile('产业指数', Math.round(m.industryIndex), '', m.industryIndex < 30 ? 'warn' : 'ok', m.industryIndex, '发展动能')}
+        ${metricTile('财政收入 (亿)', m.fiscalRevenue.toFixed(0), '', 'neutral', Math.min(100, m.fiscalRevenue / 3), '年度口径')}
       </div>
     </div>
   `;
@@ -275,22 +323,46 @@ function renderGovMetricsPanel(state) {
 function renderRedemptionCard(state) {
   const m = state.metrics;
   const pressure = Math.round(m.redemptionPressure);
-  const expectedRedeem = pressure >= 50 ? (m.aum * (pressure - 40) / 200) : 0;
-  const cashAvail = m.aum * m.cashRatio / 100;
+  const expectedRedeem = getExpectedRedeem(m);
+  const cashAvail = getCashAvail(m);
   const gap = expectedRedeem - cashAvail;
   const color = pressure >= 80 ? '#ef5350' : (pressure >= 60 ? '#ffb74d' : (pressure >= 30 ? '#ffd54f' : '#81c784'));
   return `
-    <div class="metric metric-redemption" data-pressure="${pressure}">
-      <div class="metric-row">
-        <span class="metric-name">赎回压力</span>
-        <span class="metric-value" style="color:${color}">${pressure}</span>
+    <div class="panel redemption-card" data-pressure="${pressure}" style="--pressure-color:${color}">
+      <div class="panel-title panel-title-row">
+        <span><span class="alert-mark">!</span> 赎回压力</span>
+        <span class="panel-kicker live">live</span>
       </div>
-      <div class="metric-bar"><div class="metric-bar-fill" style="width:${pressure}%; background:${color}"></div></div>
+      <div class="redemption-score-row">
+        <span class="redemption-score" style="color:${color}">${pressure}</span>
+        <span class="redemption-scale">/ 100</span>
+        <span class="redemption-zone">${pressure >= 80 ? '挤兑临界' : (pressure >= 60 ? '红区 · 触发预警' : '可控')}</span>
+      </div>
+      <div class="redemption-track">
+        <div class="redemption-fill" style="width:${pressure}%; background:${color}"></div>
+        <span>30</span><span>50</span><span>70</span>
+      </div>
       <div class="redemption-detail">
-        <div>🔮 下季预期赎回 ≈ ${expectedRedeem.toFixed(1)} 亿</div>
-        <div>💰 当前现金 ≈ ${cashAvail.toFixed(1)} 亿</div>
-        ${gap > 0 ? `<div style="color:#ef5350">⚠ 缺口 ${gap.toFixed(1)} 亿</div>` : ''}
+        <div><span>下季预期赎回</span><strong>${expectedRedeem.toFixed(1)} 亿</strong></div>
+        <div><span>当前现金</span><strong>${cashAvail.toFixed(1)} 亿</strong></div>
+        <div><span>缺口</span><strong class="${gap > 0 ? 'val-bad' : 'val-ok'}">${gap > 0 ? '-' : '+'}${Math.abs(gap).toFixed(1)} 亿</strong></div>
       </div>
+    </div>
+  `;
+}
+
+function metricTile(label, value, unit, tone, pct, meta) {
+  return `
+    <div class="metric-tile tone-${tone || 'neutral'}">
+      <div class="metric-tile-head">
+        <span class="metric-name">${escapeHtml(label)}</span>
+      </div>
+      <div class="metric-reading">
+        <span class="metric-value">${escapeHtml(value)}</span>
+        ${unit ? `<span class="metric-unit">${escapeHtml(unit)}</span>` : ''}
+      </div>
+      <div class="metric-bar"><div class="metric-bar-fill" style="width:${Math.max(2, Math.min(100, pct || 0))}%"></div></div>
+      ${meta ? `<div class="metric-meta">${escapeHtml(meta)}</div>` : ''}
     </div>
   `;
 }
@@ -320,20 +392,34 @@ function collValue(v) { return v === 'high' ? 25 : (v === 'medium' ? 60 : 90); }
 
 function renderEventArea(state) {
   if (!state.pendingEvent) {
-    return `<div class="event-card"><div class="event-type">本回合无主线事件</div>
+    return `<div class="event-card"><div class="event-header"><div><span class="event-code">IDLE</span><span class="event-badge">季末预演</span></div><span class="event-time">T+0</span></div>
+            <div class="event-title">本回合无主线事件</div>
             <div class="event-body">你可以使用主动操作或直接结束本季度。</div></div>`;
   }
   const e = state.pendingEvent;
   const isMain = e.id.startsWith('main_');
+  const eventCode = getEventCode(e.id);
+  const badge = getEventBadge(state, e);
   return `
     <div class="event-card">
-      <div class="event-type">${isMain ? '📌 主线事件' : '📎 支线事件'} · ${state.year} Q${state.quarter}</div>
+      <div class="event-header">
+        <div class="event-id-line">
+          <span class="event-code">${eventCode}</span>
+          <span class="event-badge">${badge}</span>
+          <span class="event-source">来源 · ${isMain ? '主线' : '市场'}</span>
+        </div>
+        <span class="event-time">T+0 · ${state.role?.id === 'im' ? '14:08' : (state.role?.id === 'gov' ? '10:00' : '09:32')}</span>
+      </div>
       <div class="event-title">${escapeHtml(e.title)}</div>
       <div class="event-body">${escapeHtml(e.body).replace(/\n/g, '<br>')}</div>
       <div class="event-choices">
         ${e.choices.map((c, i) => `
           <button class="choice-btn" data-choice-idx="${i}">
-            <span class="choice-tag">[${String.fromCharCode(65+i)}]</span>${escapeHtml(c.label)}
+            <div class="choice-head">
+              <span class="choice-tag">${String.fromCharCode(65+i)} ▸</span>
+              ${renderChoiceMeta(c)}
+            </div>
+            <span class="choice-label">${escapeHtml(c.label)}</span>
             ${renderChoicePreview(c, state.role)}
           </button>
         `).join('')}
@@ -361,15 +447,16 @@ function renderChoicePreview(choice, role) {
     }
   }
   if (previews.length === 0) return '';
-  return `<div class="choice-preview">💡 预计：${previews.slice(0, 4).join('，')}</div>`;
+  return `<div class="choice-preview"><span>PREDICTED · 预计</span>${escapeHtml(previews.slice(0, 4).join('，'))}</div>`;
 }
 
 function renderActionPanel(state) {
-  // 在这里调用，假设CFO_ACTIONS和isActionAvailable通过callbacks注入
   return `
-    <div class="panel" style="margin-top:14px">
-      <div class="panel-title">主动操作</div>
-      <div class="ops-remain">本回合剩余操作：<span style="color:#4fc3f7">${2 - state.actionsUsed}次</span></div>
+    <div class="panel action-panel">
+      <div class="panel-title panel-title-row">
+        <span><span class="section-caret">▸</span> 主动操作 · 可选加行动作</span>
+        <span class="ops-remain">${Math.max(0, 2 - state.actionsUsed)}/2 剩余 · 不消耗事件回合</span>
+      </div>
       <div id="action-list"></div>
       <button id="btn-end-turn" class="end-turn-btn">结束本季度 →</button>
     </div>
@@ -388,13 +475,18 @@ export function bindMainScreenEvents(state, callbacks) {
   // 渲染操作列表
   const actionList = document.getElementById('action-list');
   if (actionList && callbacks.actions) {
-    actionList.innerHTML = callbacks.actions.map(a => {
+    actionList.innerHTML = callbacks.actions.map((a, i) => {
       const avail = callbacks.isAvailable(a.id);
-      const disabled = !avail.available || state.actionsUsed >= 2 || state.pendingEvent;
+      const disabled = !avail.available || state.actionsUsed >= 2;
       return `
-        <div class="action-slot" data-action-id="${a.id}" style="${disabled ? 'opacity:0.4;pointer-events:none' : ''}">
-          <span class="action-name">${a.name}</span>
-          <span class="action-cost">${avail.available ? '消耗1次' : avail.reason}</span>
+        <div class="action-slot ${disabled ? 'disabled' : ''}" data-action-id="${a.id}">
+          <span class="action-code">A${i + 1}</span>
+          <span class="action-main">
+            <span class="action-name">${escapeHtml(a.name)}</span>
+            <span class="action-desc">${escapeHtml(a.desc || '')}</span>
+          </span>
+          <span class="action-key">${i + 1}</span>
+          ${disabled ? `<span class="action-disabled-reason">${escapeHtml(avail.reason || '本回合操作已用完')}</span>` : ''}
         </div>
       `;
     }).join('');
@@ -405,11 +497,14 @@ export function bindMainScreenEvents(state, callbacks) {
 }
 
 function renderStatusBar(state) {
+  const roleId = state.role?.id || 'cfo';
   return `
     <div class="statusbar">
-      <span class="status-item">目标：存活至 <span>2024年Q4</span></span>
-      <span class="status-item">已过回合：<span>${state.quartersPassed}/12</span></span>
-      <span class="status-item">政策环境：<span>${getPolicyLabelText(state.policyValue)}</span></span>
+      <span class="status-item">目标 <span>${escapeHtml(getStatusGoalText(state))}</span></span>
+      <span class="status-item">回合 <span>${state.quartersPassed} / 12</span></span>
+      <span class="status-item">政策 <span>${getPolicyLabelText(state.policyValue).replace(/[↓↑—]/g, '').trim()}</span></span>
+      <span class="status-seed">SEED-${ROLE_CODES[roleId] || 'CFO'}-${hashString(state.origin?.platformName || 'seed').toString(16).toUpperCase().slice(0,4)}</span>
+      <span class="status-seed">AUTOSAVE · T+0 · ${roleId === 'im' ? '14:08' : roleId === 'gov' ? '10:00' : '09:32'}</span>
     </div>
   `;
 }
@@ -418,36 +513,39 @@ function renderChartArea(state) {
   if (state.role?.id === 'im') {
     return `
       <div class="chart-panel">
-        <div class="panel-title">净值曲线（NAV）</div>
+        <div class="panel-title panel-title-row"><span>净值曲线</span><strong>近 12 周 · 当前 ${state.metrics.nav.toFixed(3)}</strong></div>
         <div style="height:120px"><canvas id="chart-nav"></canvas></div>
       </div>
       <div class="chart-panel">
-        <div class="panel-title">持仓评级结构</div>
-        <div style="height:140px"><canvas id="chart-holdings"></canvas></div>
+        <div class="panel-title panel-title-row"><span>持仓评级</span><strong>AA 及以下 ${state.metrics.creditExposure.toFixed(0)}%</strong></div>
+        <div style="height:170px"><canvas id="chart-holdings"></canvas></div>
       </div>
+      ${renderMarketPulsePanel(state)}
     `;
   }
   if (state.role?.id === 'gov') {
     return `
       <div class="chart-panel">
-        <div class="panel-title">财政收支结构（亿/季）</div>
+        <div class="panel-title panel-title-row"><span>财政收支</span><strong>本季差额 ${(state.metrics.cash - 4).toFixed(1)} 亿</strong></div>
         <div style="height:120px"><canvas id="chart-fiscal"></canvas></div>
       </div>
       <div class="chart-panel">
-        <div class="panel-title">综合债务率走势</div>
+        <div class="panel-title panel-title-row"><span>综合债务率</span><strong>当前 ${state.metrics.debtRatio.toFixed(0)}%</strong></div>
         <div style="height:120px"><canvas id="chart-debt-ratio"></canvas></div>
       </div>
+      ${renderMarketPulsePanel(state)}
     `;
   }
   return `
     <div class="chart-panel">
-      <div class="panel-title">债务到期瀑布图（亿）</div>
-      <div style="height:90px"><canvas id="chart-debt"></canvas></div>
+      <div class="panel-title panel-title-row"><span>债务到期瀑布</span><strong>未来 4 季 · 合计 ${sumDebt(state.metrics.debtMaturity, state.quartersPassed, 4).toFixed(1)} 亿</strong></div>
+      <div style="height:110px"><canvas id="chart-debt"></canvas></div>
     </div>
     <div class="chart-panel">
-      <div class="panel-title">现金余量走势（亿）</div>
-      <div style="height:90px"><canvas id="chart-cash"></canvas></div>
+      <div class="panel-title panel-title-row"><span>现金趋势</span><strong>近 6 季 · 当前 ${state.metrics.cash.toFixed(1)} 亿</strong></div>
+      <div style="height:110px"><canvas id="chart-cash"></canvas></div>
     </div>
+    ${renderMarketPulsePanel(state)}
   `;
 }
 
@@ -524,6 +622,179 @@ function costClass(cost) {
   if (cost.includes('高')) return 'high';
   if (cost.includes('中')) return 'med';
   return 'low';
+}
+
+// ============================================================
+// 主界面辅助函数（Plan 5 主界面调整）
+// ============================================================
+
+// 'val-bad'/'val-warn'/'val-ok' → 'bad'/'warn'/'ok'/'neutral'
+function toneFromClass(cls) {
+  if (cls === 'val-bad') return 'bad';
+  if (cls === 'val-warn') return 'warn';
+  if (cls === 'val-ok') return 'ok';
+  return 'neutral';
+}
+
+// 简单字符串 hash（生成 SEED-XXXX 用）
+function hashString(str) {
+  let h = 0;
+  for (let i = 0; i < (str || '').length; i++) {
+    h = ((h << 5) - h) + str.charCodeAt(i);
+    h |= 0;
+  }
+  return Math.abs(h);
+}
+
+// 累加未来 N 季的债务到期金额
+function sumDebt(debtMaturity, fromIdx, count) {
+  if (!Array.isArray(debtMaturity)) return 0;
+  let s = 0;
+  for (let i = fromIdx; i < Math.min(debtMaturity.length, fromIdx + count); i++) {
+    s += debtMaturity[i] || 0;
+  }
+  return s;
+}
+
+// IM 下季预期赎回量（亿）
+function getExpectedRedeem(m) {
+  const p = m?.redemptionPressure || 0;
+  if (p < 60) return 0;
+  return (m.aum || 0) * (p - 50) / 350;  // 与 advanceTurn 公式一致
+}
+
+// IM 当前现金（亿）
+function getCashAvail(m) {
+  return (m?.aum || 0) * (m?.cashRatio || 0) / 100;
+}
+
+// 事件代号（用于 event-code 显示）
+function getEventCode(eventId) {
+  if (!eventId) return 'EVT';
+  // main_2022_q1_a → MAIN-22Q1A
+  const main = eventId.match(/^main_(\d{4})_q(\d)_?(.*)$/);
+  if (main) return `MAIN-${main[1].slice(2)}Q${main[2]}${main[3] ? main[3].toUpperCase() : ''}`;
+  const rand = eventId.match(/^rand_(.*)$/);
+  if (rand) return `MKT-${rand[1].slice(0, 6).toUpperCase()}`;
+  return eventId.slice(0, 12).toUpperCase();
+}
+
+// 事件徽章文本
+function getEventBadge(state, event) {
+  const isMain = event.id?.startsWith('main_');
+  if (isMain) return '主线 · 必答';
+  return '市场 · 扰动';
+}
+
+// 选项卡片头部 meta（"ACT-A · 即时" 之类）
+function renderChoiceMeta(choice) {
+  const fx = choice.effects || {};
+  let tag = '即时';
+  if (fx._uncertainty !== undefined) tag = `不确定 · ${Math.round(fx._uncertainty * 100)}%`;
+  else if (fx._delay) tag = `延期 ${fx._delay}`;
+  return `<span class="choice-meta">${escapeHtml(tag)}</span>`;
+}
+
+// 本局目标卡 - 标题 + 副标题
+function getGoalDisplay(state, hints) {
+  const roleId = state.role?.id;
+  if (roleId === 'cfo') {
+    return {
+      title: '现金不归零，撑过 12 季度',
+      subtitle: 'Q5-Q7 是债务到期高峰，提前备款',
+    };
+  }
+  if (roleId === 'im') {
+    return {
+      title: '净值守住 0.85，存活 12 季度',
+      subtitle: '管理赎回压力，避免流动性挤兑',
+    };
+  }
+  if (roleId === 'gov') {
+    return {
+      title: '债务率不破 300%，政绩不跌穿 20',
+      subtitle: '化债 + 招商 + 转移支付平衡',
+    };
+  }
+  return { title: hints?.goal || '撑过 12 季度', subtitle: '' };
+}
+
+// 本局目标 - 进度行（按角色给 2-3 个进度指标）
+function getGoalRows(state) {
+  const m = state.metrics || {};
+  const roleId = state.role?.id;
+  const quartersDone = state.quartersPassed || 0;
+  const quartersPct = (quartersDone / 12) * 100;
+  const rows = [{
+    label: '游戏进度', value: `${quartersDone}/12 季度`,
+    pct: quartersPct, tone: 'neutral',
+  }];
+
+  if (roleId === 'cfo') {
+    const cashPct = Math.min(100, (m.cash || 0) * 10);
+    rows.push({
+      label: '现金安全垫', value: `${(m.cash || 0).toFixed(1)} 亿`,
+      pct: cashPct, tone: m.cash < 2 ? 'bad' : (m.cash < 5 ? 'warn' : 'ok'),
+      note: m.cash < 2 ? '⚠ 接近资金链断裂' : '维持运营',
+    });
+  } else if (roleId === 'im') {
+    const navMargin = ((m.nav || 1) - 0.85) / 0.20 * 100;
+    rows.push({
+      label: '净值安全边距', value: (m.nav || 1).toFixed(3),
+      pct: Math.max(0, Math.min(100, navMargin)),
+      tone: m.nav < 0.88 ? 'bad' : (m.nav < 0.95 ? 'warn' : 'ok'),
+      note: m.nav < 0.88 ? '⚠ 接近清盘线' : '可承受波动',
+    });
+  } else if (roleId === 'gov') {
+    const debtPct = Math.min(100, ((m.debtRatio || 200) - 150) / 1.5);
+    rows.push({
+      label: '债务率距红线', value: `${(m.debtRatio || 200).toFixed(0)}%`,
+      pct: debtPct, tone: m.debtRatio > 280 ? 'bad' : (m.debtRatio > 250 ? 'warn' : 'ok'),
+      note: m.debtRatio > 280 ? '⚠ 接近被约谈' : '空间安全',
+    });
+    rows.push({
+      label: '政绩评分', value: `${Math.round(m.politicalScore || 50)}/100`,
+      pct: m.politicalScore || 50, tone: m.politicalScore < 30 ? 'bad' : (m.politicalScore < 45 ? 'warn' : 'ok'),
+    });
+  }
+  return rows;
+}
+
+// 状态栏目标文本（短）
+function getStatusGoalText(state) {
+  const roleId = state.role?.id;
+  if (roleId === 'cfo') return '存活到 2024Q4 · 现金 > 0';
+  if (roleId === 'im') return '存活 12 季度 · NAV > 0.85';
+  if (roleId === 'gov') return '债务率 < 300% · 政绩 > 20';
+  return '存活到 2024Q4';
+}
+
+// 右栏底部"市场脉冲"小面板（角色共用）
+function renderMarketPulsePanel(state) {
+  const policy = state.policyValue || 0;
+  const dir = policy < -1 ? '收紧' : (policy > 1 ? '放松' : '震荡');
+  const dirTone = policy < -1 ? 'tight' : (policy > 1 ? 'loose' : 'neutral');
+  const pulses = [
+    { label: '政策方向', value: dir, tone: dirTone },
+    { label: '政策值', value: `${policy >= 0 ? '+' : ''}${policy}`, tone: 'neutral' },
+    { label: '本回合事件', value: state.pendingEvent ? '已推送' : '空窗', tone: state.pendingEvent ? 'tight' : 'neutral' },
+  ];
+  return `
+    <div class="chart-panel pulse-panel">
+      <div class="panel-title panel-title-row">
+        <span><span class="section-mark">⌁</span> 市场脉冲</span>
+        <span class="panel-kicker">PULSE</span>
+      </div>
+      <div class="pulse-rows">
+        ${pulses.map(p => `
+          <div class="pulse-row">
+            <span class="pulse-label">${escapeHtml(p.label)}</span>
+            <span class="pulse-value pulse-${p.tone}">${escapeHtml(p.value)}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
 }
 
 export function renderEndScreen(state, finalScore, callbacks) {
