@@ -13,16 +13,25 @@ const ROLE_ACCENTS = { cfo: '#4fc3f7', im: '#ffd54f', gov: '#ef5350' };
 export function renderFateCard(origin, role, onAccept) {
   const app = document.getElementById('app');
   const roleId = origin.role || 'cfo';
-  const roleAccent = ROLE_ACCENTS[roleId] || ROLE_ACCENTS.cfo;
   const d = getFateData(origin, role);
+  // Mobile 自动检测：< 720px 加 .mobile class（按设计稿的 .fate.mobile 规则）
+  const variant = (typeof window !== 'undefined' && window.innerWidth < 720) ? 'mobile' : 'desktop';
 
+  // Markup 严格对齐 fate-card.jsx
   app.innerHTML = `
-    <div class="screen active fate-screen">
-      <div class="fate role-${roleId}" data-role="${roleId}" style="--role-accent:${roleAccent}">
+    <div class="screen active">
+      <div class="fate ${variant}" data-role="${roleId}">
         <header class="fate-head">
-          <div class="brand">债市生存游戏 <span class="dot">●</span> SURVIVE THE BOND MARKET</div>
-          <h1><span class="lead"></span>命运由你改写</h1>
-          <div class="seed"><b>${escapeHtml(d.seedId)}</b> · ${d.year} Q${d.quarter} — 2024 Q4 · 12 QUARTERS</div>
+          <div class="brand">
+            债市生存游戏 <span class="dot">●</span> SURVIVE THE BOND MARKET
+          </div>
+          <h1>
+            <span class="lead"></span>
+            命运由你改写
+          </h1>
+          <div class="seed">
+            <b>${escapeHtml(d.seedId)}</b> · ${d.year} Q${d.quarter} — 2024 Q4 · 12 QUARTERS
+          </div>
         </header>
         <div class="fate-body">
           <section class="id-card">
@@ -33,14 +42,17 @@ export function renderFateCard(origin, role, onAccept) {
                 <span class="sep">·</span>
                 <span class="zh">${escapeHtml(d.badgeZH)}</span>
               </div>
-              <div class="seed-mini"><b>${escapeHtml(d.seedShort)}</b> / DIFFICULTY · ${escapeHtml(d.difficulty)}</div>
+              <div class="seed-mini">
+                <b>${escapeHtml(d.seedShort)}</b> / DIFFICULTY · ${escapeHtml(d.difficulty)}
+              </div>
             </div>
             <div class="id-name">
               <span class="name">${escapeHtml(d.name)}</span>
               <span class="quote">${escapeHtml(d.nameQuote)}</span>
             </div>
             <div class="id-org">
-              <span class="label">PLATFORM</span>${escapeHtml(d.org)}
+              <span class="label">PLATFORM</span>
+              ${escapeHtml(d.org)}
             </div>
             <div class="tags">
               ${d.tags.map(t => `
@@ -50,58 +62,81 @@ export function renderFateCard(origin, role, onAccept) {
                 </span>
               `).join('')}
             </div>
-          </section>
-          <div class="challenges">
-            <div class="challenges-head">
-              <span class="ax">⨯</span>
-              <span>你这局的三大挑战</span>
-            </div>
-            ${d.challenges.slice(0, 3).map((c, i) => `
-              <div class="challenge-item">
-                <span class="num"><span>0</span>${i + 1}</span>
-                <span class="rail"></span>
-                <span class="text">${escapeHtml(c)}</span>
+            <div class="challenges">
+              <div class="challenges-head">
+                <span class="ax">⨯</span>
+                <span>你这局的三大挑战</span>
               </div>
-            `).join('')}
-          </div>
+              ${d.challenges.slice(0, 3).map((c, i) => `
+                <div class="challenge-item">
+                  <span class="num">0${i + 1}</span>
+                  <span class="rail" aria-hidden="true"></span>
+                  <span class="text">${escapeHtml(c)}</span>
+                </div>
+              `).join('')}
+            </div>
+          </section>
           <section class="onboard">
             <div class="onboard-head">
               <span>BRIEFING · 任务简报</span>
-              <span class="live"><span class="dot"></span><span>LIVE</span></span>
+              <span class="live">
+                <span class="dot"></span>
+                <span>LIVE</span>
+              </span>
             </div>
             <div class="onboard-grid">
               <div class="onboard-cell">
-                <div class="label"><span class="icon tgt">▶</span><span>本局目标</span></div>
-                <div class="goal-text">${escapeHtml(d.goal.text)}<span class="num"> ${escapeHtml(String(d.goal.q))} </span>${escapeHtml(d.goal.suffix)}</div>
+                <div class="label">
+                  <span class="icon tgt">▶</span>
+                  <span>本局目标</span>
+                </div>
+                <div class="goal-text">
+                  ${escapeHtml(d.goal.text)}
+                  <span class="num"> ${escapeHtml(String(d.goal.q))} </span>
+                  ${escapeHtml(d.goal.suffix)}
+                </div>
               </div>
               <div class="onboard-cell">
-                <div class="label"><span class="icon tip">!</span><span>推荐首操作</span></div>
-                <div class="tip-text">${escapeHtml(d.tip.pre)}<span class="hl"> ${escapeHtml(d.tip.hl)} </span>${escapeHtml(d.tip.post)}</div>
+                <div class="label">
+                  <span class="icon tip">!</span>
+                  <span>推荐首操作</span>
+                </div>
+                <div class="tip-text">
+                  ${escapeHtml(d.tip.pre)}
+                  <span class="hl"> ${escapeHtml(d.tip.hl)} </span>
+                  ${escapeHtml(d.tip.post)}
+                </div>
               </div>
               <div class="onboard-cell full">
-                <div class="label"><span class="icon rsk">×</span><span>致命风险</span></div>
+                <div class="label">
+                  <span class="icon rsk">×</span>
+                  <span>致命风险</span>
+                </div>
                 <ul class="risks">
                   ${d.risks.map(r => `
                     <li>
                       <span class="bullet">▍</span>
                       <span>${escapeHtml(r.text)}</span>
-                      <span class="meta">${r.danger ? `<b>${escapeHtml(r.meta)}</b>` : escapeHtml(r.meta)}</span>
+                      <span class="meta">
+                        ${r.danger ? `<b>${escapeHtml(r.meta)}</b>` : escapeHtml(r.meta)}
+                      </span>
                     </li>
                   `).join('')}
                 </ul>
               </div>
             </div>
           </section>
-          <footer class="fate-foot">
-            <button class="cta" id="btn-accept-fate">
-              <span>改写命运，开始游戏</span>
-              <span class="arrow">→</span>
-            </button>
-            <div class="cta-sub">
-              首次进入 · <a id="link-fate-leaderboard">查看全球排行榜</a>
-            </div>
-          </footer>
         </div>
+        <footer class="fate-foot">
+          <button class="cta" id="btn-accept-fate">
+            <span>改写命运，开始游戏</span>
+            <span class="arrow">→</span>
+          </button>
+          <div class="cta-sub">
+            首次进入 ·
+            <a id="link-fate-leaderboard">查看全球排行榜</a>
+          </div>
+        </footer>
       </div>
     </div>
   `;

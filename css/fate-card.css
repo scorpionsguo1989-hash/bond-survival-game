@@ -1,0 +1,578 @@
+/* 命运卡专用样式 — 与 tokens.css 配合 */
+
+/* ===== 整体壳 ===== */
+.fate {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, var(--role-glow), transparent 70%),
+    var(--bg-1);
+  color: var(--text-1);
+  font-family: var(--font-sans);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 顶部超细网格 — 终端味 */
+.fate::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.35;
+  pointer-events: none;
+  mask-image: linear-gradient(180deg, #000 0%, transparent 60%);
+}
+
+/* ===== 页头 ===== */
+.fate-head {
+  position: relative;
+  padding: 20px var(--sp-5) 6px;
+  text-align: center;
+}
+.fate-head .brand {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.32em;
+  color: var(--text-3);
+  text-transform: uppercase;
+  margin-bottom: var(--sp-2);
+}
+.fate-head .brand .dot {
+  color: var(--role);
+  margin: 0 6px;
+}
+.fate-head h1 {
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 26px;
+  letter-spacing: 0.18em;
+  margin: 0;
+  color: var(--text-1);
+}
+.fate-head h1 .lead {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--role);
+  margin-right: var(--sp-3);
+  vertical-align: middle;
+  transform: translateY(-2px);
+  box-shadow: 0 0 12px var(--role);
+}
+.fate-head .seed {
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  letter-spacing: 0.1em;
+}
+.fate-head .seed b {
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+/* —— mobile —— */
+.fate.mobile {
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
+}
+.fate.mobile .fate-body {
+  overflow: visible;
+  flex: 0 0 auto;
+}
+.fate.mobile .fate-foot {
+  /* 给 CTA 上方留出与最后一条致命风险的安全间距 */
+  padding-top: var(--sp-4);
+}
+.fate.mobile .fate-head {
+  padding: 18px var(--sp-4) var(--sp-2);
+}
+.fate.mobile .fate-head h1 {
+  font-size: 22px;
+  letter-spacing: 0.13em;
+}
+.fate.mobile .fate-head h1 .lead { width: 7px; height: 7px; margin-right: var(--sp-2); }
+.fate.mobile .fate-head .brand {
+  margin-bottom: 6px;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+}
+.fate.mobile .fate-head .seed {
+  margin-top: 6px;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+}
+
+/* ===== 主体滚动区 ===== */
+.fate-body {
+  position: relative;
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: var(--sp-3) var(--sp-5) var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  scrollbar-width: none;
+}
+.fate-body::-webkit-scrollbar { display: none; }
+.fate.mobile .fate-body {
+  padding: var(--sp-3) var(--sp-4) var(--sp-4);
+  gap: var(--sp-3);
+}
+
+/* ===== 主卡：身份 ===== */
+.id-card {
+  position: relative;
+  background:
+    linear-gradient(180deg, var(--bg-2) 0%, var(--bg-1) 100%);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  padding: 18px var(--sp-5) 16px;
+  /* overflow: hidden 移除 — 改用 ::after 自身的 mask 限定装饰区 */
+}
+.id-card::before {
+  /* 顶部彩条 */
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: inherit;
+  clip-path: inset(0 round var(--r-lg) var(--r-lg) 0 0);
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--role) 20%,
+    var(--role) 80%,
+    transparent 100%);
+}
+.id-card::after {
+  /* 角标网格 */
+  content: "";
+  position: absolute;
+  top: 0; right: 0;
+  width: 120px; height: 120px;
+  background-image:
+    linear-gradient(var(--role-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--role-line) 1px, transparent 1px);
+  background-size: 12px 12px;
+  opacity: 0.12;
+  pointer-events: none;
+  mask-image: linear-gradient(225deg, #000, transparent 70%);
+}
+.fate.mobile .id-card { padding: var(--sp-4); }
+.fate.mobile .id-row { flex-direction: column; align-items: flex-start; gap: 6px; margin-bottom: var(--sp-2); }
+.fate.mobile .role-badge { padding: 3px 10px 3px 8px; font-size: 10px; letter-spacing: 0.16em; }
+.fate.mobile .role-badge .zh { letter-spacing: 0.06em; white-space: nowrap; }
+.fate.mobile .seed-mini { font-size: 10px; }
+.fate.mobile .id-name { font-size: 40px; margin: 6px 0 2px; }
+.fate.mobile .id-org { margin-bottom: var(--sp-3); font-size: 13px; }
+.fate.mobile .id-org .label { font-size: 9px; letter-spacing: 0.12em; }
+.fate.mobile .tags { margin-bottom: var(--sp-3); gap: 6px; }
+.fate.mobile .tag { padding: 3px 8px; font-size: 12px; }
+.fate.mobile .tag .k { font-size: 9px; letter-spacing: 0.12em; }
+.fate.mobile .challenges { padding: 12px 14px 8px; }
+.fate.mobile .challenges-head { font-size: 9px; letter-spacing: 0.2em; margin-bottom: 10px; padding-bottom: 10px; }
+.fate.mobile .challenge-item { grid-template-columns: 22px 2px 1fr; gap: 0 12px; padding: 8px 0; }
+.fate.mobile .challenge-item .num { font-size: 11px; }
+.fate.mobile .challenge-item .rail { width: 2px; margin: 4px 0; }
+.fate.mobile .challenge-item .text { font-size: 13px; line-height: 1.5; }
+.fate.mobile .onboard-cell { padding: var(--sp-3) var(--sp-4); }
+.fate.mobile .goal-text { font-size: 17px; }
+.fate.mobile .tip-text { font-size: 14px; }
+.fate.mobile .risks li { font-size: 13px; grid-template-columns: 14px 1fr; }
+.fate.mobile .risks li .meta { grid-column: 2; font-size: 10px; padding-left: 0; }
+.fate.mobile .cta { padding: 16px 20px; font-size: 16px; letter-spacing: 0.08em; }
+
+.id-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-2);
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 5px 12px 5px 10px;
+  background: var(--role-soft);
+  border: 1px solid var(--role-line);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.18em;
+  color: var(--role);
+  text-transform: uppercase;
+}
+.role-badge .glyph {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--role);
+  box-shadow: 0 0 8px var(--role);
+}
+.role-badge .sep { color: var(--text-4); margin: 0 2px; }
+.role-badge .zh { color: var(--text-1); letter-spacing: 0.1em; }
+
+.seed-mini {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  letter-spacing: 0.08em;
+}
+.seed-mini b { color: var(--text-2); font-weight: 500; }
+
+/* —— 花名 —— */
+.id-name {
+  margin: 6px 0 2px;
+  font-family: var(--font-sans);
+  font-weight: 200;
+  font-size: 52px;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  color: var(--text-1);
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+}
+.id-name .name {
+  background: linear-gradient(180deg, var(--text-1) 0%, var(--role) 180%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.id-name .quote {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--text-3);
+  letter-spacing: 0;
+  font-weight: 400;
+}
+/* 移动端使用原 .id-name 默认 mobile 覆盖与 overflow */
+.fate.mobile .id-name { font-size: 40px; }
+.fate.mobile .id-name .quote { display: none; }
+
+.id-org {
+  font-family: var(--font-mono);
+  font-size: var(--fs-body);
+  color: var(--role);
+  letter-spacing: 0.05em;
+  margin-bottom: var(--sp-3);
+}
+.id-org .label {
+  color: var(--text-3);
+  margin-right: var(--sp-2);
+  letter-spacing: 0.16em;
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+}
+
+/* —— Tags —— */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: var(--sp-3);
+}
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--bg-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+  letter-spacing: 0.04em;
+}
+.tag .k {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.tag.danger { color: var(--danger); border-color: rgba(239,83,80,.4); background: rgba(239,83,80,.08); }
+.tag.warn   { color: var(--warn);   border-color: rgba(255,183,77,.4); background: rgba(255,183,77,.08); }
+.tag.ok     { color: var(--ok);     border-color: rgba(76,175,80,.4);  background: rgba(76,175,80,.08); }
+.tag.info   { color: var(--role);   border-color: var(--role-line);    background: var(--role-soft); }
+
+/* —— 三大挑战 —— */
+.challenges {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 12px var(--sp-4) 8px;
+}
+.challenges-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.22em;
+  color: var(--text-3);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--line);
+}
+.challenges-head .ax { color: var(--danger); }
+
+.challenge-item {
+  display: grid;
+  grid-template-columns: 22px 3px 1fr;
+  gap: 0 12px;
+  padding: 8px 0;
+  align-items: start;
+}
+.challenge-item + .challenge-item { border-top: 1px solid rgba(255,255,255,0.04); }
+.challenge-item .num {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--danger);
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  /* 与右侧 .text 同基线 */
+}
+.challenge-item .rail {
+  /* 连续红轴：每条挑战一段竖线，与编号、文本同行 */
+  width: 2px;
+  align-self: stretch;
+  background: var(--danger);
+  opacity: 0.85;
+  border-radius: 1px;
+  /* 让 rail 顶端和编号视觉对齐：上下各留出极小 inset */
+  margin: 4px 0 4px;
+}
+.challenge-item .text {
+  font-size: var(--fs-body);
+  color: var(--text-1);
+  line-height: 1.5;
+}
+
+/* ===== Onboarding 卡 ===== */
+.onboard {
+  position: relative;
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.onboard-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-3) var(--sp-4);
+  background: rgba(0,0,0,0.3);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.22em;
+  color: var(--text-3);
+  text-transform: uppercase;
+}
+.onboard-head .live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--role);
+}
+.onboard-head .live .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--role);
+  box-shadow: 0 0 8px var(--role);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.onboard-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1.4fr 1.1fr;
+  gap: 1px;
+  background: var(--line);
+}
+.fate.mobile .onboard-grid {
+  grid-template-columns: 1fr;
+}
+.onboard-cell {
+  background: var(--bg-2);
+  padding: 12px var(--sp-4);
+}
+.onboard-cell.full { grid-column: auto; }
+.fate.mobile .onboard-cell.full { grid-column: 1 / -1; }
+.onboard-cell .label {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: var(--sp-3);
+}
+.onboard-cell .label .icon {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  width: 18px; height: 18px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+}
+.onboard-cell .label .icon.tgt { color: var(--ok); }
+.onboard-cell .label .icon.rsk { color: var(--danger); }
+.onboard-cell .label .icon.tip { color: var(--gold); }
+
+/* 目标 */
+.goal-text {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-1);
+  line-height: 1.4;
+}
+.goal-text .num {
+  color: var(--ok);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  margin: 0 2px;
+}
+
+/* 推荐首操作 */
+.tip-text {
+  font-size: var(--fs-body);
+  color: var(--text-1);
+  line-height: 1.55;
+}
+.tip-text .hl {
+  color: var(--gold);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  background: rgba(255,213,79,0.08);
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid rgba(255,213,79,0.2);
+}
+
+/* 致命风险 */
+.risks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.risks li {
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 4px var(--sp-2);
+  align-items: baseline;
+  font-size: var(--fs-sm);
+  color: var(--text-1);
+  line-height: 1.45;
+  padding: 3px 0;
+}
+.risks li .bullet {
+  color: var(--danger);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  grid-row: 1;
+}
+.risks li > span:nth-child(2) {
+  grid-row: 1;
+}
+.risks li .meta {
+  grid-column: 2;
+  grid-row: 2;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.06em;
+  margin-bottom: 2px;
+}
+.risks li .meta b { color: var(--danger); font-weight: 500; }
+
+/* ===== CTA ===== */
+.fate-foot {
+  position: relative;
+  flex: 0 0 auto;
+  padding: var(--sp-3) var(--sp-5) var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  background: linear-gradient(180deg, transparent, var(--bg-1) 30%);
+}
+.fate.mobile .fate-foot {
+  padding: var(--sp-3) var(--sp-4) var(--sp-4);
+}
+
+.cta {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  padding: 16px 24px;
+  border: none;
+  border-radius: var(--r-md);
+  background: linear-gradient(180deg, var(--role) 0%, color-mix(in srgb, var(--role) 75%, #000 25%) 100%);
+  color: #07090f;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  box-shadow:
+    0 0 0 1px var(--role),
+    0 0 24px var(--role-glow),
+    inset 0 1px 0 rgba(255,255,255,0.3);
+  transition: transform .12s, box-shadow .15s;
+}
+.cta:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 1px var(--role),
+    0 6px 30px var(--role-glow),
+    inset 0 1px 0 rgba(255,255,255,0.3);
+}
+.cta .arrow {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 20px;
+}
+[data-role="im"] .cta { color: #07090f; }
+[data-role="gov"] .cta { color: #fff; }
+
+.cta-sub {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.cta-sub a {
+  color: var(--text-2);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--text-4);
+  padding-bottom: 1px;
+  margin-left: var(--sp-2);
+  transition: color .12s, border-color .12s;
+}
+.cta-sub a:hover {
+  color: var(--role);
+  border-color: var(--role-line);
+}
