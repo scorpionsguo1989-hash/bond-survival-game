@@ -54,7 +54,8 @@ export function imApplyAction(state, actionId, params) {
       m.aum = round(m.aum + cost, 2);
       m.duration = clamp(m.duration + params.durationTilt * 0.3, 0.5, 7);
       m.creditExposure = clamp(m.creditExposure + params.creditTilt * 5, 0, 100);
-      m.concentration = Math.min(25, m.concentration + (cost > 5 ? 2 : 0.5));
+      // 集中度允许冲过 25 死亡线（buy_bond 是玩家主动选择的风险敞口）
+      m.concentration = Math.min(35, m.concentration + (cost > 5 ? 2 : 0.5));
       addScore(score, 'projectProgress', 2);
       break;
     }

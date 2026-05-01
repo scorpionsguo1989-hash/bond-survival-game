@@ -33,9 +33,15 @@ function advanceTurn(state) {
   const { policyValue, metrics } = state;
   let { nav, aum, cashRatio, duration, concentration, creditExposure, redemptionPressure, leverage } = metrics;
 
-  const policyContrib = policyValue * 0.003 * (duration / 3);
-  const creditPenalty = (policyValue < 0 ? Math.abs(policyValue) : 0) * (creditExposure / 100) * 0.005;
-  const baseYield = 0.012;
+  // NAV 漂移公式（T11 平衡性调参后）：
+  //   - 票息基础收益 0.8%/季（年化 ~3.2%，反映债基真实票息扣管理费后水平）
+  //   - 政策影响放大到 0.005（政策紧时久期长会更痛）
+  //   - 信用惩罚翻倍到 0.012（政策紧时高信用敞口直接吃亏）
+  // worst case (政策 -3 + ce 50% + duration 2.5): -2.0%/季 → 12 季度 NAV ≈ 0.785 (穿线)
+  // baseline (政策 0 + ce 15% + duration 2.5): +0.8%/季 → 12 季度 NAV ≈ 1.10 (通关)
+  const policyContrib = policyValue * 0.005 * (duration / 3);
+  const creditPenalty = (policyValue < 0 ? Math.abs(policyValue) : 0) * (creditExposure / 100) * 0.012;
+  const baseYield = 0.008;
   const leverageMultiplier = leverage / 100;
   const navDelta = (baseYield + policyContrib - creditPenalty) * leverageMultiplier;
   nav = round(nav * (1 + navDelta), 4);
