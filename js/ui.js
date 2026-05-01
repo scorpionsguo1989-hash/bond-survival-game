@@ -271,6 +271,9 @@ function costClass(cost) {
 export function renderEndScreen(state, finalScore, callbacks) {
   const app = document.getElementById('app');
   const gradeClass = `grade-${finalScore.grade.grade}`;
+  const rankHtml = callbacks.rank
+    ? `<div style="font-size:16px;color:#ffd54f;margin-top:12px">你的排名：第 ${callbacks.rank} 名</div>`
+    : '';
   app.innerHTML = `
     <div class="screen active">
       <div class="endgame-container">
@@ -279,6 +282,7 @@ export function renderEndScreen(state, finalScore, callbacks) {
           <div class="endgame-grade ${gradeClass}">${finalScore.grade.grade}</div>
           <div style="font-size:18px;color:#e0eaf8">${finalScore.grade.label}</div>
           <div style="font-size:32px;color:#4fc3f7;margin-top:8px">${finalScore.total}<span style="font-size:14px;color:#4a6080"> / 100</span></div>
+          ${rankHtml}
           <div style="font-size:12px;color:#6a8aaa;margin-top:8px">${state.origin.platformName} · ${state.origin.directorName}</div>
           <div style="font-size:11px;color:#4a6080;margin-top:4px">存活 ${state.quartersPassed} / 12 季度</div>
         </div>
@@ -298,6 +302,7 @@ export function renderEndScreen(state, finalScore, callbacks) {
 
         <div class="endgame-actions">
           <button id="btn-restart" class="btn-primary">再来一局</button>
+          <button id="btn-leaderboard" class="btn-secondary">排行榜</button>
           <button id="btn-share" class="btn-secondary">生成分享卡片</button>
         </div>
       </div>
@@ -306,6 +311,7 @@ export function renderEndScreen(state, finalScore, callbacks) {
   requestAnimationFrame(() => renderRadarChart('chart-radar', finalScore.dimensions));
   document.getElementById('btn-restart').addEventListener('click', callbacks.onRestart);
   document.getElementById('btn-share').addEventListener('click', () => callbacks.onShare(finalScore));
+  document.getElementById('btn-leaderboard').addEventListener('click', callbacks.onLeaderboard);
 }
 
 export function generateShareCard(state, finalScore) {
