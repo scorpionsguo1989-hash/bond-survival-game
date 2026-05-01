@@ -61,11 +61,11 @@ describe('applyEventChoice', () => {
     metrics: { cash: 5, creditUsed: 5, creditTotal: 20, financingCost: 6, leverageRatio: 70, opCostRate: 0.6, projectGap: 2, debtMaturity: [0,0,0,0,0,0,0,0,0,0,0,0], collateralRoom: 'medium' },
   });
 
-  it('adds to score with score.X effect key', () => {
-    const event = { id: 'test_evt', choices: [{ effects: { 'score.合规指数': 5, 'score.项目推进': 3 } }] };
+  it('adds to score with score.X effect key (English keys after T3)', () => {
+    const event = { id: 'test_evt', choices: [{ effects: { 'score.compliance': 5, 'score.projectProgress': 3 } }] };
     const next = applyEventChoice(baseState(), event, 0);
-    expect(next.score['合规指数']).toBe(5);
-    expect(next.score['项目推进']).toBe(3);
+    expect(next.score['compliance']).toBe(5);
+    expect(next.score['projectProgress']).toBe(3);
   });
 
   it('skips _-prefixed keys (internal flags)', () => {
