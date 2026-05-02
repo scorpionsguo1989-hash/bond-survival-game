@@ -1,0 +1,101 @@
+/* 债市生存游戏 — Design Tokens
+   终端美学：深底 / SF Mono / 三角色主色分支 */
+
+:root {
+  /* —— 底层色板（共享） —— */
+  --bg-0: #07090f;        /* 最深，画布外 */
+  --bg-1: #0a0e1a;        /* 主背景 */
+  --bg-2: #10162a;        /* 卡片底 */
+  --bg-3: #161e35;        /* 卡片提升 / hover */
+  --bg-4: #1d2742;        /* 边框 / 分割 */
+
+  --line: rgba(120, 140, 200, 0.12);
+  --line-strong: rgba(120, 140, 200, 0.22);
+
+  --text-1: #e6ebf5;      /* 主文字 */
+  --text-2: #98a3bd;      /* 次级 */
+  --text-3: #5b667f;      /* 弱化 / 标签 */
+  --text-4: #38415a;      /* 极弱 / 装饰 */
+
+  /* —— 语义色 —— */
+  --danger: #ef5350;      /* 红：致命风险 / 挤兑 */
+  --warn:   #ffb74d;      /* 橙：警告 */
+  --ok:     #4caf50;      /* 绿：现金充足 */
+  --info:   #4fc3f7;      /* 青蓝：信息 */
+  --gold:   #ffd54f;      /* 金：基金 / 奖励 */
+
+  /* —— 字体 —— */
+  --font-mono: "SF Mono", "JetBrains Mono", "Cascadia Code",
+               "Menlo", "Consolas", ui-monospace, monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC",
+               "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+  --font-display: "SF Mono", "JetBrains Mono", ui-monospace, monospace;
+
+  /* —— 字阶（解决"字号偏小"痛点） —— */
+  --fs-display: 56px;     /* 终局分数、命运卡花名 */
+  --fs-h1: 32px;          /* 页面大标题 */
+  --fs-h2: 22px;          /* 卡片标题 */
+  --fs-h3: 17px;          /* 小节标题 */
+  --fs-body: 15px;        /* 正文 */
+  --fs-sm: 13px;          /* 次级 */
+  --fs-xs: 11px;          /* 标签 / meta（仅 ALL CAPS 用） */
+
+  /* —— 间距（8px 基线） —— */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  --sp-8: 64px;
+
+  /* —— 圆角 —— */
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 10px;
+  --r-xl: 14px;
+}
+
+/* —— 角色主题（命运卡用 data-role 切换） —— */
+[data-role="cfo"] {
+  --role: #4fc3f7;            /* 青蓝 */
+  --role-soft: rgba(79, 195, 247, 0.12);
+  --role-line: rgba(79, 195, 247, 0.32);
+  --role-glow: rgba(79, 195, 247, 0.18);
+  --role-name: "城投财务总监";
+}
+[data-role="im"] {
+  --role: #ffd54f;            /* 金黄 */
+  --role-soft: rgba(255, 213, 79, 0.10);
+  --role-line: rgba(255, 213, 79, 0.36);
+  --role-glow: rgba(255, 213, 79, 0.16);
+  --role-name: "债券基金经理";
+}
+[data-role="gov"] {
+  --role: #ef5350;            /* 朱红 */
+  --role-soft: rgba(239, 83, 80, 0.10);
+  --role-line: rgba(239, 83, 80, 0.36);
+  --role-glow: rgba(239, 83, 80, 0.18);
+  --role-name: "地方政府官员";
+}
+
+/* —— Reset / 全局 —— */
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  background: var(--bg-1);
+  color: var(--text-1);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "tnum" 1, "ss01" 1;
+}
+
+/* tabular numerals for everything financial */
+.mono, .num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}

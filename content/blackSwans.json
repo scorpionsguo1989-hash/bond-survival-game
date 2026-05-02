@@ -1,0 +1,367 @@
+[
+  {
+    "id": "swan_lgfv_default",
+    "kind": "black_swan",
+    "weight": 2,
+    "title": "省级城投发生技术性违约",
+    "swanTag": "区域信用重定价",
+    "policyShift": -2,
+    "triggerCondition": { "minQuarter": 2 },
+    "roles": {
+      "cfo": {
+        "body": "邻省一家明星城投平台公告债券技术性违约，市场恐慌迅速蔓延到全国。同区域评级被一刀切列入观察名单，主承销商电话开始集中咨询你的存量债估值。",
+        "choices": [
+          { "label": "立即与评级机构、主承一对一沟通澄清", "effects": { "score.compliance": 5, "score.crisisResponse": 6, "financingCost": 0.4 } },
+          { "label": "紧急召开存量持有人会议争取展期", "effects": { "_uncertainty": 0.55, "creditUsage": -3, "score.crisisResponse": 8, "financingCost": 0.6 } },
+          { "label": "按兵不动，等市场自己消化", "effects": { "financingCost": 0.9, "score.compliance": -3, "leverageRatio": 1.5 } }
+        ]
+      },
+      "im": {
+        "body": "同区域明星城投技术性违约消息出来后，二级市场一刀切。你持仓里这个区域的城投占比 18%，估值收益率单日上行 60bp，赎回客服开始接到电话。",
+        "choices": [
+          { "label": "盘前集合竞价低价砸出该区域全部持仓", "effects": { "creditExposure": -10, "nav": -0.025, "redemptionPressure": 12, "score.crisisResponse": 7 } },
+          { "label": "保留高等级，砸出 AA 及以下", "effects": { "creditExposure": -5, "nav": -0.012, "redemptionPressure": 6, "score.crisisResponse": 5 } },
+          { "label": "硬扛不动，等评级落地再判断", "effects": { "_uncertainty": 0.4, "nav": -0.04, "redemptionPressure": 18, "score.development": 4 } }
+        ]
+      },
+      "gov": {
+        "body": "邻省一家明星城投技术性违约。省里紧急召开化债工作会，要求各市自查。你辖区与该省经济结构接近，市场传言可能是下一个。三家平台主承的电话已经打到主管局长办公桌上。",
+        "choices": [
+          { "label": "省级出面发声明，承诺存量刚性兑付", "effects": { "politicalScore": 5, "transferPayment": -3, "hiddenDebtRisk": -8, "score.crisisResponse": 8 } },
+          { "label": "推动市级建立流动性互助资金池", "effects": { "_uncertainty": 0.6, "specialBondQuota": -2, "hiddenDebtRisk": -10, "score.development": 6, "score.compliance": 3 } },
+          { "label": "保持低调，先观察市场反应", "effects": { "politicalScore": -4, "industryIndex": -3, "hiddenDebtRisk": 5, "score.crisisResponse": -3 } }
+        ]
+      }
+    }
+  },
+
+  {
+    "id": "swan_wm_nav_crash",
+    "kind": "black_swan",
+    "weight": 2,
+    "title": "头部理财公司单日净值跌 1.5%",
+    "swanTag": "净值化考验",
+    "policyShift": -1,
+    "triggerCondition": { "minQuarter": 3 },
+    "roles": {
+      "cfo": {
+        "body": "某全国 TOP 5 理财子公司主推的固收+ 产品单日跌 1.5%，全网投资人开始挤兑。资管圈连锁反应：买盘消失、二级估值下行，一级发行窗口短暂关闭。",
+        "choices": [
+          { "label": "推迟所有新发计划，等市场企稳", "effects": { "_delay": 1, "score.compliance": 3, "score.costControl": 2 } },
+          { "label": "把已挂网的产品改成定向私募发行", "effects": { "cash": 1.5, "financingCost": 0.6, "score.compliance": -2 } },
+          { "label": "硬发，借机锁定政策性银行包销", "effects": { "_uncertainty": 0.5, "cash": 3.5, "creditUsage": 4, "score.development": 5, "financingCost": 0.3 } }
+        ]
+      },
+      "im": {
+        "body": "同业头部理财净值跳水，赎回潮已经从他们家蔓延到整个公募固收圈。你的产品晨盘开始接到大额赎回通知，按规定 T+1 必须现金兑付。",
+        "choices": [
+          { "label": "动用流动性储备 + 减仓利率债缓冲", "effects": { "cashRatio": -3, "duration": -0.8, "redemptionPressure": -10, "score.crisisResponse": 8 } },
+          { "label": "申请管理人自购资金救市", "effects": { "_uncertainty": 0.45, "redemptionPressure": -15, "nav": 0.01, "score.development": 6, "score.compliance": 3 } },
+          { "label": "暂停大额赎回，启动巨额赎回限制", "effects": { "redemptionPressure": -8, "nav": -0.015, "score.crisisResponse": -2, "score.compliance": -5 } }
+        ]
+      },
+      "gov": {
+        "body": "全国理财行业出现明显赎回压力。辖区平台过去发的标准化产品被理财大户大量抛售，估值收益率上行 40bp。市政府担心连锁影响在建项目融资。",
+        "choices": [
+          { "label": "约谈辖区主要银行理财部门，要求维稳", "effects": { "politicalScore": 2, "score.crisisResponse": 5, "industryIndex": -1 } },
+          { "label": "以财政资金回购辖区平台被砸出的债", "effects": { "cash": -1.5, "hiddenDebtRisk": 2, "score.crisisResponse": 7, "score.liquidity": 4 } },
+          { "label": "暂不干预，观察市场出清", "effects": { "politicalScore": -2, "industryIndex": -2, "hiddenDebtRisk": -2 } }
+        ]
+      }
+    }
+  },
+
+  {
+    "id": "swan_pboc_rrr_cut",
+    "kind": "black_swan",
+    "weight": 1.5,
+    "title": "央行突发降准 0.5 个百分点",
+    "swanTag": "流动性脉冲",
+    "policyShift": 3,
+    "triggerCondition": { "policyMax": 0 },
+    "roles": {
+      "cfo": {
+        "body": "央行下午突然宣布全面降准 50bp，释放约 1 万亿长期资金。债市瞬间走牛，发行窗口大开，主承电话排着队问你要不要趁机加发。",
+        "choices": [
+          { "label": "立刻启动一年期短券发行，锁定低成本", "effects": { "cash": 4, "financingCost": -0.5, "creditUsage": -3, "score.costControl": 8, "score.development": 4 } },
+          { "label": "把握窗口换长债，锁定更长期限", "effects": { "cash": 5, "leverageRatio": 1.5, "financingCost": -0.3, "score.costControl": 5, "score.development": 6 } },
+          { "label": "保守应对，等市场情绪稳一稳", "effects": { "score.compliance": 3, "score.costControl": -2 } }
+        ]
+      },
+      "im": {
+        "body": "央行突发降准，债市暴动。你的组合明天开盘大概率净值跳涨，但接下来几天涨幅是否持续要看资金面是否真的转松。这是加久期博收益的难得窗口。",
+        "choices": [
+          { "label": "盘前增持中长久期利率债 + 高等级信用", "effects": { "duration": 1.0, "nav": 0.025, "score.costControl": 8, "score.development": 5 } },
+          { "label": "趁估值修复减持持仓里的尾部风险券", "effects": { "creditExposure": -8, "concentration": -1, "nav": 0.012, "score.compliance": 6 } },
+          { "label": "按兵不动，让现有久期吃这波", "effects": { "nav": 0.015, "score.development": 3 } }
+        ]
+      },
+      "gov": {
+        "body": "央行突发降准给地方融资创造短暂窗口。专项债发行成本可能下行 30bp 左右，辖区平台再融资难度暂时缓解。但窗口可能只有 2 周。",
+        "choices": [
+          { "label": "紧急通知所有平台抢窗口发债", "effects": { "cash": 3, "hiddenDebtRisk": -8, "debtRatio": -3, "score.liquidity": 8, "score.development": 6 } },
+          { "label": "争取上级专项债额度提前下达", "effects": { "_uncertainty": 0.55, "specialBondQuota": 5, "cash": 2, "score.development": 7, "score.compliance": 4 } },
+          { "label": "维稳为主，不集中发行避免市场误判", "effects": { "politicalScore": 2, "industryIndex": -1, "score.compliance": 3 } }
+        ]
+      }
+    }
+  },
+
+  {
+    "id": "swan_csrc_crackdown",
+    "kind": "black_swan",
+    "weight": 1.5,
+    "title": "证监会启动中介机构专项整顿",
+    "swanTag": "行业整顿",
+    "policyShift": -2,
+    "triggerCondition": { "minQuarter": 4 },
+    "roles": {
+      "cfo": {
+        "body": "证监会一夜之间通报多家券商投行被立案，市场风声鹤唳。你之前合作的两家主承担保都在名单上，已宣布暂停所有承销业务。",
+        "choices": [
+          { "label": "紧急切换备用主承，启动新一轮合规自查", "effects": { "_delay": 1, "cash": -0.5, "score.compliance": 8 } },
+          { "label": "向监管主动报备存量项目情况", "effects": { "score.compliance": 10, "score.crisisResponse": 5, "financingCost": 0.2 } },
+          { "label": "暂停一切公开融资，转向银行贷款", "effects": { "cash": 1.5, "creditUsage": 5, "leverageRatio": 1, "score.compliance": -3 } }
+        ]
+      },
+      "im": {
+        "body": "证监会专项整顿涉及券商投行和评级机构，市场对中介出具的报告全面质疑。你持仓里有 3 个发行人最新的评级报告由被立案的机构出具，下一份估值表可能直接跨档下调。",
+        "choices": [
+          { "label": "盘前减持涉及问题中介评级的全部仓位", "effects": { "creditExposure": -12, "nav": -0.02, "concentration": -2, "score.compliance": 10 } },
+          { "label": "申请独立第三方做交叉验证", "effects": { "_uncertainty": 0.65, "score.compliance": 6, "score.crisisResponse": 5, "nav": -0.005 } },
+          { "label": "信息披露后再判断", "effects": { "nav": -0.03, "redemptionPressure": 8, "score.compliance": -3 } }
+        ]
+      },
+      "gov": {
+        "body": "证监会重点整顿中介机构，辖区两家平台的承销商被立案。市里担心后续无人敢承销辖区债券。三家平台已经开始反复电话主管局打听情况。",
+        "choices": [
+          { "label": "市政府紧急召开承销商沟通会", "effects": { "politicalScore": 3, "score.crisisResponse": 6, "score.compliance": 5 } },
+          { "label": "推动政策性银行包销弱资质平台债券", "effects": { "_uncertainty": 0.5, "specialBondQuota": -2, "hiddenDebtRisk": -6, "score.liquidity": 6, "transferPayment": -1 } },
+          { "label": "顺势压缩辖区平台数量", "effects": { "industryIndex": -3, "hiddenDebtRisk": -10, "politicalScore": 1, "score.development": 5 } }
+        ]
+      }
+    }
+  },
+
+  {
+    "id": "swan_central_relief_plan",
+    "kind": "black_swan",
+    "weight": 1.5,
+    "title": "国务院发布一揽子化债方案 2.0",
+    "swanTag": "政策窗口",
+    "policyShift": 3,
+    "triggerCondition": { "minQuarter": 5 },
+    "roles": {
+      "cfo": {
+        "body": "国务院召开常务会议，宣布新增 5 万亿特殊再融资额度，并允许地方用专项债置换隐债。市场反应剧烈，所有城投债二级估值收益率单日下行 30-50bp。",
+        "choices": [
+          { "label": "立即与省财政厅对接，争取纳入化债试点名单", "effects": { "_uncertainty": 0.7, "creditUsage": -8, "financingCost": -0.8, "score.development": 10, "score.compliance": 5 } },
+          { "label": "趁估值修复发行借新还旧债券", "effects": { "cash": 5, "financingCost": -0.6, "score.costControl": 8 } },
+          { "label": "评估短期、不参与试点，等政策细则", "effects": { "score.compliance": 4, "financingCost": -0.2 } }
+        ]
+      },
+      "im": {
+        "body": "化债 2.0 方案出台，弱资质城投债领涨。但政策受益是阶梯式的：纳入试点名单的平台债大幅修复，名单外的可能继续被砸。你需要判断是追涨高弹性，还是分批接龙头。",
+        "choices": [
+          { "label": "重仓押注弱资质区域龙头", "effects": { "_uncertainty": 0.5, "creditExposure": 8, "concentration": 3, "nav": 0.04, "score.development": 8 } },
+          { "label": "分批配置纳入试点的高等级城投", "effects": { "creditExposure": 4, "nav": 0.02, "score.development": 6, "score.compliance": 4 } },
+          { "label": "保守仅修复利率仓位", "effects": { "duration": 0.3, "nav": 0.012, "score.compliance": 3 } }
+        ]
+      },
+      "gov": {
+        "body": "国务院化债 2.0 给到 5 万亿额度，但分配是动态竞争性的。能否进入名单决定你这一届任期能化掉多少隐债。试点要求承诺指标，承诺过头政绩可能反噬。",
+        "choices": [
+          { "label": "全力争取最大化试点额度", "effects": { "_uncertainty": 0.6, "specialBondQuota": 8, "hiddenDebtRisk": -25, "debtRatio": -8, "politicalScore": 8, "score.development": 10 } },
+          { "label": "适度申报，避免承诺过头", "effects": { "specialBondQuota": 4, "hiddenDebtRisk": -12, "debtRatio": -4, "politicalScore": 4, "score.compliance": 5 } },
+          { "label": "暂不申报，先观察首批落地效果", "effects": { "politicalScore": -2, "industryIndex": -1, "score.compliance": 2 } }
+        ]
+      }
+    }
+  },
+
+  {
+    "id": "swan_offshore_bank_collapse",
+    "kind": "black_swan",
+    "weight": 1,
+    "title": "海外大型银行突发倒闭",
+    "swanTag": "全球避险",
+    "policyShift": -1,
+    "triggerCondition": { "minQuarter": 3 },
+    "roles": {
+      "cfo": {
+        "body": "美国硅谷银行级别的事件，全球 risk-off。中资美元债二级被动抛售，中国境内信用债估值同步走弱。下季 1.5 亿美元债到期续作出现困难。",
+        "choices": [
+          { "label": "改用人民币债置换美元债到期", "effects": { "cash": -1.5, "financingCost": 0.4, "creditUsage": 4, "score.crisisResponse": 7 } },
+          { "label": "找银行短期过桥贷款覆盖到期", "effects": { "cash": 1.5, "financingCost": 0.7, "creditUsage": 6, "score.compliance": 3 } },
+          { "label": "尝试展期沟通", "effects": { "_uncertainty": 0.4, "score.crisisResponse": 8, "score.compliance": 4 } }
+        ]
+      },
+      "im": {
+        "body": "海外大型银行倒闭，全球 risk-off 蔓延到 A 股、港股、债市。境内 AA+ 及以下信用债收益率短期上行 30bp。但历史规律是境内债往往是恐慌后的避风港。",
+        "choices": [
+          { "label": "降仓位降久期，全面防御", "effects": { "duration": -0.6, "creditExposure": -5, "cashRatio": 3, "nav": -0.008, "score.crisisResponse": 5 } },
+          { "label": "逆势加仓利率债 + 高等级信用", "effects": { "duration": 0.4, "nav": 0.015, "score.development": 6, "score.compliance": 3 } },
+          { "label": "保留头寸观察 2 个交易日", "effects": { "nav": -0.005, "score.compliance": 2 } }
+        ]
+      },
+      "gov": {
+        "body": "海外金融事件传导到境内，市场避险情绪上升。辖区平台原计划下季发行的城投债承销商建议推迟。在建项目资金链可能出现 2-3 周空档。",
+        "choices": [
+          { "label": "财政短期垫付维持项目运转", "effects": { "cash": -1, "industryIndex": 1, "score.crisisResponse": 6 } },
+          { "label": "推动政策性银行紧急放款", "effects": { "_uncertainty": 0.5, "cash": 2, "hiddenDebtRisk": -3, "score.liquidity": 6 } },
+          { "label": "暂停非关键在建项目", "effects": { "industryIndex": -3, "hiddenDebtRisk": -5, "politicalScore": -2, "score.compliance": 3 } }
+        ]
+      }
+    }
+  },
+
+  {
+    "id": "swan_rating_downgrade",
+    "kind": "black_swan",
+    "weight": 1,
+    "title": "国际评级机构跨级下调中国城投评级",
+    "swanTag": "信用重定价",
+    "policyShift": -2,
+    "triggerCondition": { "minQuarter": 4 },
+    "roles": {
+      "cfo": {
+        "body": "穆迪/惠誉之类的国际评级机构集体下调中国城投行业整体评级一档，部分省级被跨级下调两档。境外投资人开始系统性减持。境内估值跟随波动。",
+        "choices": [
+          { "label": "主动召开境内外投资人沟通会", "effects": { "score.compliance": 6, "score.crisisResponse": 8, "financingCost": 0.3 } },
+          { "label": "申请国内评级机构维持评级", "effects": { "score.compliance": 4, "financingCost": 0.5, "score.crisisResponse": 3 } },
+          { "label": "提前赎回部分中资美元债", "effects": { "_uncertainty": 0.6, "cash": -2.5, "creditUsage": 3, "score.development": 5 } }
+        ]
+      },
+      "im": {
+        "body": "国际评级下调可能引发境外资金被动出库，境内信用债跟随调整。你持仓里有部分境内 AA+ 以下品种是境外投资人主要持有的，估值压力会更大。",
+        "choices": [
+          { "label": "提前一周减持境外重仓品种", "effects": { "creditExposure": -8, "nav": -0.012, "score.compliance": 6 } },
+          { "label": "用利率衍生品对冲信用利差走阔", "effects": { "_uncertainty": 0.5, "score.crisisResponse": 6, "score.development": 4 } },
+          { "label": "维持仓位等境内独立行情", "effects": { "nav": -0.02, "redemptionPressure": 6, "score.development": 3 } }
+        ]
+      },
+      "gov": {
+        "body": "国际机构下调中国城投评级，市里担心后续境外投资人持续撤离影响发行。但国内市场对评级机构观点权重已大幅降低，关键看境内主流机构态度。",
+        "choices": [
+          { "label": "组织辖区平台路演稳市场", "effects": { "politicalScore": 3, "score.crisisResponse": 5, "industryIndex": 1 } },
+          { "label": "推动境内主流机构发布反向研报", "effects": { "_uncertainty": 0.55, "score.development": 6, "industryIndex": 2 } },
+          { "label": "无视，专注国内策略", "effects": { "industryIndex": -1, "hiddenDebtRisk": 1, "score.compliance": 2 } }
+        ]
+      }
+    }
+  },
+
+  {
+    "id": "swan_central_naming_shame",
+    "kind": "black_swan",
+    "weight": 1,
+    "title": "中央点名某地化债不力",
+    "swanTag": "敲山震虎",
+    "policyShift": -2,
+    "triggerCondition": { "minQuarter": 6 },
+    "roles": {
+      "cfo": {
+        "body": "财政部公开点名某邻省化债工作不力，全国地方政府都收到内部通报要求自查。你所在的市被列入下一阶段重点关注名单。",
+        "choices": [
+          { "label": "主动配合上级，提交完整化债工作报告", "effects": { "score.compliance": 10, "score.crisisResponse": 5, "financingCost": 0.2 } },
+          { "label": "调整融资结构降低非标占比", "effects": { "cash": -1, "financingCost": 0.3, "score.compliance": 8 } },
+          { "label": "保持现有节奏，不做特殊调整", "effects": { "score.compliance": -5, "financingCost": 0.6, "score.crisisResponse": -3 } }
+        ]
+      },
+      "im": {
+        "body": "中央点名引发市场对全国城投化债执行力的重新评估。市场短期对所有弱区域定价更悲观。你持仓里如果包含被点名邻省的城投，估值压力最大。",
+        "choices": [
+          { "label": "全部清仓被点名省份持仓", "effects": { "creditExposure": -10, "nav": -0.018, "concentration": -2, "score.compliance": 8 } },
+          { "label": "保留省级，砸出市级以下", "effects": { "creditExposure": -5, "nav": -0.008, "score.compliance": 5 } },
+          { "label": "等下一次督察组结果再判断", "effects": { "nav": -0.025, "redemptionPressure": 8, "score.development": 3 } }
+        ]
+      },
+      "gov": {
+        "body": "中央点名邻省化债不力，你所在市虽未直接被点名但已被列入重点关注。常委会要求拿出更激进的化债方案，KPI 加码 30%。",
+        "choices": [
+          { "label": "全面加速化债，启动多个置换方案", "effects": { "_uncertainty": 0.5, "hiddenDebtRisk": -15, "debtRatio": -6, "specialBondQuota": -3, "politicalScore": 6, "score.development": 8 } },
+          { "label": "组建专班向上汇报争取支持", "effects": { "_uncertainty": 0.6, "transferPayment": 2, "politicalScore": 4, "score.compliance": 6 } },
+          { "label": "稳步推进现有化债节奏", "effects": { "politicalScore": -3, "hiddenDebtRisk": -3, "score.compliance": 3 } }
+        ]
+      }
+    }
+  },
+
+  {
+    "id": "swan_im_holding_default",
+    "kind": "black_swan",
+    "weight": 1.5,
+    "title": "重仓持有人会议出现实质违约风险",
+    "swanTag": "踩雷时刻",
+    "triggerCondition": { "requireRole": "im", "minQuarter": 3 },
+    "roles": {
+      "im": {
+        "body": "你重仓的某只产业债（占组合 4%）发行人临时通知召开持有人会议，议案是票息延期支付。市场已经按违约定价，二级估值收益率上行 200bp。明天开盘组合净值大概率跌 1%+。",
+        "choices": [
+          { "label": "盘前低价砸出，止损出局", "effects": { "concentration": -3, "creditExposure": -4, "nav": -0.015, "score.crisisResponse": 6 } },
+          { "label": "投反对票，争取展期方案", "effects": { "_uncertainty": 0.4, "nav": -0.008, "score.crisisResponse": 8, "score.compliance": 5 } },
+          { "label": "持有，赌发行人最终能兑付", "effects": { "_uncertainty": 0.3, "nav": -0.025, "redemptionPressure": 12, "score.development": 6 } }
+        ]
+      }
+    }
+  },
+
+  {
+    "id": "swan_im_huge_subscription",
+    "kind": "black_swan",
+    "weight": 1,
+    "title": "机构客户大额申购涌入",
+    "swanTag": "甜蜜的烦恼",
+    "triggerCondition": { "requireRole": "im", "minQuarter": 4, "navMax": 1.5 },
+    "roles": {
+      "im": {
+        "body": "组合最近表现亮眼，某保险机构客户申购 30 亿，要求一周内建仓完毕。市场没那么多优质供给，硬建仓会拉高集中度，慢建仓会摊薄收益。",
+        "choices": [
+          { "label": "快速建仓，少量配高等级城投", "effects": { "creditExposure": 5, "concentration": 4, "cashRatio": -3, "nav": 0.005, "score.development": 8 } },
+          { "label": "拒绝大部分申购，保护现有持有人", "effects": { "redemptionPressure": -3, "score.compliance": 8, "score.development": -2 } },
+          { "label": "全收，分批 2 个月建仓", "effects": { "_uncertainty": 0.55, "creditExposure": 3, "cashRatio": 8, "score.development": 6, "score.compliance": 3 } }
+        ]
+      }
+    }
+  },
+
+  {
+    "id": "swan_gov_platform_watch",
+    "kind": "black_swan",
+    "weight": 1.5,
+    "title": "辖区龙头平台被列入信用观察",
+    "swanTag": "城投保卫战",
+    "policyShift": -1,
+    "triggerCondition": { "requireRole": "gov", "minQuarter": 4 },
+    "roles": {
+      "gov": {
+        "body": "辖区主要城投平台被中诚信列入「评级展望负面」，市场猜测下一步可能直接降级。这家平台是你区域的「金字招牌」，一旦降级，所有平台融资成本都会被牵连。",
+        "choices": [
+          { "label": "市政府发文承诺持续注资支持", "effects": { "politicalScore": 4, "transferPayment": -3, "hiddenDebtRisk": -5, "industryIndex": 2, "score.crisisResponse": 8 } },
+          { "label": "推动该平台与省级企业合并", "effects": { "_uncertainty": 0.5, "hiddenDebtRisk": -12, "industryIndex": -3, "politicalScore": 3, "score.development": 8 } },
+          { "label": "回避，让市场自己消化", "effects": { "politicalScore": -5, "industryIndex": -4, "hiddenDebtRisk": 6, "score.compliance": -3 } }
+        ]
+      }
+    }
+  },
+
+  {
+    "id": "swan_gov_naming_praise",
+    "kind": "black_swan",
+    "weight": 1,
+    "title": "省里在化债工作会上点名表扬你的辖区",
+    "swanTag": "示范红利",
+    "policyShift": 2,
+    "triggerCondition": { "requireRole": "gov", "minQuarter": 6, "debtRatioMin": 200 },
+    "roles": {
+      "gov": {
+        "body": "省委书记在全省化债工作会上点名表扬你所在辖区的化债成效。会议精神要求其他地市学习。这是难得的政治资源窗口，但也意味着接下来的指标会被加码。",
+        "choices": [
+          { "label": "趁机申请更多专项债额度和试点", "effects": { "specialBondQuota": 6, "transferPayment": 3, "politicalScore": 8, "score.development": 8 } },
+          { "label": "主动承担省级试点任务", "effects": { "_uncertainty": 0.55, "hiddenDebtRisk": -10, "transferPayment": 2, "politicalScore": 6, "score.development": 10 } },
+          { "label": "低调谢绝，避免承担过多责任", "effects": { "politicalScore": -2, "score.compliance": 4 } }
+        ]
+      }
+    }
+  }
+]

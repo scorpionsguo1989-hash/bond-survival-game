@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Endgame · 债市生存游戏</title>
+<link rel="stylesheet" href="tokens.css" />
+<link rel="stylesheet" href="endgame.css" />
+<style>
+  html, body, #root { height: 100%; }
+  body { background: #07090f; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="endgame.jsx"></script>
+
+<script type="text/babel">
+  const { DesignCanvas, DCSection, DCArtboard } = window;
+
+  function App() {
+    return (
+      <DesignCanvas storageKey="endgame-r4">
+        <DCSection id="end" title="01 · End Screen · 终局结算（成功/失败）">
+          <DCArtboard id="end-im-d" label="IM · 桌面 · 通关 · S 评级" width={1440} height={1000}>
+            <EndScreen role="im" pass grade="S" totalScore={92} rank={5} rankOf={1082}
+                       platform="华夏稳健债券基金" charName="周维城" survivedQ={16}
+                       difficulty="标准" />
+          </DCArtboard>
+          <DCArtboard id="end-cfo-d" label="CFO · 桌面 · 通关 · A 评级" width={1440} height={1000}>
+            <EndScreen role="cfo" pass grade="A" totalScore={84} rank={9} rankOf={1082}
+                       platform="西北某能源城投" charName="李续命" survivedQ={16}
+                       difficulty="标准"
+                       scores={[88, 82, 79, 86, 80, 90]} />
+          </DCArtboard>
+          <DCArtboard id="end-gov-d" label="GOV · 桌面 · 中途失败 · D 评级" width={1440} height={1000}>
+            <EndScreen role="gov" pass={false} grade="D" totalScore={32} rank={612} rankOf={1082}
+                       platform="中部地级市 · 化债办" charName="王 ZJ" survivedQ={7}
+                       difficulty="地狱"
+                       failReason="隐债敞口超线 23 亿，30 日整改未达成，被列为高风险地区"
+                       scores={[28, 18, 36, 45, 22, 30]} />
+          </DCArtboard>
+
+          <DCArtboard id="end-im-m" label="IM · 移动 · 通关 · S" width={390} height={1320}>
+            <EndScreen mobile role="im" pass grade="S" totalScore={92} rank={5} rankOf={1082}
+                       platform="华夏稳健债券基金" charName="周维城" survivedQ={16}
+                       difficulty="标准" />
+          </DCArtboard>
+          <DCArtboard id="end-cfo-m" label="CFO · 移动 · 失败 · C" width={390} height={1320}>
+            <EndScreen mobile role="cfo" pass={false} grade="C" totalScore={48} rank={234} rankOf={1082}
+                       platform="东北某经开区平台" charName="陈 JJ" survivedQ={9}
+                       difficulty="标准"
+                       failReason="一只 PPN 兑付违约，连锁触发交叉保护条款"
+                       scores={[55, 32, 50, 48, 42, 60]} />
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="lb" title="02 · 排行榜 Modal · Top 20">
+          <DCArtboard id="lb-d-all" label="桌面 · Tab=全部 · 高亮你的 #5" width={1280} height={900}>
+            <LeaderboardModal activeTab="all" />
+          </DCArtboard>
+          <DCArtboard id="lb-d-im" label="桌面 · Tab=投资经理" width={1280} height={900}>
+            <LeaderboardModal activeTab="im" />
+          </DCArtboard>
+          <DCArtboard id="lb-d-empty" label="桌面 · 空状态" width={1280} height={900}>
+            <LeaderboardModal empty />
+          </DCArtboard>
+          <DCArtboard id="lb-m" label="移动 · 横向滚动表格" width={390} height={840}>
+            <LeaderboardModal mobile activeTab="all" />
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="sc" title="03 · 分享卡片 · 750 × 1200（截屏可发朋友圈）">
+          <DCArtboard id="sc-im-pass" label="IM · 通关 S · 周维城" width={750} height={1200}>
+            <ShareCard role="im" pass grade="S" totalScore={92}
+                       platform="华夏稳健债券基金" charName="周维城" survivedQ={16} />
+          </DCArtboard>
+          <DCArtboard id="sc-cfo-pass" label="CFO · 通关 A · 李续命" width={750} height={1200}>
+            <ShareCard role="cfo" pass grade="A" totalScore={84}
+                       platform="西北某能源城投" charName="李续命" survivedQ={16}
+                       scores={[88, 82, 79, 86, 80, 90]} />
+          </DCArtboard>
+          <DCArtboard id="sc-gov-fail" label="GOV · 失败 D · 王ZJ" width={750} height={1200}>
+            <ShareCard role="gov" pass={false} grade="D" totalScore={32}
+                       platform="中部地级市 · 化债办" charName="王 ZJ" survivedQ={7}
+                       scores={[28, 18, 36, 45, 22, 30]} />
+          </DCArtboard>
+        </DCSection>
+      </DesignCanvas>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

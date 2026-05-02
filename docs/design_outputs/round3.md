@@ -82,3 +82,40 @@ Output requirements:
 
 Round 3 没有可用截图、组件代码或 verifier 结果。
 
+## 2026-05-02 二次尝试记录
+
+用户重新获得 Claude Design token 后，Codex 在同一 Claude Design 项目中点击旧 Round 3 的 `Retry` 继续尝试。
+
+观察结果：
+
+- Claude Design 从旧任务恢复到 `Searching, Writing`。
+- 可见状态曾显示：`Searching tokens.css` 与 `Writing: /* ===== Overlays ... */`。
+- 等待后文件列表没有出现 `Overlays.html` / `overlays.jsx` / `overlays.css`。
+- 输入框持续锁定，`Send` 按钮不可用。
+- 为避免继续消耗 Claude Design usage，已关闭该 Claude Design 标签页，不再继续运行旧任务。
+
+因此 2026-05-02 二次尝试结论仍为：**未完成 / 无可用 Round 3 设计稿**。
+
+后续不要再点旧 Round 3 的 `Retry`。建议改用窄化版续跑 prompt：
+
+- `docs/Codex_to_ClaudeDesign_Round3-5续跑prompt_cdxV0.md`
+
+## 2026-05-02 最终续跑完成记录
+
+Codex 后续在同一 Claude Design 项目中新开对话，发送窄化版 Round 3 prompt，要求只做 overlay 组件，不继续调整 Round 2。
+
+最终 Claude Design 成功生成：
+
+- `Overlays.html`
+- `overlays.jsx`
+- `overlays.css`
+
+完成组件族：
+
+- `OperationModal`：操作输入/选择 modal，覆盖 CFO 桌面与移动。
+- `Toasts`：success / error / info 三态，覆盖桌面与移动位置。
+- `CrisisModal`：IM 赎回压力、GOV/CFO 危机样例，覆盖桌面与移动。
+
+当前状态修正为：**Round 3 已完成**。
+
+实现时请以后半段完成记录为准；前文 usage limit 与 retry 中断仅作为历史记录保留。

@@ -1,0 +1,1074 @@
+/* ===== Endgame — 债市生存游戏 Round 4 ===== */
+/* 复用 tokens.css；EndScreen / Leaderboard / ShareCard 三家族 */
+
+/* ---------- 共用：host ----------
+   适配项目：原稿 height:100% 是给 design canvas 用的；项目里 endgame 下方还要接 4 张 AI 卡，
+   改成 min-height:100vh 让内容自然撑开 */
+.eg-host {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  background: var(--bg-1);
+  color: var(--text-1);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+.eg-host::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(120,140,200,0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(120,140,200,0.025) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+}
+.eg-host.fail::before {
+  background-image:
+    linear-gradient(to right, rgba(239,83,80,0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(239,83,80,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+.eg-host.fail {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(239,83,80,0.10), transparent 55%),
+    var(--bg-1);
+}
+.eg-host.pass {
+  background:
+    radial-gradient(ellipse at 50% 0%, var(--role-glow, rgba(79,195,247,0.10)), transparent 55%),
+    var(--bg-1);
+}
+
+/* ---------- 顶栏 ---------- */
+.eg-topbar {
+  position: relative;
+  z-index: 2;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(7,9,15,0.72);
+  backdrop-filter: blur(2px);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.eg-host.mobile .eg-topbar { padding: 10px 14px; font-size: 10px; }
+.eg-topbar .l { display: flex; align-items: center; gap: 12px; }
+.eg-topbar .r { display: flex; align-items: center; gap: 14px; }
+.eg-topbar .brand { color: var(--text-1); letter-spacing: 0.22em; }
+.eg-topbar .brand b { color: var(--role, var(--info)); font-weight: 600; }
+.eg-topbar .sep { color: var(--text-4); }
+.eg-topbar .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ok); box-shadow: 0 0 8px var(--ok);
+  display: inline-block; margin-right: 6px;
+}
+.eg-host.fail .eg-topbar .dot { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+
+/* ============================================================
+   1) EndScreen — 桌面 / 移动
+============================================================ */
+.endscr {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  /* 整体背景画在容器上 + 中间 1px 竖线绝对定位，
+     这样两 col 可以独立按内容高度，不被 grid stretch 互相拉高 */
+  background: var(--bg-1);
+  align-items: start;
+}
+/* 中间分隔竖线（覆盖到双列共同高度内） */
+.endscr::after {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0;
+  /* 1.05/(1.05+1) ≈ 51.2% */
+  left: calc(1.05 / 2.05 * 100%);
+  width: 1px;
+  background: var(--line);
+  pointer-events: none;
+}
+.endscr > .col { background: transparent; padding: 24px 32px; overflow: visible; }
+.eg-host.mobile .endscr {
+  grid-template-columns: 1fr;
+  height: auto;
+}
+.eg-host.mobile .endscr::after { display: none; }
+.eg-host.mobile .endscr > .col { padding: 18px 16px; }
+
+/* 状态条 */
+.es-status {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.es-status .badge {
+  padding: 4px 10px;
+  border-radius: 2px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  font-size: 11px;
+}
+.es-status.pass .badge {
+  background: rgba(76,175,80,0.14);
+  color: var(--ok);
+  border: 1px solid rgba(76,175,80,0.4);
+}
+.es-status.fail .badge {
+  background: rgba(239,83,80,0.16);
+  color: #ffd9d8;
+  border: 1px solid rgba(239,83,80,0.55);
+}
+.es-status .reason {
+  font-family: var(--font-sans);
+  text-transform: none;
+  letter-spacing: 0.01em;
+  color: var(--text-2);
+  font-size: 13px;
+}
+.es-status .reason em {
+  color: var(--danger);
+  font-style: normal;
+  font-weight: 600;
+}
+
+/* 巨大评级 */
+.es-grade-wrap {
+  display: flex; align-items: flex-start; gap: 22px;
+  margin-bottom: 8px;
+}
+.es-grade {
+  font-family: var(--font-display);
+  /* 168px 在 1100px 视口下太突兀 + 撑高左列；140 更合理 */
+  font-size: 140px;
+  line-height: 0.86;
+  letter-spacing: -0.03em;
+  color: var(--role, var(--info));
+  font-weight: 600;
+  text-shadow:
+    0 0 28px var(--role-glow, rgba(79,195,247,0.4)),
+    0 0 1px rgba(0,0,0,0.6);
+  position: relative;
+}
+.eg-host.fail .es-grade {
+  color: var(--danger);
+  text-shadow: 0 0 28px rgba(239,83,80,0.45);
+}
+.eg-host.mobile .es-grade { font-size: 112px; }
+.es-grade::after {
+  content: "";
+  position: absolute;
+  left: -10px; right: -10px; bottom: 6px;
+  height: 1px;
+  background: var(--role, var(--info));
+  opacity: 0.4;
+}
+.es-grade-side {
+  flex: 1;
+  display: flex; flex-direction: column; gap: 6px;
+  padding-top: 18px;
+}
+.es-grade-meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.es-grade-label {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-1);
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+}
+.eg-host.mobile .es-grade-label { font-size: 18px; }
+.es-grade-quote {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-2);
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  border-left: 2px solid var(--role, var(--info));
+  padding-left: 10px;
+  margin-top: 8px;
+  opacity: 0.92;
+}
+.eg-host.fail .es-grade-quote { border-color: var(--danger); }
+
+/* 总分行 */
+.es-score {
+  display: flex; align-items: baseline; gap: 14px;
+  margin: 14px 0 18px;
+  padding: 12px 16px;
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+}
+.es-score .k {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.es-score .v {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 36px;
+  color: var(--text-1);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+.es-score .v .max { color: var(--text-3); font-size: 18px; margin-left: 2px; }
+.es-score .rank {
+  margin-left: auto;
+  display: flex; align-items: baseline; gap: 8px;
+  background: rgba(255,213,79,0.10);
+  border: 1px solid rgba(255,213,79,0.45);
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  box-shadow: 0 0 14px rgba(255,213,79,0.10);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.es-score .rank .lbl,
+.es-score .rank .num,
+.es-score .rank .of { white-space: nowrap; }
+.es-score .rank .lbl {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--gold);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.es-score .rank .num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 22px;
+  color: var(--gold);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.es-score .rank .of {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+  letter-spacing: 0.06em;
+}
+.eg-host.mobile .es-score { flex-wrap: wrap; gap: 10px; }
+.eg-host.mobile .es-score .v { font-size: 30px; }
+.eg-host.mobile .es-score .rank { margin-left: 0; width: 100%; justify-content: space-between; }
+
+/* 角色信息 / 局信息 */
+.es-meta {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  margin-bottom: 18px;
+}
+.es-meta .cell {
+  background: var(--bg-2);
+  padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 3px;
+}
+.es-meta .k {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-3);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.es-meta .v {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  color: var(--text-1);
+  letter-spacing: 0.02em;
+}
+.es-meta .v.role { color: var(--role); }
+.eg-host.mobile .es-meta { grid-template-columns: repeat(2, 1fr); }
+
+/* CTA 按钮 */
+.es-ctas {
+  display: flex; gap: 10px;
+  margin-top: 4px;
+}
+.eg-host.mobile .es-ctas { flex-direction: column; }
+.es-cta {
+  flex: 1;
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  color: var(--text-1);
+  padding: 14px 16px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  transition: background .15s, border-color .15s;
+}
+.es-cta:hover { background: var(--bg-3); }
+.es-cta .k {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-3);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: 1px 5px;
+  letter-spacing: 0.06em;
+}
+.es-cta.primary {
+  background: var(--role-soft);
+  color: var(--role);
+  border-color: var(--role-line);
+  font-weight: 600;
+  position: relative;
+  box-shadow: 0 0 18px var(--role-glow);
+}
+.es-cta.primary::before {
+  content: "";
+  position: absolute; left: 0; right: 0; top: 0; height: 1px;
+  background: var(--role);
+}
+.es-cta .arr { font-family: var(--font-mono); }
+
+/* —— 右侧：六维雷达 + 维度列表 —— */
+.es-right {
+  display: flex; flex-direction: column;
+  /* 24 → 14 拉紧右列垂直节奏 */
+  gap: 14px;
+}
+.es-section-h {
+  display: flex; align-items: baseline; justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--text-3);
+  text-transform: uppercase;
+  border-bottom: 1px dashed var(--line);
+  padding-bottom: 6px;
+}
+.es-section-h .ax { color: var(--role); }
+.es-section-h .meta { color: var(--text-4); letter-spacing: 0.04em; font-size: 10px; text-transform: none; }
+
+.es-radar {
+  position: relative;
+  width: 100%;
+  /* 关键：原本 aspect-ratio: 1/0.92 在宽列下会把高度撑到 600+ px，
+     现在直接限定 max-height + 居中 SVG，留白可控 */
+  max-height: 420px;
+  display: grid;
+  place-items: center;
+  padding: 4px 0;
+}
+.es-radar svg {
+  width: 100%;
+  height: auto;
+  max-width: 460px;
+  max-height: 420px;
+}
+
+/* 维度行 */
+.es-dims {
+  display: flex; flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+.es-dim {
+  display: grid;
+  grid-template-columns: 116px 1fr 56px 44px;
+  align-items: center;
+  gap: 10px;
+  /* 9 → 7 让 6 行紧凑 */
+  padding: 7px 12px;
+  background: var(--bg-2);
+  font-size: 12.5px;
+}
+.es-dim + .es-dim { border-top: 1px dashed var(--line); }
+.es-dim .name {
+  color: var(--text-1);
+  font-size: 13px;
+  letter-spacing: 0.01em;
+}
+.es-dim .bar {
+  position: relative;
+  height: 6px;
+  background: rgba(120,140,200,0.10);
+  border-radius: 1px;
+  overflow: hidden;
+}
+.es-dim .bar .fill {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  background: var(--role);
+  box-shadow: 0 0 8px var(--role-glow);
+}
+.es-dim .v {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  color: var(--text-1);
+  text-align: right;
+  letter-spacing: 0.02em;
+}
+.es-dim .g {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--role);
+  text-align: right;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+.es-dim .g.low { color: var(--danger); }
+.es-dim .g.mid { color: var(--warn); }
+.eg-host.mobile .es-dim { grid-template-columns: 100px 1fr 44px 36px; gap: 8px; padding: 8px 10px; }
+.eg-host.mobile .es-dim .name { font-size: 12px; }
+
+/* mobile order: status -> grade -> score -> meta -> radar -> dims -> ctas */
+.eg-host.mobile .es-grade-wrap { gap: 14px; }
+.eg-host.mobile .es-grade-side { padding-top: 6px; }
+.eg-host.mobile .es-radar { aspect-ratio: 1 / 1; }
+
+
+/* ============================================================
+   2) Leaderboard Modal
+============================================================ */
+/* leaderboard 是模态浮层，覆盖在终局页之上 */
+.lb-host {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  font-family: var(--font-sans);
+  color: var(--text-1);
+}
+.lb-host .scrim {
+  position: absolute; inset: 0;
+  z-index: 1;
+  /* 用户反馈：原来加 backdrop-filter:blur(2px) + 0.74 黑底叠加后，
+     在 GPU 合成层级上让 .lb-modal 文字也被模糊。去掉 backdrop-filter，
+     单纯用半透明黑底做 scrim 就够了，modal 内容更清晰 */
+  background: rgba(4,6,12,0.78);
+}
+
+.lb-modal {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+  width: 920px;
+  max-height: 88%;
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.4),
+    0 24px 48px rgba(0,0,0,0.55);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  z-index: 2;
+}
+.lb-modal.mobile {
+  width: 358px;
+  border-radius: var(--r-md);
+}
+.lb-rail {
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold), rgba(255,213,79,0.0) 60%);
+}
+.lb-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 22px 10px;
+  border-bottom: 1px dashed var(--line);
+}
+.lb-modal.mobile .lb-head { padding: 12px 14px 10px; }
+.lb-head .lt {
+  display: flex; align-items: baseline; gap: 12px;
+}
+.lb-head .lb-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--gold);
+  text-transform: uppercase;
+  border: 1px solid rgba(255,213,79,0.4);
+  background: rgba(255,213,79,0.08);
+  padding: 1px 6px; border-radius: 2px;
+}
+.lb-head .lb-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-1);
+  letter-spacing: 0.04em;
+}
+.lb-modal.mobile .lb-head .lb-title { font-size: 15px; }
+.lb-head .lb-id {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.08em;
+}
+.lb-x {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-3); font-size: 14px;
+}
+.lb-x:hover { color: var(--text-1); }
+
+/* tabs */
+.lb-tabs {
+  display: flex;
+  padding: 8px 16px 0;
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+}
+.lb-modal.mobile .lb-tabs { padding: 6px 10px 0; }
+.lb-tab {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  white-space: nowrap;
+  display: flex; align-items: baseline; gap: 6px;
+}
+.lb-tab:hover { color: var(--text-1); }
+.lb-tab.active { color: var(--text-1); border-color: var(--gold); }
+.lb-tab.active .ct { color: var(--gold); }
+.lb-tab .ct {
+  font-size: 10px; color: var(--text-4); letter-spacing: 0.04em;
+}
+.lb-tab[data-role="cfo"].active { border-color: var(--info); }
+.lb-tab[data-role="cfo"].active .ct { color: var(--info); }
+.lb-tab[data-role="im"].active { border-color: var(--gold); }
+.lb-tab[data-role="im"].active .ct { color: var(--gold); }
+.lb-tab[data-role="gov"].active { border-color: var(--danger); }
+.lb-tab[data-role="gov"].active .ct { color: var(--danger); }
+
+/* table */
+.lb-tablewrap {
+  flex: 1;
+  overflow: auto;
+  padding: 0 16px 8px;
+}
+.lb-modal.mobile .lb-tablewrap { padding: 0; overflow-x: auto; }
+.lb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.lb-modal.mobile .lb-table {
+  min-width: 720px;
+  font-size: 11px;
+}
+.lb-table thead th {
+  position: sticky; top: 0;
+  background: var(--bg-2);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--text-3);
+  text-transform: uppercase;
+  text-align: left;
+  font-weight: 500;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--line-strong);
+  white-space: nowrap;
+}
+.lb-table tbody td {
+  padding: 9px 8px;
+  border-bottom: 1px dashed var(--line);
+  color: var(--text-1);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.lb-table .col-rank { width: 56px; }
+.lb-table .col-role { width: 112px; }
+.lb-table .col-nick { width: auto; min-width: 120px; white-space: normal; }
+.lb-table .col-plat { width: 200px; white-space: normal; }
+.lb-table .col-diff { width: 84px; }
+.lb-table .col-grade { width: 64px; }
+.lb-table .col-score { width: 76px; text-align: right; }
+.lb-table .col-q { width: 76px; text-align: right; }
+
+.lb-rank-num {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+.lb-rank-num.gold { color: var(--gold); }
+.lb-rank-num.silver { color: #d6dde8; }
+.lb-rank-num.bronze { color: #cd9b66; }
+
+.lb-role-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 2px;
+  letter-spacing: 0.06em;
+  border: 1px solid;
+}
+.lb-role-chip[data-r="cfo"] {
+  color: var(--info);
+  border-color: rgba(79,195,247,0.4);
+  background: rgba(79,195,247,0.08);
+}
+.lb-role-chip[data-r="im"] {
+  color: var(--gold);
+  border-color: rgba(255,213,79,0.4);
+  background: rgba(255,213,79,0.08);
+}
+.lb-role-chip[data-r="gov"] {
+  color: var(--danger);
+  border-color: rgba(239,83,80,0.4);
+  background: rgba(239,83,80,0.10);
+}
+.lb-role-chip .dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+}
+
+.lb-grade-cell {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.lb-grade-cell.S { color: var(--gold); }
+.lb-grade-cell.A { color: var(--info); }
+.lb-grade-cell.B { color: var(--ok); }
+.lb-grade-cell.C { color: var(--warn); }
+.lb-grade-cell.D { color: var(--danger); }
+
+.lb-q-status {
+  font-size: 10px;
+  color: var(--text-3);
+  margin-left: 4px;
+  letter-spacing: 0.06em;
+}
+.lb-q-status.fail { color: var(--danger); }
+
+.lb-table tr.me {
+  background: linear-gradient(90deg, rgba(255,213,79,0.16) 0%, rgba(255,213,79,0.04) 65%, transparent 100%);
+  position: relative;
+}
+.lb-table tr.me td {
+  border-bottom: 1px solid rgba(255,213,79,0.4);
+  border-top: 1px solid rgba(255,213,79,0.4);
+}
+.lb-table tr.me td:first-child {
+  position: relative;
+}
+.lb-table tr.me td:first-child::before {
+  content: "▶";
+  position: absolute; left: -2px; top: 50%; transform: translateY(-50%);
+  color: var(--gold);
+  font-size: 9px;
+  text-shadow: 0 0 6px var(--gold);
+}
+.lb-table tr.me .lb-rank-num { color: var(--gold); text-shadow: 0 0 8px rgba(255,213,79,0.4); }
+.lb-table tr.me .me-tag {
+  margin-left: 6px;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  color: var(--gold);
+  background: rgba(255,213,79,0.18);
+  border: 1px solid rgba(255,213,79,0.45);
+  padding: 1px 4px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  vertical-align: 1px;
+}
+
+/* footer / empty */
+.lb-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 22px 14px;
+  border-top: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.06em;
+}
+.lb-foot .l { display: flex; align-items: center; gap: 10px; }
+.lb-foot .r { display: flex; align-items: center; gap: 10px; }
+.lb-foot b { color: var(--text-2); font-weight: 500; }
+.lb-modal.mobile .lb-foot { padding: 8px 12px 10px; flex-direction: column; gap: 6px; align-items: stretch; }
+
+.lb-empty {
+  padding: 64px 22px;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  font-family: var(--font-mono);
+  color: var(--text-2);
+  letter-spacing: 0.04em;
+}
+.lb-empty .ascii {
+  font-size: 12px;
+  color: var(--text-4);
+  white-space: pre;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+}
+.lb-empty .msg { color: var(--text-2); font-size: 14px; letter-spacing: 0.06em; }
+.lb-empty .sub { font-size: 11px; color: var(--text-3); letter-spacing: 0.18em; text-transform: uppercase; }
+.lb-empty .cta {
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  border: 1px solid rgba(255,213,79,0.45);
+  background: rgba(255,213,79,0.08);
+  padding: 8px 14px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+
+
+/* ============================================================
+   3) Share Card — 750 x 1200
+============================================================ */
+.sc-host {
+  position: relative;
+  width: 750px;
+  height: 1200px;
+  background:
+    radial-gradient(ellipse at 50% 0%, var(--role-glow, rgba(79,195,247,0.18)), transparent 55%),
+    radial-gradient(ellipse at 50% 100%, rgba(255,213,79,0.06), transparent 50%),
+    var(--bg-1);
+  color: var(--text-1);
+  font-family: var(--font-sans);
+  overflow: hidden;
+  padding: 48px 48px 36px;
+  display: flex; flex-direction: column;
+  isolation: isolate;
+}
+.sc-host::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(120,140,200,0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(120,140,200,0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+  z-index: 0;
+}
+.sc-host::after {
+  content: "";
+  position: absolute; inset: 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: 0;
+}
+.sc-host > * { position: relative; z-index: 1; }
+
+/* fail variant tone */
+.sc-host.fail {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(239,83,80,0.22), transparent 55%),
+    radial-gradient(ellipse at 50% 100%, rgba(239,83,80,0.06), transparent 50%),
+    var(--bg-1);
+}
+
+.sc-top {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 24px;
+}
+.sc-brand {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.sc-logo {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  letter-spacing: 0.18em;
+  color: var(--text-1);
+  font-weight: 600;
+}
+.sc-logo .glyph {
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  border: 1.5px solid var(--role, var(--info));
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--role, var(--info));
+  font-weight: 700;
+  box-shadow: 0 0 12px var(--role-glow);
+}
+.sc-sub {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.20em;
+  color: var(--text-2);
+  text-transform: uppercase;
+  margin-left: 42px;
+}
+.sc-sub b { color: var(--role); font-weight: 600; }
+
+.sc-stamp {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.20em;
+  color: var(--text-3);
+  text-align: right;
+  text-transform: uppercase;
+  line-height: 1.6;
+}
+.sc-stamp .pass {
+  display: inline-block;
+  padding: 4px 8px;
+  border: 1px solid rgba(76,175,80,0.5);
+  background: rgba(76,175,80,0.12);
+  color: var(--ok);
+  border-radius: 2px;
+  font-weight: 600;
+}
+.sc-stamp .fail {
+  display: inline-block;
+  padding: 4px 8px;
+  border: 1px solid rgba(239,83,80,0.55);
+  background: rgba(239,83,80,0.16);
+  color: #ffd9d8;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+/* 中央巨大评级块 */
+.sc-grade-block {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 28px;
+  align-items: center;
+}
+.sc-grade {
+  font-family: var(--font-display);
+  font-size: 240px;
+  line-height: 0.84;
+  letter-spacing: -0.04em;
+  color: var(--role, var(--info));
+  font-weight: 600;
+  text-shadow:
+    0 0 36px var(--role-glow),
+    0 0 1px rgba(0,0,0,0.6);
+  position: relative;
+}
+.sc-host.fail .sc-grade {
+  color: var(--danger);
+  text-shadow: 0 0 36px rgba(239,83,80,0.55);
+}
+.sc-grade .crosshair {
+  position: absolute;
+  width: 26px; height: 26px;
+  border: 1.5px solid var(--role);
+  opacity: 0.5;
+}
+.sc-host.fail .sc-grade .crosshair { border-color: var(--danger); }
+.sc-grade .crosshair.tl { top: -8px; left: -8px; border-right: none; border-bottom: none; }
+.sc-grade .crosshair.br { bottom: 14px; right: -8px; border-left: none; border-top: none; }
+
+.sc-grade-info {
+  display: flex; flex-direction: column; gap: 14px;
+}
+.sc-grade-label {
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--text-1);
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+}
+.sc-grade-quote {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.55;
+  letter-spacing: 0.02em;
+  border-left: 2px solid var(--role);
+  padding-left: 12px;
+}
+.sc-host.fail .sc-grade-quote { border-color: var(--danger); }
+
+/* 总分行 */
+.sc-score {
+  margin-top: 32px;
+  display: flex; align-items: flex-end; justify-content: space-between;
+  padding: 18px 22px;
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  gap: 18px;
+}
+.sc-score .lt {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.sc-score .lbl {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.sc-score .num {
+  font-family: var(--font-mono);
+  font-size: 64px;
+  line-height: 0.95;
+  color: var(--text-1);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.sc-score .num .max {
+  font-size: 26px;
+  color: var(--text-3);
+  margin-left: 2px;
+}
+.sc-score .rt {
+  display: flex; flex-direction: column; gap: 8px;
+  align-items: flex-end;
+}
+.sc-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.10em;
+  padding: 6px 10px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-1);
+  border-radius: 3px;
+  color: var(--text-2);
+}
+.sc-pill .role-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--role);
+  box-shadow: 0 0 8px var(--role);
+}
+.sc-pill b { color: var(--role); font-weight: 600; }
+.sc-pill.gold {
+  border-color: rgba(255,213,79,0.45);
+  background: rgba(255,213,79,0.08);
+}
+.sc-pill.gold b { color: var(--gold); }
+
+/* 六维 */
+.sc-dims {
+  margin-top: 22px;
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  background: var(--line);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.sc-dim {
+  background: var(--bg-2);
+  padding: 14px 18px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.sc-dim:nth-child(odd) { border-right: 1px solid var(--line); }
+.sc-dim:not(:nth-last-child(-n+2)) { border-bottom: 1px solid var(--line); }
+.sc-dim .row1 {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 8px;
+}
+.sc-dim .name {
+  font-size: 15px;
+  color: var(--text-1);
+  letter-spacing: 0.04em;
+}
+.sc-dim .v {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 22px;
+  color: var(--text-1);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.sc-dim .v .max { color: var(--text-3); font-size: 12px; margin-left: 2px; }
+.sc-dim .bar {
+  position: relative;
+  height: 6px;
+  background: rgba(120,140,200,0.10);
+  border-radius: 1px;
+  overflow: hidden;
+}
+.sc-dim .bar .fill {
+  position: absolute; left: 0; top: 0; bottom: 0;
+  background: var(--role);
+  box-shadow: 0 0 10px var(--role-glow);
+}
+.sc-dim .row2 {
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+  letter-spacing: 0.06em;
+}
+.sc-dim .row2 .g { color: var(--role); font-weight: 600; }
+.sc-dim .row2 .g.low { color: var(--danger); }
+.sc-dim .row2 .g.mid { color: var(--warn); }
+
+/* 底部水印 */
+.sc-foot {
+  margin-top: 22px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 18px;
+}
+.sc-qr {
+  width: 96px; height: 96px;
+  background: #fff;
+  border-radius: 4px;
+  padding: 8px;
+  position: relative;
+  flex-shrink: 0;
+}
+.sc-qr svg { width: 100%; height: 100%; display: block; }
+.sc-watermark {
+  flex: 1;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.sc-watermark .l1 {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  letter-spacing: 0.18em;
+  color: var(--text-1);
+  text-transform: uppercase;
+}
+.sc-watermark .l1 b { color: var(--gold); font-weight: 600; }
+.sc-watermark .l2 {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.20em;
+  color: var(--text-3);
+  text-transform: uppercase;
+}
+.sc-stamp-box {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-4);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  line-height: 1.6;
+}
+.sc-stamp-box b { color: var(--text-2); font-weight: 500; }

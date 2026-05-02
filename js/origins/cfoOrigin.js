@@ -1,4 +1,5 @@
 // js/origins/cfoOrigin.js
+import { pickStarterKit } from '../starterKits.js';
 
 const REGIONS = [
   { id: 'east_core', label: '东部核心城市', score: 8 },
@@ -74,6 +75,7 @@ export function generateOrigin(roleId = 'cfo') {
     if (score >= TARGET_SCORE_MIN && score <= TARGET_SCORE_MAX) {
       origin.platformName = pick(PLATFORM_NAMES);
       origin.directorName = pick(CODENAMES);
+      origin.starterKit = pickStarterKit('cfo');  // D 改造：起手包
       origin.challenges = generateChallenges(origin);
       origin.labels = getLabels(origin);
       return origin;
@@ -125,6 +127,7 @@ function generateFallbackOrigin(roleId) {
     tag: 'leadership_change',
     platformName: '云中城建',
     directorName: '铁算盘',
+    starterKit: 'balanced',
   };
   origin.labels = getLabels(origin);
   origin.challenges = generateChallenges(origin);

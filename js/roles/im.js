@@ -1,6 +1,8 @@
 // js/roles/im.js
 // 债券基金经理 / 投资经理角色定义
 import { IM_ACTIONS, imApplyAction, imIsActionAvailable } from '../actions/im.js';
+import { sampleTip, sampleRisks } from './_hintHelpers.js';
+import { IM_KIT_MODIFIERS } from '../starterKits.js';
 
 const SCALE_PROFILES = {
   large: { initialAum: 500, cashRatio: 12 },
@@ -17,15 +19,17 @@ const HEALTH_PROFILES = {
 function getInitialMetrics(profile) {
   const sp = SCALE_PROFILES[profile.scale] || SCALE_PROFILES.medium;
   const hp = HEALTH_PROFILES[profile.healthLevel] || HEALTH_PROFILES.medium;
+  // D 改造：起手包决定久期 / 现金比例 / 信用敞口 / 集中度 / 起始杠杆
+  const k = IM_KIT_MODIFIERS[profile?.starterKit] || IM_KIT_MODIFIERS.balanced;
   return {
     nav: 1.0 + hp.initialNavBuffer,
     aum: sp.initialAum,
-    cashRatio: sp.cashRatio,
-    duration: 2.5,
-    concentration: hp.concentration,
-    creditExposure: hp.creditExposure,
+    cashRatio: round(sp.cashRatio * (k.cashRatioMult || 1), 2),
+    duration: k.duration ?? 2.5,
+    concentration: round(hp.concentration * (k.concentrationMult || 1), 2),
+    creditExposure: round(hp.creditExposure * (k.creditExposureMult || 1), 2),
     redemptionPressure: profile.tag === 'pending_redemption' ? 35 : 10,
-    leverage: 100,
+    leverage: k.leverage ?? 100,
   };
 }
 
@@ -87,19 +91,49 @@ function detectCrisis(state) {
   return null;
 }
 
-function getOnboardingHints(profile) {
-  const heavy = profile.healthLevel === 'weak';
+// ────────────────────────────────────────────
+// 命运卡 onboarding 池子（C 改造：替换原硬编码 1-2 句）
+// ────────────────────────────────────────────
+
+const TIPS_POOL = [
+  // 健康度
+  { id: 'im_tip_weak_sell',     text: '第一回合先卖 3-5 亿弱资质券，压低信用敞口', when: { health: 'weak' } },
+  { id: 'im_tip_med_observe',   text: '观察政策方向，松时拉久期、紧时压久期', when: { health: 'medium' } },
+  { id: 'im_tip_good_extend',   text: '组合健康，可主动拉久期博收益', when: { health: 'good' } },
+  // 标签
+  { id: 'im_tip_pending_redm',  text: '第一周先扛住赎回潮，砍仓是最后选项', when: { tag: 'pending_redemption' } },
+  { id: 'im_tip_concentrated',  text: '提前和大客户沟通，预判赎回节奏', when: { tag: 'concentrated_clients' } },
+  { id: 'im_tip_fresh',         text: '建仓期不要急于追涨，先攒底仓', when: { tag: 'fresh_product' } },
+  { id: 'im_tip_drawdown',      text: '渠道客户对下一次波动更敏感，先把波动控住', when: { tag: 'recent_drawdown' } },
+  // 剧本
+  { id: 'im_tip_rise_build',    text: '前 4 季是建仓窗口，Q9+ 别再加杠杆', when: { script: 'rise_and_fall' } },
+  { id: 'im_tip_v_pivot',       text: 'Q5 政策大转向，提前 1 季拉久期吃反弹', when: { script: 'v_shape' } },
+  { id: 'im_tip_slow_credit',   text: 'Q1-Q4 表面平静，是把信用敞口压下来的窗口', when: { script: 'slow_boil' } },
+  { id: 'im_tip_redm_lever',    text: '第一季就把杠杆降到 100% 起，撑过开局再说', when: { script: 'redemption' } },
+];
+
+const RISKS_POOL = [
+  // 核心死亡（按严重度排序）
+  { id: 'im_risk_nav',          text: '净值跌穿 0.85 → 产品清盘' },
+  { id: 'im_risk_concentr',     text: '单券集中度超 25% → 监管约谈' },
+  { id: 'im_risk_redmRun',      text: '赎回压力失控 → 现金穿底 → NAV 加速下跌' },
+  { id: 'im_risk_lever',        text: '杠杆超 140% → 监管强制降杠杆' },
+  // 情境
+  { id: 'im_risk_weak',         text: '重仓弱资质，赎回潮容易踩踏', when: { health: 'weak' } },
+  { id: 'im_risk_pending',      text: '大额赎回压力中，现金不足会演变为流动性挤兑', when: { tag: 'pending_redemption' } },
+  { id: 'im_risk_concClients',  text: '单一客户赎回直接冲击组合现金', when: { tag: 'concentrated_clients' } },
+  { id: 'im_risk_drawdown',     text: '刚经历回撤，渠道客户对下一次波动更敏感', when: { tag: 'recent_drawdown' } },
+  { id: 'im_risk_private',      text: '私募客户稳定性差，外部融资能力弱', when: { inst: 'private' } },
+  { id: 'im_risk_small',        text: '规模小抗赎回弱，单券集中度也容易超线', when: { scale: 'small' } },
+  { id: 'im_risk_slow',         text: 'Q9+ 集中爆雷，重仓弱资质会被踩踏', when: { script: 'slow_boil' } },
+  { id: 'im_risk_rise',         text: 'Q5+ 紧缩期，高久期 + 高敞口同时受损', when: { script: 'rise_and_fall' } },
+];
+
+function getOnboardingHints(profile, scriptId = null) {
   return {
     goal: '存活 12 季度，期末净值不跌穿 0.85',
-    topRisks: [
-      '净值跌穿 0.85 → 产品清盘',
-      '单券集中度超 25% → 监管约谈',
-      '赎回压力失控 → 现金穿底 → NAV 加速下跌',
-      heavy ? '当前持仓重仓弱资质，赎回潮容易踩踏' : null,
-    ].filter(Boolean),
-    firstActionHint: heavy
-      ? '第一回合先卖出 3-5 亿弱资质券，把信用敞口压下来'
-      : '观察政策方向，政策松时拉久期，紧时压久期',
+    topRisks: sampleRisks(RISKS_POOL, profile, scriptId, 3),
+    firstActionHint: sampleTip(TIPS_POOL, profile, scriptId, '观察政策方向再决定久期 / 信用动作'),
   };
 }
 

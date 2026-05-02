@@ -1,5 +1,6 @@
 // js/origins/govOrigin.js
 // 地方官员命运卡随机生成
+import { pickStarterKit } from '../starterKits.js';
 
 const TIERS = [
   { id: 'strong_capital', label: '强省会', score: 4 },
@@ -76,6 +77,7 @@ function buildOrigin(tier, fiscal, political, tag, score) {
     tag: tag.id,
     directorName: pick(OFFICIAL_NAMES),
     platformName: pick(CITY_NAMES),
+    starterKit: pickStarterKit('gov'),  // D 改造：起手包
     labels: {
       tier: tier.label,
       fiscal: fiscal.label,

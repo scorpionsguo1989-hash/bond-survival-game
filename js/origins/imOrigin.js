@@ -1,4 +1,5 @@
 // js/origins/imOrigin.js
+import { pickStarterKit } from '../starterKits.js';
 
 const INSTITUTIONS = [
   { id: 'bank_wm', label: '银行理财', score: 4 },
@@ -63,6 +64,7 @@ function buildOrigin(inst, scale, health, tag, score) {
     tag: tag.id,
     directorName: pick(PM_NAMES),
     platformName: pick(FUND_NAMES),
+    starterKit: pickStarterKit('im'),  // D 改造：起手包
     labels: {
       inst: inst.label,
       scale: scale.label,

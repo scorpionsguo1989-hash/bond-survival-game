@@ -58,6 +58,7 @@ describe('checkDeath', () => {
 describe('applyEventChoice', () => {
   const baseState = () => ({
     ...createInitialState(sampleOrigin),
+    scriptId: 'rise_and_fall',
     metrics: { cash: 5, creditUsed: 5, creditTotal: 20, financingCost: 6, leverageRatio: 70, opCostRate: 0.6, projectGap: 2, debtMaturity: [0,0,0,0,0,0,0,0,0,0,0,0], collateralRoom: 'medium' },
   });
 

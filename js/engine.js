@@ -4,9 +4,13 @@
 import { GAME_CONFIG } from './config.js';
 import { getRole } from './roles/index.js';
 import { driftPolicy, applyPolicyShift } from './policy.js';
+import { pickRandomScriptId, getCurrentAct, applyActScoreMultiplier } from './scripts.js';
+import { pickGoalForGame } from './goals.js';
 
 export function createInitialState(origin) {
   const role = getRole(origin.role);
+  const scriptId = pickRandomScriptId();
+  const goal = pickGoalForGame(origin.role, scriptId);
   return {
     origin,
     role,                                  // ← 注入
@@ -22,8 +26,22 @@ export function createInitialState(origin) {
     history: [],          // [{year, quarter, snapshot}]
     eventLog: [],         // [{eventId, choiceIdx}]
     pendingEvent: null,
+    blackSwansSeen: [],   // 已触发的黑天鹅事件 ID，避免一局重复
+    nextSagaEventId: null, // Saga 长线：上一季选择指向的下一步事件 ID
+    sagaSeenIds: [],       // 已触发过的 Saga 事件 ID，避免 step1 重复刷出
+    completedSagaIds: [],  // 已终止/完成的 Saga 链 ID，避免同一链重新开局
+    scriptId,             // 多周期叙事：本局抽到的剧本 ID
+    goalId: goal.id,      // 本局目标 ID（写入持久化，ui.js 通过 getGoalById 反查文案）
+    currentActId: null,   // 当前所在幕；由 main.js 在每季 loadCurrentTurnEvent 后更新
+    coachingUsedTotal: 0, // AI 决策助手累积使用次数（整局 3 次上限）
+    pendingEffects: [],   // 延迟后果队列：[{quarter, effects, sourceEvent, sourceTitle}]
+    npcEncounters: {},    // NPC 记忆：{ [npcId]: { count, lastQuarter, lastEventTitle, lastChoiceLabel } }
+    lastSwanTag: null,    // 上一个触发的黑天鹅 swanTag，用于避免连发同主题
+    openingEventConsumed: false,  // E 改造：Q1 开场事件是否已触发；老存档 undefined 也走重新触发
   };
 }
+
+export const COACHING_MAX_PER_GAME = 3;
 
 /**
  * Advance to next quarter:
@@ -36,9 +54,14 @@ export function createInitialState(origin) {
  * See main.js handleEndTurn for the expected pattern.
  */
 export function advanceTurn(state) {
-  // 1. 政策轴漂移（朝当前方向）
+  // 1. 政策轴漂移：先按当前位置自然回归，再叠加当前幕的剧本压力
+  //    剧本里 policyDrift > 0 推向宽松、< 0 推向收紧、= 0 不额外推
   const dir = state.policyValue < 0 ? 'tight' : (state.policyValue > 0 ? 'loose' : 'stable');
   let newPolicy = driftPolicy(state.policyValue, dir);
+  const act = getCurrentAct(state);
+  if (act?.policyDrift) {
+    newPolicy = applyPolicyShift(newPolicy, act.policyDrift);
+  }
 
   // 2. 角色独有的季度结算
   const { metrics: newMetrics, score: newScore } = state.role.advanceTurn(state);
@@ -60,16 +83,49 @@ export function advanceTurn(state) {
     policyValue: state.policyValue,
   }];
 
+  // 5. 延迟后果结算：检查 pendingEffects 里到期（quarter <= newQuartersPassed）的项
+  //    应用 effects 到 metrics/score；让 main.js 拿 triggeredDelayedEffects 显示 toast
+  const newQuartersPassed = state.quartersPassed + 1;
+  const triggeredDelayedEffects = [];
+  const remainingPendingEffects = [];
+  let withDelayedMetrics = newMetrics;
+  let withDelayedScore = newScore || state.score;
+  for (const item of (state.pendingEffects || [])) {
+    if (item && item.quarter <= newQuartersPassed) {
+      triggeredDelayedEffects.push(item);
+      const m = { ...withDelayedMetrics };
+      const sc = { ...withDelayedScore };
+      Object.entries(item.effects || {}).forEach(([key, val]) => {
+        if (key.startsWith('_')) return;
+        if (key.startsWith('score.')) {
+          const dim = key.slice(6);
+          sc[dim] = (sc[dim] || 0) + val;
+        } else if (key === 'collateralRoom') {
+          if (val === 'downgrade') m.collateralRoom = downgradeCollateral(m.collateralRoom);
+          else if (val === 'upgrade') m.collateralRoom = upgradeCollateral(m.collateralRoom);
+        } else if (typeof val === 'number') {
+          m[key] = parseFloat(((m[key] || 0) + val).toFixed(2));
+        }
+      });
+      withDelayedMetrics = m;
+      withDelayedScore = sc;
+    } else {
+      remainingPendingEffects.push(item);
+    }
+  }
+
   return {
     ...state,
     year: newYear,
     quarter: newQuarter,
     policyValue: newPolicy,
-    metrics: newMetrics,
-    score: newScore || state.score,
+    metrics: withDelayedMetrics,
+    score: withDelayedScore,
     actionsUsed: 0,
-    quartersPassed: state.quartersPassed + 1,
+    quartersPassed: newQuartersPassed,
     history: newHistory,
+    pendingEffects: remainingPendingEffects,
+    triggeredDelayedEffects,  // main.js 拿这个弹 toast；下一季会被清空
   };
 }
 
@@ -116,7 +172,27 @@ export function applyEventChoice(state, event, choiceIdx) {
     newPolicy = applyPolicyShift(newPolicy, event.policyShift);
   }
 
-  Object.entries(choice.effects || {}).forEach(([key, val]) => {
+  // 多周期叙事：根据当前幕给 score.* 加权（鼓励"本幕的正确动作"）
+  // 仅放大正向加成，负向不缩小（避免帮玩家逃避惩罚）
+  const currentAct = getCurrentAct(state);
+  const weightedEffects = applyActScoreMultiplier(choice.effects || {}, currentAct);
+
+  // 收集延迟后果（如果选项含 _delayedEffect: { afterQuarters, effects }）
+  const newPendingEffects = [];
+
+  Object.entries(weightedEffects).forEach(([key, val]) => {
+    if (key === '_delayedEffect') {
+      // val 形如 { afterQuarters: 3, effects: { financingCost: 0.2, ... } }
+      if (val && typeof val.afterQuarters === 'number' && val.effects) {
+        newPendingEffects.push({
+          quarter: (state.quartersPassed || 0) + Math.max(1, val.afterQuarters),
+          effects: val.effects,
+          sourceEvent: event.id,
+          sourceTitle: event.title || '',
+        });
+      }
+      return;
+    }
     if (key.startsWith('score.')) {
       const dim = key.slice(6);
       newScore[dim] = (newScore[dim] || 0) + val;
@@ -124,7 +200,7 @@ export function applyEventChoice(state, event, choiceIdx) {
       if (val === 'downgrade') newMetrics.collateralRoom = downgradeCollateral(newMetrics.collateralRoom);
       else if (val === 'upgrade') newMetrics.collateralRoom = upgradeCollateral(newMetrics.collateralRoom);
     } else if (key.startsWith('_')) {
-      // 内部flag，跳过
+      // 其他内部 flag，跳过
     } else if (typeof val === 'number') {
       newMetrics[key] = parseFloat(((newMetrics[key] || 0) + val).toFixed(2));
     }
@@ -141,6 +217,7 @@ export function applyEventChoice(state, event, choiceIdx) {
     score: newScore,
     policyValue: newPolicy,
     eventLog: [...state.eventLog, { eventId: event.id, choiceIdx, uncertainOutcome }],
+    pendingEffects: [...(state.pendingEffects || []), ...newPendingEffects],
   };
 }
 

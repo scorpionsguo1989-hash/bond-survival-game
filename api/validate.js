@@ -82,6 +82,25 @@ export function validateScoreSubmission(data) {
     return fail('survived=true requires quartersPassed=12');
   }
 
+  // decisions: optional, max 30 entries; each entry must be {eventId, choiceIdx, outcome?}
+  if (data.decisions !== undefined) {
+    if (!Array.isArray(data.decisions)) return fail('decisions must be an array');
+    if (data.decisions.length > 30) return fail('decisions too long (max 30)');
+    for (let i = 0; i < data.decisions.length; i++) {
+      const d = data.decisions[i];
+      if (!d || typeof d !== 'object') return fail(`decisions[${i}] must be object`);
+      if (typeof d.eventId !== 'string' || d.eventId.length === 0 || d.eventId.length > 80) {
+        return fail(`decisions[${i}].eventId required (1-80 chars)`);
+      }
+      if (!Number.isInteger(d.choiceIdx) || d.choiceIdx < 0 || d.choiceIdx > 9) {
+        return fail(`decisions[${i}].choiceIdx must be integer 0-9`);
+      }
+      if (d.outcome != null && d.outcome !== 'succeeded' && d.outcome !== 'failed') {
+        return fail(`decisions[${i}].outcome must be 'succeeded' | 'failed' | null`);
+      }
+    }
+  }
+
   return { valid: true };
 }
 

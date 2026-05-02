@@ -8,6 +8,67 @@ let holdingsChart = null;
 let fiscalChart = null;
 let debtRatioChart = null;
 
+// ─────────────────────────────────────────────
+// 通用配置 helper
+// 修两个常见 bug：
+//   1) 右栏 296px 容器下 x 轴最末 label 末字被切 → layout.padding.right + 8
+//   2) 中文 label 自动旋转后只能露半字 → maxRotation:0 强制水平 + 自动 skip
+// ─────────────────────────────────────────────
+function commonChartOptions(extra = {}) {
+  const xExtra = (extra.scales && extra.scales.x) || {};
+  const yExtra = (extra.scales && extra.scales.y) || {};
+  const otherScales = extra.scales ? Object.fromEntries(
+    Object.entries(extra.scales).filter(([k]) => k !== 'x' && k !== 'y')
+  ) : {};
+  return {
+    plugins: extra.plugins || { legend: { display: false } },
+    layout: { padding: { left: 4, right: 10, top: 4, bottom: 2 } },
+    scales: {
+      x: {
+        ticks: {
+          color: '#4a6080',
+          font: { size: 9 },
+          maxRotation: 0,
+          minRotation: 0,
+          autoSkip: true,
+          autoSkipPadding: 6,
+          padding: 4,
+          ...(xExtra.ticks || {}),
+        },
+        grid: xExtra.grid || { display: false },
+        ...(xExtra.title ? { title: xExtra.title } : {}),
+        ...(xExtra.suggestedMin !== undefined ? { suggestedMin: xExtra.suggestedMin } : {}),
+        ...(xExtra.suggestedMax !== undefined ? { suggestedMax: xExtra.suggestedMax } : {}),
+      },
+      y: {
+        ticks: {
+          color: '#4a6080',
+          font: { size: 9 },
+          padding: 4,
+          ...(yExtra.ticks || {}),
+        },
+        grid: yExtra.grid || { color: '#1e2d47' },
+        ...(yExtra.suggestedMin !== undefined ? { suggestedMin: yExtra.suggestedMin } : {}),
+        ...(yExtra.suggestedMax !== undefined ? { suggestedMax: yExtra.suggestedMax } : {}),
+      },
+      ...otherScales,
+    },
+    maintainAspectRatio: false,
+  };
+}
+
+// 趋势图起点补偿：history 长度 < 1 时只有 1 个数据点，line 画不出来 + y 轴自适应崩坏
+// 给 labels 和 data 头部各塞 1 个"起始"占位（同值），让 line 至少 2 个点保持水平
+function ensureTrendBaseline(labels, data, currentLabel) {
+  if (labels.length === 0 || data.length === 0) {
+    return { labels: ['起始', currentLabel], data: [data[0] ?? 0, data[0] ?? 0] };
+  }
+  if (labels.length === 1) {
+    return { labels: ['起始', ...labels], data: [data[0], ...data] };
+  }
+  return { labels, data };
+}
+
 export function renderDebtWaterfall(state) {
   const ctx = document.getElementById('chart-debt');
   if (!ctx) return;
@@ -24,25 +85,22 @@ export function renderDebtWaterfall(state) {
   debtChart = new Chart(ctx, {
     type: 'bar',
     data: { labels, datasets: [{ data, backgroundColor: colors, borderRadius: 2 }] },
-    options: {
+    options: commonChartOptions({
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.parsed.y}亿` } } },
-      scales: {
-        x: { ticks: { color: '#4a6080', font: { size: 9 } }, grid: { display: false } },
-        y: { ticks: { color: '#4a6080' }, grid: { color: '#1e2d47' } }
-      },
-      maintainAspectRatio: false,
-    }
+    }),
   });
 }
 
 export function renderCashTrend(state) {
   const ctx = document.getElementById('chart-cash');
   if (!ctx) return;
-  const labels = state.history.map(h => `${h.year}Q${h.quarter}`);
-  const data = state.history.map(h => h.cash);
+  let labels = state.history.map(h => `${h.year}Q${h.quarter}`);
+  let data = state.history.map(h => h.cash);
   // 当前点
   labels.push(`${state.year}Q${state.quarter}`);
   data.push(state.metrics.cash);
+  // 起点补偿：history 空时，line 至少 2 个点
+  ({ labels, data } = ensureTrendBaseline(labels, data, `${state.year}Q${state.quarter}`));
 
   if (cashChart) cashChart.destroy();
   cashChart = new Chart(ctx, {
@@ -58,14 +116,10 @@ export function renderCashTrend(state) {
         pointRadius: 2,
       }]
     },
-    options: {
+    options: commonChartOptions({
       plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { color: '#4a6080' }, grid: { display: false } },
-        y: { ticks: { color: '#4a6080' }, grid: { color: '#1e2d47' } }
-      },
-      maintainAspectRatio: false,
-    }
+      scales: { y: { suggestedMin: 0 } },
+    }),
   });
 }
 
@@ -73,12 +127,14 @@ export function renderCashTrend(state) {
 export function renderNavChart(state) {
   const ctx = document.getElementById('chart-nav');
   if (!ctx) return;
-  const labels = state.history.map(h => `${h.year}Q${h.quarter}`);
-  const data = state.history.map(h => h.nav).filter(v => v != null);
+  let labels = state.history.map(h => `${h.year}Q${h.quarter}`);
+  let data = state.history.map(h => h.nav).filter(v => v != null);
   // 当前点
   labels.push(`${state.year}Q${state.quarter}`);
   data.push(state.metrics.nav);
-  // 死亡线
+  // 起点补偿
+  ({ labels, data } = ensureTrendBaseline(labels, data, `${state.year}Q${state.quarter}`));
+  // 死亡线（与 labels 同长）
   const deathLine = labels.map(() => 0.85);
 
   if (navChart) navChart.destroy();
@@ -90,8 +146,8 @@ export function renderNavChart(state) {
         {
           label: 'NAV',
           data,
-          borderColor: '#4fc3f7',
-          backgroundColor: 'rgba(79,195,247,0.15)',
+          borderColor: '#ffd54f',
+          backgroundColor: 'rgba(255,213,79,0.15)',
           fill: true,
           tension: 0.3,
           pointRadius: 2,
@@ -106,14 +162,10 @@ export function renderNavChart(state) {
         },
       ],
     },
-    options: {
+    options: commonChartOptions({
       plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { color: '#4a6080' }, grid: { display: false } },
-        y: { ticks: { color: '#4a6080' }, grid: { color: '#1e2d47' }, suggestedMin: 0.8, suggestedMax: 1.1 },
-      },
-      maintainAspectRatio: false,
-    },
+      scales: { y: { suggestedMin: 0.8, suggestedMax: 1.1 } },
+    }),
   });
 }
 
@@ -139,15 +191,14 @@ export function renderHoldingsChart(state) {
         borderWidth: 2,
       }],
     },
-    options: {
+    options: commonChartOptions({
       plugins: {
         legend: {
           display: true, position: 'bottom',
           labels: { color: '#8fa8c8', font: { size: 10 }, padding: 6, boxWidth: 10 },
         },
       },
-      maintainAspectRatio: false,
-    },
+    }),
   });
 }
 
@@ -166,7 +217,8 @@ export function renderFiscalChart(state) {
   fiscalChart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: ['一般预算', '土地收入', '转移支付', '刚性支出', '化债'],
+      // 缩短 label 防中文挤压：'一般预算' → '一般'，'土地收入' → '土地'
+      labels: ['一般', '土地', '转移', '支出', '化债'],
       datasets: [{
         data: [quartersIncome, landIn, transfer, -opCost, -debtService],
         backgroundColor: [
@@ -175,14 +227,9 @@ export function renderFiscalChart(state) {
         borderRadius: 2,
       }],
     },
-    options: {
+    options: commonChartOptions({
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${Math.abs(c.parsed.y).toFixed(1)}亿` } } },
-      scales: {
-        x: { ticks: { color: '#4a6080', font: { size: 9 } }, grid: { display: false } },
-        y: { ticks: { color: '#4a6080' }, grid: { color: '#1e2d47' } },
-      },
-      maintainAspectRatio: false,
-    },
+    }),
   });
 }
 
@@ -190,10 +237,12 @@ export function renderFiscalChart(state) {
 export function renderDebtRatioChart(state) {
   const ctx = document.getElementById('chart-debt-ratio');
   if (!ctx) return;
-  const labels = state.history.map(h => `${h.year}Q${h.quarter}`);
-  const data = state.history.map(h => h.snapshot?.debtRatio || h.debtRatio).filter(v => v != null);
+  let labels = state.history.map(h => `${h.year}Q${h.quarter}`);
+  let data = state.history.map(h => h.snapshot?.debtRatio || h.debtRatio).filter(v => v != null);
   labels.push(`${state.year}Q${state.quarter}`);
   data.push(state.metrics.debtRatio);
+  // 起点补偿
+  ({ labels, data } = ensureTrendBaseline(labels, data, `${state.year}Q${state.quarter}`));
   const redLine = labels.map(() => 300);
 
   if (debtRatioChart) debtRatioChart.destroy();
@@ -221,14 +270,10 @@ export function renderDebtRatioChart(state) {
         },
       ],
     },
-    options: {
+    options: commonChartOptions({
       plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { color: '#4a6080' }, grid: { display: false } },
-        y: { ticks: { color: '#4a6080' }, grid: { color: '#1e2d47' }, suggestedMin: 150, suggestedMax: 320 },
-      },
-      maintainAspectRatio: false,
-    },
+      scales: { y: { suggestedMin: 150, suggestedMax: 320 } },
+    }),
   });
 }
 

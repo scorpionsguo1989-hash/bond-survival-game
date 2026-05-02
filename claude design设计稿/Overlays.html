@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Overlays · 债市生存游戏</title>
+<link rel="stylesheet" href="tokens.css" />
+<link rel="stylesheet" href="overlays.css" />
+<style>
+  html, body, #root { height: 100%; }
+  body { background: #07090f; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="overlays.jsx"></script>
+
+<script type="text/babel">
+  const { DesignCanvas, DCSection, DCArtboard } = window;
+
+  function App() {
+    return (
+      <DesignCanvas storageKey="overlays-r3">
+        <DCSection id="op" title="01 · Operation Input Modal">
+          <DCArtboard id="op-cfo-d" label="CFO · 桌面 · 申请银行续贷" width={1280} height={780}>
+            <OperationModal />
+          </DCArtboard>
+          <DCArtboard id="op-cfo-m" label="CFO · 移动" width={390} height={780}>
+            <OperationModal mobile />
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="toast" title="02 · Toast 三态（success / error / info）">
+          <DCArtboard id="toast-d" label="桌面 · 右上堆叠" width={1280} height={780}>
+            <ToastsDesktop />
+          </DCArtboard>
+          <DCArtboard id="toast-m" label="移动 · 顶部下拉" width={390} height={780}>
+            <ToastsMobile />
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="crisis" title="03 · Crisis Modal · 危机警报">
+          <DCArtboard id="crisis-im-d" label="IM · 桌面 · 赎回压力 84%" width={1280} height={900}>
+            <CrisisIM />
+          </DCArtboard>
+          <DCArtboard id="crisis-im-m" label="IM · 移动" width={390} height={1020}>
+            <CrisisIM mobile />
+          </DCArtboard>
+          <DCArtboard id="crisis-gov-d" label="GOV · 桌面 · 隐债敞口 223 亿" width={1280} height={900}>
+            <CrisisGOV />
+          </DCArtboard>
+        </DCSection>
+      </DesignCanvas>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

@@ -1,6 +1,8 @@
 // js/roles/gov.js
 // 地方官员角色：财政视角，化债 + 政绩 + 转移支付博弈
 import { GOV_ACTIONS, govApplyAction, govIsActionAvailable } from '../actions/gov.js';
+import { sampleTip, sampleRisks } from './_hintHelpers.js';
+import { GOV_KIT_MODIFIERS } from '../starterKits.js';
 
 const TIER_PROFILES = {
   strong_capital: { fiscalRevenue: 280, landRevenue: 180, specialBondQuota: 28, debtRatio: 200, transferPayment: 8 },
@@ -28,16 +30,18 @@ function getInitialMetrics(profile) {
   const tp = TIER_PROFILES[profile.cityTier] || TIER_PROFILES.prefecture;
   const fp = FISCAL_PROFILES[profile.fiscalStatus] || FISCAL_PROFILES.transfer_dep;
   const tm = TAG_MODIFIERS[profile.tag] || { politicalScoreInit: 55 };
+  // D 改造：起手包 modifier
+  const k = GOV_KIT_MODIFIERS[profile?.starterKit] || GOV_KIT_MODIFIERS.balanced;
 
   return {
     fiscalRevenue: tp.fiscalRevenue + (tm.fiscalRevenue || 0),
     landRevenue: tp.landRevenue + (tm.landRevenue || 0),
-    debtRatio: tp.debtRatio + (tm.debtRatio || 0),
-    hiddenDebtRisk: fp.hiddenDebtRisk + (tm.hiddenDebtRisk || 0),
-    industryIndex: clamp(fp.industryIndex + (tm.industryIndex || 0), 0, 100),
-    politicalScore: clamp(tm.politicalScoreInit, 0, 100),
-    specialBondQuota: tp.specialBondQuota,
-    transferPayment: tp.transferPayment * fp.transferMult,
+    debtRatio: round(tp.debtRatio + (tm.debtRatio || 0) + (k.debtRatioDelta || 0), 2),
+    hiddenDebtRisk: round((fp.hiddenDebtRisk + (tm.hiddenDebtRisk || 0)) * (k.hiddenDebtMult || 1), 2),
+    industryIndex: clamp(fp.industryIndex + (tm.industryIndex || 0) + (k.industryIndexDelta || 0), 0, 100),
+    politicalScore: clamp(tm.politicalScoreInit + (k.politicalScoreDelta || 0), 0, 100),
+    specialBondQuota: round(tp.specialBondQuota * (k.specialBondQuotaMult || 1), 2),
+    transferPayment: round(tp.transferPayment * fp.transferMult * (k.transferPaymentMult || 1), 2),
     cash: 4.0,  // 季度现金（与 CFO 单位对齐，便于事件 effects 复用）
   };
 }
@@ -113,19 +117,50 @@ function detectCrisis(state) {
   return null;
 }
 
-function getOnboardingHints(profile) {
-  const heavy = profile.tag === 'debt_zone';
+// ────────────────────────────────────────────
+// 命运卡 onboarding 池子（C 改造：替换原硬编码 1-2 句）
+// ────────────────────────────────────────────
+
+const TIPS_POOL = [
+  // 标签
+  { id: 'gov_tip_debt_zone',    text: '第一季先发专项债置换隐债，主动申报试点', when: { tag: 'debt_zone' } },
+  { id: 'gov_tip_major_proj',   text: '第一季先核算项目资金缺口，避免后期拉胯', when: { tag: 'major_project' } },
+  { id: 'gov_tip_land_disp',    text: '土地纠纷尽快协调，不然出让收入持续下滑', when: { tag: 'land_dispute' } },
+  // 财政
+  { id: 'gov_tip_landDep',      text: '房地产周期下行，开局把 Q3 土地预算下调', when: { fiscal: 'land_dep' } },
+  { id: 'gov_tip_transferDep',  text: '第一季就和上级对接转移支付申请', when: { fiscal: 'transfer_dep' } },
+  // 政治
+  { id: 'gov_tip_reshuffle',    text: '即将换届，决策要为接班人留余地', when: { political: 'reshuffle' } },
+  { id: 'gov_tip_parachute',    text: '空降身份，第一季先稳住本地关系', when: { political: 'parachute' } },
+  { id: 'gov_tip_fresh',        text: '新官上任三把火，第一季给本地班子立个标准', when: { political: 'fresh' } },
+  // 剧本
+  { id: 'gov_tip_redm_open',    text: '危机开局，先做隐债自查 + 平台兜底优先级排序', when: { script: 'redemption' } },
+  { id: 'gov_tip_v_window',     text: 'Q5 政策松时再申报特殊再融资，提前 1 季准备材料', when: { script: 'v_shape' } },
+  { id: 'gov_tip_rise_save',    text: '前 4 季扩张窗口好用，但要为 Q9+ 危机留余地', when: { script: 'rise_and_fall' } },
+];
+
+const RISKS_POOL = [
+  // 核心死亡 / 触发条件
+  { id: 'gov_risk_debtRatio',   text: '综合债务率超 300% → 被中央约谈强制化债' },
+  { id: 'gov_risk_political',   text: '政绩跌穿 20 → 被免职调离' },
+  { id: 'gov_risk_hidden',      text: '隐债敞口超 200 亿 → 触发集中爆雷危机' },
+  // 情境
+  { id: 'gov_risk_debtZone',    text: '已是化债重点区域，初始隐债敞口高', when: { tag: 'debt_zone' } },
+  { id: 'gov_risk_landDisp',    text: '土地出让受影响，财政缺口扩大', when: { tag: 'land_dispute' } },
+  { id: 'gov_risk_industry',    text: '产业转型阵痛，传统税源萎缩', when: { tag: 'industry_pain' } },
+  { id: 'gov_risk_population',  text: '人口持续流出，财政长期不可持续', when: { tag: 'population_drain' } },
+  { id: 'gov_risk_landDep',     text: '高度依赖土地，房地产周期波动直接冲击预算', when: { fiscal: 'land_dep' } },
+  { id: 'gov_risk_transferDep', text: '自有财政有限，需积极争取上级支持', when: { fiscal: 'transfer_dep' } },
+  { id: 'gov_risk_reshuffle',   text: '换届期决策都要考虑接班人评价', when: { political: 'reshuffle' } },
+  { id: 'gov_risk_slow',        text: 'Q1-Q4 平静是假象，Q9+ 集中爆雷', when: { script: 'slow_boil' } },
+  { id: 'gov_risk_redm',        text: '危机开局，没有蜜月期', when: { script: 'redemption' } },
+];
+
+function getOnboardingHints(profile, scriptId = null) {
   return {
     goal: '存活 12 季度，期末综合债务率不超 300%、政绩不跌穿 20',
-    topRisks: [
-      '综合债务率超 300% → 被中央约谈强制化债',
-      '政绩跌穿 20 → 被免职调离',
-      '隐债敞口超 200 亿 → 触发集中爆雷危机',
-      heavy ? '当前已是化债重点区域，初始隐债敞口高' : null,
-    ].filter(Boolean),
-    firstActionHint: heavy
-      ? '第一季度先发专项债置换隐债，把风险压下来'
-      : '先观察辖区平台融资情况，必要时协调担保',
+    topRisks: sampleRisks(RISKS_POOL, profile, scriptId, 3),
+    firstActionHint: sampleTip(TIPS_POOL, profile, scriptId, '先观察辖区平台融资情况，必要时协调担保'),
   };
 }
 

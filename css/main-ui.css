@@ -575,13 +575,15 @@
 .chart-body .danger-line-text { fill: var(--danger); font-size: 9px; }
 
 .chart-foot {
-  padding: 8px var(--sp-3);
+  /* 右栏 296px 容器下需要更紧凑：缩小 gap、加右余量防裁切 */
+  padding: 8px 12px 8px var(--sp-3);
   border-top: 1px dashed var(--line);
-  display: flex; align-items: center; gap: var(--sp-3);
+  display: flex; align-items: center; gap: var(--sp-2);
   font-family: var(--font-mono);
   font-size: 9px; color: var(--text-3);
   letter-spacing: 0.04em;
   flex-wrap: wrap;
+  row-gap: 4px;
 }
 .chart-foot .legend {
   display: inline-flex; align-items: center; gap: 4px;
@@ -932,12 +934,14 @@
 .pulse-row.lvl-danger { background: linear-gradient(90deg, rgba(239,83,80,0.05), transparent 70%); }
 
 /* 图表面板：桌面紧凑、移动稍高 */
-.chart-panel.size-md { height: 130px; }
-.chart-panel.size-sm { height: 108px; }
-.chart-panel.size-tall { height: 200px; }
+/* 用户反馈：130px/200px 用 chart.js 渲染时 y-tick + x-label + 线条挤不下，被裁
+   实战测：size-md 至少 180px、size-tall 至少 240px 才能完整显示 */
+.chart-panel.size-md { height: 180px; }
+.chart-panel.size-sm { height: 140px; }
+.chart-panel.size-tall { height: 240px; }
 .ui.mobile .chart-panel.size-md,
-.ui.mobile .chart-panel.size-sm { height: 180px; }
-.ui.mobile .chart-panel.size-tall { height: 220px; }
+.ui.mobile .chart-panel.size-sm { height: 200px; }
+.ui.mobile .chart-panel.size-tall { height: 240px; }
 
 /* ===========================
    中栏底部：预演 + 决策日志

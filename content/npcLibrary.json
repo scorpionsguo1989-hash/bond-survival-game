@@ -1,0 +1,469 @@
+{
+  "platforms": [
+    {
+      "id": "npc_lgfv_yu_north",
+      "name": "玄武郡投控",
+      "type": "lgfv",
+      "region": "central_capital",
+      "health": "weak",
+      "tags": [
+        "化债重点区域",
+        "省内三大平台之一",
+        "非标压降慢"
+      ],
+      "historic_event": "2024Q1 因隐债排查被评级展望调至负面"
+    },
+    {
+      "id": "npc_lgfv_yangtze_capital",
+      "name": "沧海资管控股",
+      "type": "lgfv",
+      "region": "east_core",
+      "health": "good",
+      "tags": [
+        "明星平台",
+        "AAA 口径",
+        "省级国资直管"
+      ],
+      "historic_event": "2023Q4 牵头发行全省首单绿色科创债"
+    },
+    {
+      "id": "npc_lgfv_liao_east",
+      "name": "北土建发集团",
+      "type": "lgfv",
+      "region": "northeast_old",
+      "health": "weak",
+      "tags": [
+        "老工业基地",
+        "土地收入下滑",
+        "短债占比高"
+      ],
+      "historic_event": "2023Q3 因商票逾期传闻遭遇二级抛售"
+    },
+    {
+      "id": "npc_lgfv_qian_mountain",
+      "name": "苍梧产投集团",
+      "type": "lgfv",
+      "region": "west_prefecture",
+      "health": "weak",
+      "tags": [
+        "高债务率",
+        "文旅资产重",
+        "等待置换额度"
+      ],
+      "historic_event": "2024Q2 一笔私募债申报被要求补充现金流说明"
+    },
+    {
+      "id": "npc_lgfv_jiao_bay",
+      "name": "朱雀湾新城控股",
+      "type": "lgfv",
+      "region": "east_core",
+      "health": "medium",
+      "tags": [
+        "区县平台",
+        "产业园运营",
+        "港口物流收入"
+      ],
+      "historic_event": "2024Q1 园区 REITs 辅导获地方推荐"
+    },
+    {
+      "id": "npc_lgfv_han_river",
+      "name": "长川水务投资",
+      "type": "lgfv",
+      "region": "central_capital",
+      "health": "medium",
+      "tags": [
+        "水务燃气",
+        "现金流稳定",
+        "专项债项目多"
+      ],
+      "historic_event": "2023Q4 用经营性资产置换部分公益性应收"
+    },
+    {
+      "id": "npc_lgfv_hexi_rail",
+      "name": "雪原轨交建设",
+      "type": "lgfv",
+      "region": "west_prefecture",
+      "health": "medium",
+      "tags": [
+        "轨交建设",
+        "资本开支重",
+        "政策行依赖"
+      ],
+      "historic_event": "2024Q3 轨交二期资本金到位慢被银行压缩提款"
+    },
+    {
+      "id": "npc_lgfv_songbei_urban",
+      "name": "寒林城更集团",
+      "type": "lgfv",
+      "region": "northeast_old",
+      "health": "medium",
+      "tags": [
+        "棚改尾款",
+        "冬季施工停摆",
+        "资产处置慢"
+      ],
+      "historic_event": "2023Q4 存量债估值因棚改回款延迟上行 45bp"
+    },
+    {
+      "id": "npc_lgfv_minjiang_industry",
+      "name": "望潮产业控股",
+      "type": "lgfv",
+      "region": "east_core",
+      "health": "good",
+      "tags": [
+        "产业投资",
+        "现金分红稳定",
+        "上市公司参股"
+      ],
+      "historic_event": "2024Q2 成功发行产业升级专项债"
+    },
+    {
+      "id": "npc_lgfv_jianghuai_transport",
+      "name": "南谷交建集团",
+      "type": "lgfv",
+      "region": "central_capital",
+      "health": "good",
+      "tags": [
+        "交通资产",
+        "收费权现金流",
+        "省内龙头"
+      ],
+      "historic_event": "2024Q1 以收费权质押获得低成本银团"
+    },
+    {
+      "id": "npc_lgfv_tianfu_airport",
+      "name": "翠霞临空开发",
+      "type": "lgfv",
+      "region": "west_prefecture",
+      "health": "good",
+      "tags": [
+        "临空经济",
+        "招引进度快",
+        "土地储备足"
+      ],
+      "historic_event": "2024Q2 临空片区首批厂房出租率突破七成"
+    },
+    {
+      "id": "npc_lgfv_huanghe_energy",
+      "name": "墨江能源投资",
+      "type": "lgfv",
+      "region": "west_prefecture",
+      "health": "medium",
+      "tags": [
+        "煤电转型",
+        "新能源项目",
+        "补贴回款慢"
+      ],
+      "historic_event": "2024Q1 新能源补贴应收被要求补充可回收性说明"
+    },
+    {
+      "id": "npc_lgfv_bohai_port",
+      "name": "玄海港城投资",
+      "type": "lgfv",
+      "region": "east_core",
+      "health": "medium",
+      "tags": [
+        "港口园区",
+        "贸易收入波动",
+        "短融活跃"
+      ],
+      "historic_event": "2024Q3 贸易收入穿透核查后压缩三成"
+    },
+    {
+      "id": "npc_lgfv_lushan_tourism",
+      "name": "明月山文旅开发",
+      "type": "lgfv",
+      "region": "central_capital",
+      "health": "medium",
+      "tags": [
+        "景区资产",
+        "季节性现金流",
+        "文旅 ABS"
+      ],
+      "historic_event": "2023Q3 暑期门票现金流覆盖率好于计划"
+    },
+    {
+      "id": "npc_lgfv_xibei_agri",
+      "name": "北原农发控股",
+      "type": "lgfv",
+      "region": "west_prefecture",
+      "health": "weak",
+      "tags": [
+        "农业园区",
+        "补贴依赖",
+        "担保圈复杂"
+      ],
+      "historic_event": "2024Q2 被要求剥离两家亏损担保子公司"
+    },
+    {
+      "id": "npc_lgfv_hailan_asset",
+      "name": "浮云国资运营",
+      "type": "lgfv",
+      "region": "east_core",
+      "health": "good",
+      "tags": [
+        "国资运营",
+        "股权处置能力强",
+        "分红稳定"
+      ],
+      "historic_event": "2024Q2 处置参股股权回笼 18 亿"
+    },
+    {
+      "id": "npc_lgfv_chu_medicine",
+      "name": "朱明医药园投",
+      "type": "lgfv",
+      "region": "central_capital",
+      "health": "medium",
+      "tags": [
+        "医药园区",
+        "厂房租金",
+        "引资考核重"
+      ],
+      "historic_event": "2024Q1 园区龙头租户推迟付款"
+    },
+    {
+      "id": "npc_lgfv_shanbei_mining",
+      "name": "玉沙矿区城投",
+      "type": "lgfv",
+      "region": "west_prefecture",
+      "health": "good",
+      "tags": [
+        "资源型财政",
+        "煤价敏感",
+        "现金垫厚"
+      ],
+      "historic_event": "2023Q4 因资源税增收提前兑付一笔私募债"
+    },
+    {
+      "id": "npc_lgfv_icecity_heat",
+      "name": "玄霜热力集团",
+      "type": "lgfv",
+      "region": "northeast_old",
+      "health": "weak",
+      "tags": [
+        "供热民生",
+        "应收财政补贴",
+        "冬季现金紧"
+      ],
+      "historic_event": "2024Q1 采暖季煤款挤占债券兑付资金"
+    },
+    {
+      "id": "npc_lgfv_lake_newtown",
+      "name": "镜湖新城发展",
+      "type": "lgfv",
+      "region": "central_capital",
+      "health": "weak",
+      "tags": [
+        "新区扩张过快",
+        "土地去化弱",
+        "商票拖欠"
+      ],
+      "historic_event": "2024Q2 被施工方集中起诉后公开债折价成交"
+    }
+  ],
+  "issuers": [
+    {
+      "id": "npc_issuer_north_developer",
+      "name": "鼎丰地产集团",
+      "type": "issuer",
+      "tags": [
+        "千亿规模",
+        "美元债重组",
+        "境内担保链长"
+      ]
+    },
+    {
+      "id": "npc_issuer_coastal_property",
+      "name": "沧澜地产集团",
+      "type": "issuer",
+      "tags": [
+        "项目分散",
+        "销售回款下滑",
+        "供应商欠款多"
+      ]
+    },
+    {
+      "id": "npc_issuer_steel_private",
+      "name": "砥石钢贸集团",
+      "type": "issuer",
+      "tags": [
+        "周期行业",
+        "短贷长投",
+        "票据融资依赖"
+      ]
+    },
+    {
+      "id": "npc_issuer_solar_equipment",
+      "name": "朔光新能源设备",
+      "type": "issuer",
+      "tags": [
+        "扩产激进",
+        "订单真伪争议",
+        "可转债存量大"
+      ]
+    },
+    {
+      "id": "npc_issuer_auto_supplier",
+      "name": "鸿翼汽车零部件",
+      "type": "issuer",
+      "tags": [
+        "客户集中",
+        "账期拉长",
+        "产业基金参股"
+      ]
+    },
+    {
+      "id": "npc_issuer_mining_private",
+      "name": "燔焰民营矿业",
+      "type": "issuer",
+      "tags": [
+        "资源抵押",
+        "环保处罚",
+        "高息非标"
+      ]
+    },
+    {
+      "id": "npc_issuer_healthcare_group",
+      "name": "仁鹤医养集团",
+      "type": "issuer",
+      "tags": [
+        "床位扩张快",
+        "医保回款慢",
+        "ABS 底层复杂"
+      ]
+    },
+    {
+      "id": "npc_issuer_trade_holdco",
+      "name": "远帆贸易控股",
+      "type": "issuer",
+      "tags": [
+        "贸易流水大",
+        "毛利薄",
+        "关联交易多"
+      ]
+    },
+    {
+      "id": "npc_issuer_amc_local",
+      "name": "持衡 AMC",
+      "type": "issuer",
+      "tags": [
+        "不良处置",
+        "回款周期长",
+        "区域风险承接者"
+      ]
+    },
+    {
+      "id": "npc_issuer_securities_asset",
+      "name": "鸣远券商资管",
+      "type": "issuer",
+      "tags": [
+        "通道存量",
+        "踩雷传闻",
+        "产品兑付压力"
+      ]
+    }
+  ],
+  "banks": [
+    {
+      "id": "npc_bank_main_state",
+      "name": "主开户行 · 国有大行 A",
+      "tags": [
+        "对城投长期合作",
+        "近期压降弱区县敞口",
+        "存款对价敏感"
+      ]
+    },
+    {
+      "id": "npc_bank_policy_b",
+      "name": "政策性银行 B",
+      "tags": [
+        "项目贷额度足",
+        "审批节奏慢",
+        "偏好合规资本金"
+      ]
+    },
+    {
+      "id": "npc_bank_city_c",
+      "name": "本地城商行 C",
+      "tags": [
+        "地方关系深",
+        "资本充足率承压",
+        "喜欢短期周转"
+      ]
+    },
+    {
+      "id": "npc_bank_joint_d",
+      "name": "股份行 D",
+      "tags": [
+        "价格市场化",
+        "看重评级和抵押",
+        "同业风控严格"
+      ]
+    },
+    {
+      "id": "npc_bank_rural_e",
+      "name": "农商行 E",
+      "tags": [
+        "票据和流贷活跃",
+        "单户集中度受限",
+        "董事会审批慢"
+      ]
+    },
+    {
+      "id": "npc_bank_trust_f",
+      "name": "信托通道 F",
+      "tags": [
+        "非标老朋友",
+        "压降期谨慎",
+        "报价高但放款快"
+      ]
+    }
+  ],
+  "wealth_mgmt": [
+    {
+      "id": "npc_wm_top5_alpha",
+      "name": "TOP 5 理财子 · 阿尔法",
+      "tags": [
+        "规模 1.2 万亿",
+        "估值止盈严格",
+        "渠道赎回敏感"
+      ]
+    },
+    {
+      "id": "npc_wm_city_beta",
+      "name": "城商行理财子 · 贝塔",
+      "tags": [
+        "偏好短久期城投",
+        "区域白名单窄",
+        "可吃私募债"
+      ]
+    },
+    {
+      "id": "npc_wm_rural_gamma",
+      "name": "农商系理财 · 伽马",
+      "tags": [
+        "收益要求高",
+        "净值波动容忍低",
+        "流动性薄"
+      ]
+    },
+    {
+      "id": "npc_wm_insurance_delta",
+      "name": "保险资管 · 德尔塔",
+      "tags": [
+        "长钱配置",
+        "偏好 AAA 和强担保",
+        "不追高票息"
+      ]
+    },
+    {
+      "id": "npc_wm_broker_epsilon",
+      "name": "券商资管 · 艾普西隆",
+      "tags": [
+        "交易灵活",
+        "信用下沉快",
+        "踩雷后风控收紧"
+      ]
+    }
+  ]
+}

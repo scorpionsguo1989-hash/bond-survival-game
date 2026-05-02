@@ -2,6 +2,8 @@
 // 城投财务总监角色：完整 schema 定义（指标 / 死亡 / 操作 / 引擎钩子）
 import { CFO_ACTIONS, applyAction as cfoApplyAction, isActionAvailable as cfoIsActionAvailable } from '../actions.js';
 import { applyPolicyShift } from '../policy.js';
+import { sampleTip, sampleRisks } from './_hintHelpers.js';
+import { CFO_KIT_MODIFIERS, CFO_DEBT_SCHEDULES } from '../starterKits.js';
 
 // 区域能级影响初始指标
 const REGION_MODIFIERS = {
@@ -19,28 +21,35 @@ const HEALTH_MODIFIERS = {
 
 const INITIAL_CREDIT_USAGE_RATIO = 0.55;
 
-function generateDebtSchedule(rMult, hMult) {
+// D 改造：起手包 modifier 来自 starterKits.js（默认 'balanced' 兼容老存档）
+function getKitMods(profile) {
+  return CFO_KIT_MODIFIERS[profile?.starterKit] || CFO_KIT_MODIFIERS.balanced;
+}
+
+function generateDebtSchedule(rMult, hMult, scheduleProfile = 'mid_peak') {
   // 总债务规模随财务健康度变化，分布在12季度
   const totalDebt = 8 / (rMult * hMult);
-  // 债务到期分布：前轻后重，Q5-Q7为高峰期，Q9+基本还完
-  const distribution = [0.05, 0.07, 0.09, 0.12, 0.14, 0.17, 0.15, 0.11, 0.06, 0.04, 0, 0];
+  // D 改造：分布形态由 starterKit 决定（mid_peak / late_peak / early_peak）
+  const distribution = CFO_DEBT_SCHEDULES[scheduleProfile] || CFO_DEBT_SCHEDULES.mid_peak;
   return distribution.map(p => parseFloat((totalDebt * p).toFixed(2)));
 }
 
 export function getInitialMetrics(profile) {
   const r = REGION_MODIFIERS[profile.regionTier];
   const h = HEALTH_MODIFIERS[profile.healthLevel];
+  const k = getKitMods(profile);
+  const baseCreditTotal = r.creditBase * (k.creditMult || 1);
   return {
-    cash: parseFloat((5.0 * r.cashMult * h.cashMult).toFixed(2)),
-    creditTotal: r.creditBase,
-    creditUsed: parseFloat((r.creditBase * INITIAL_CREDIT_USAGE_RATIO).toFixed(2)),
+    cash: parseFloat((5.0 * r.cashMult * h.cashMult * (k.cashMult || 1)).toFixed(2)),
+    creditTotal: parseFloat(baseCreditTotal.toFixed(2)),
+    creditUsed: parseFloat((baseCreditTotal * INITIAL_CREDIT_USAGE_RATIO).toFixed(2)),
     creditUsage: INITIAL_CREDIT_USAGE_RATIO * 100,
-    leverageRatio: r.leverageBase + h.leverageDelta,
-    financingCost: parseFloat((r.costBase + h.costDelta).toFixed(2)),
+    leverageRatio: r.leverageBase + h.leverageDelta + (k.leverageDelta || 0),
+    financingCost: parseFloat((r.costBase + h.costDelta + (k.costDelta || 0)).toFixed(2)),
     collateralRoom: profile.healthLevel === 'good' ? 'high' : (profile.healthLevel === 'medium' ? 'medium' : 'low'),
     opCostRate: 0.6,
-    projectGap: 2.1,
-    debtMaturity: generateDebtSchedule(r.cashMult, h.cashMult),
+    projectGap: parseFloat((2.1 * (k.projectGapMult || 1)).toFixed(2)),
+    debtMaturity: generateDebtSchedule(r.cashMult, h.cashMult, k.debtScheduleProfile),
   };
 }
 
@@ -83,19 +92,52 @@ function detectCrisis(state) {
   return null;
 }
 
-// 命运卡 onboarding 提示（设计稿 §3.10 / 实施计划 T5）
-function getOnboardingHints(profile) {
-  const isWeak = profile?.healthLevel === 'weak';
+// ────────────────────────────────────────────
+// 命运卡 onboarding 池子（C 改造：替换原硬编码 1-2 句）
+// 形态参考 _hintHelpers.js：when 缺省 = 通用，命中所有字段才适用
+// ────────────────────────────────────────────
+
+const TIPS_POOL = [
+  // 健康度驱动
+  { id: 'cfo_tip_weak_credit', text: '第一回合先申请银行续贷预留 1-2 亿子弹', when: { health: 'weak' } },
+  { id: 'cfo_tip_weak_sell',   text: '现金紧张，开局先把非标资产小额变现，攒一笔过冬钱', when: { health: 'weak' } },
+  { id: 'cfo_tip_med_observe', text: '先观察主线事件再决定主动操作时机', when: { health: 'medium' } },
+  { id: 'cfo_tip_good_extend', text: '组合健康，政策松窗口可以拉久期争取低成本融资', when: { health: 'good' } },
+  // 剧本驱动
+  { id: 'cfo_tip_v_winter',    text: 'Q1-Q4 是寒冬期，先撑过去，别 Q1 就上结构性融资', when: { script: 'v_shape' } },
+  { id: 'cfo_tip_slow_ammo',   text: '表面平静期是攒子弹的窗口，别误以为可以放松', when: { script: 'slow_boil' } },
+  { id: 'cfo_tip_rise_save',   text: '前 4 季扩张窗口好用，但要给 Q9+ 危机留 30% 子弹', when: { script: 'rise_and_fall' } },
+  { id: 'cfo_tip_redm_endure', text: '危机直接砸脸，第一目标是活到 Q5 政策托举，别想 Q1-Q4 翻身', when: { script: 'redemption' } },
+  // 标签 / 业务驱动
+  { id: 'cfo_tip_hidden',      text: '第一回合先做隐债自查报告，避免巡查时被动', when: { tag: 'hidden_debt_zone' } },
+  { id: 'cfo_tip_change',      text: '新班子 + 老账，第一季先做工作汇报再做实质决策', when: { tag: 'leadership_change' } },
+  { id: 'cfo_tip_land',        text: '土地市场低迷，开局先别再吃地块', when: { business: 'land_dev' } },
+];
+
+const RISKS_POOL = [
+  // 核心死亡条件（无 when = 任何局都显示，按出现顺序优先级最高）
+  { id: 'cfo_risk_cash',       text: '现金归零 → 资金链断裂' },
+  { id: 'cfo_risk_dueWave',    text: 'Q5-Q7 是债务到期高峰，提前备款很重要' },
+  // 情境化（按 origin / script 命中）
+  { id: 'cfo_risk_weakCash',   text: '初始现金紧张，Q1-Q2 不能大手大脚', when: { health: 'weak' } },
+  { id: 'cfo_risk_hidden',     text: '隐债敞口大，省级巡查随时可能进驻', when: { tag: 'hidden_debt_zone' } },
+  { id: 'cfo_risk_change',     text: '新班子可能"破立结合"，旧账要不要扛是政治问题', when: { tag: 'leadership_change' } },
+  { id: 'cfo_risk_restruct',   text: '整合期资源调度受限，无法单独决策', when: { tag: 'restructuring' } },
+  { id: 'cfo_risk_land',       text: '土地一级开发资金回笼周期长，Q5+ 才能回血', when: { business: 'land_dev' } },
+  { id: 'cfo_risk_infra',      text: '在建项目"骑虎难下"，停建损失更大', when: { business: 'infrastructure' } },
+  { id: 'cfo_risk_northeast',  text: '转移支付占比高，财政自给率低', when: { region: 'northeast_old' } },
+  { id: 'cfo_risk_slow',       text: '看似平静的 Q1-Q4 后面是 Q9+ 集中爆雷', when: { script: 'slow_boil' } },
+  { id: 'cfo_risk_rise',       text: 'Q1-Q4 蜜月期容易过度扩张，紧缩期被卡喉咙', when: { script: 'rise_and_fall' } },
+  { id: 'cfo_risk_redm',       text: '没有蜜月期，第一季就要面对真问题', when: { script: 'redemption' } },
+];
+
+// 命运卡 onboarding 提示（设计稿 §3.10 / 实施计划 T5；C 改造：池化抽样）
+function getOnboardingHints(profile, scriptId = null) {
   return {
+    // goal 字段保留兼容签名，UI 实际通过 state.goalId 反查 GOAL_POOLS（参见 goals.js / B 改造）
     goal: '存活 12 季度，期末现金不归零',
-    topRisks: [
-      '现金归零 → 资金链断裂',
-      'Q5-Q7 是债务到期高峰，提前备款很重要',
-      isWeak ? '初始现金紧张，Q1-Q2 不能大手大脚' : null,
-    ].filter(Boolean),
-    firstActionHint: isWeak
-      ? '第一回合先申请银行续贷预留 1-2 亿子弹'
-      : '先观察主线事件再决定主动操作时机',
+    topRisks: sampleRisks(RISKS_POOL, profile, scriptId, 3),
+    firstActionHint: sampleTip(TIPS_POOL, profile, scriptId, '观察主线事件再决定主动操作时机'),
   };
 }
 

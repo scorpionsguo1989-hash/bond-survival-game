@@ -1,0 +1,314 @@
+/* css/scripts.css — 多周期叙事：剧本卡 + 幕徽章 + 过场
+   依赖 css/tokens.css
+*/
+
+/* ────────────────────────────────────────────────
+   1. 剧本配色（4 个剧本各一色）
+   ──────────────────────────────────────────────── */
+[data-script-id="rise_and_fall"]   { --script: #ffd54f; --script-soft: rgba(255,213,79,0.10); }
+[data-script-id="v_shape"]         { --script: #4fc3f7; --script-soft: rgba(79,195,247,0.10); }
+[data-script-id="slow_boil"]       { --script: #ef5350; --script-soft: rgba(239,83,80,0.10); }
+[data-script-id="redemption"]      { --script: #4caf50; --script-soft: rgba(76,175,80,0.10); }
+
+/* ────────────────────────────────────────────────
+   2. 命运卡：本局剧本横幅
+   ──────────────────────────────────────────────── */
+.script-banner {
+  margin-top: var(--sp-3, 12px);
+  padding: var(--sp-4, 16px);
+  background: linear-gradient(180deg, var(--script-soft) 0%, var(--bg-2, #10162a) 100%);
+  border: 1px solid var(--script, #ffd54f);
+  border-radius: var(--r-lg, 10px);
+  position: relative;
+  overflow: hidden;
+}
+.script-banner::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--script, #ffd54f) 50%, transparent 100%);
+  opacity: 0.7;
+}
+
+.script-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3, 12px);
+  margin-bottom: var(--sp-3, 12px);
+}
+.script-icon {
+  font-size: 28px;
+  line-height: 1;
+  color: var(--script, #ffd54f);
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 8px var(--script-soft));
+}
+.script-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.script-tag {
+  font-size: var(--fs-xs, 11px);
+  color: var(--text-3, #5b667f);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.script-name {
+  font-size: var(--fs-h2, 22px);
+  color: var(--text-1, #e6ebf5);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.script-marker {
+  font-size: var(--fs-xs, 11px);
+  color: var(--text-3, #5b667f);
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+
+.script-desc {
+  font-size: var(--fs-sm, 13px);
+  color: var(--text-2, #98a3bd);
+  line-height: 1.6;
+  margin-bottom: var(--sp-4, 16px);
+  padding-bottom: var(--sp-3, 12px);
+  border-bottom: 1px dashed var(--line, rgba(120,140,200,0.12));
+}
+
+.script-acts {
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-2, 8px);
+}
+.script-act {
+  flex: 1;
+  padding: var(--sp-3, 12px);
+  background: var(--bg-1, #0a0e1a);
+  border: 1px solid var(--line, rgba(120,140,200,0.12));
+  border-radius: var(--r-md, 6px);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.script-act-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.script-act-ord {
+  font-size: var(--fs-xs, 11px);
+  color: var(--script, #ffd54f);
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+.script-act-q {
+  font-size: 10px;
+  color: var(--text-3, #5b667f);
+  letter-spacing: 0.04em;
+}
+.script-act-label {
+  font-size: var(--fs-body, 15px);
+  color: var(--text-1, #e6ebf5);
+  font-weight: 600;
+  margin-top: 2px;
+}
+.script-act-tag {
+  font-size: var(--fs-xs, 11px);
+  color: var(--text-2, #98a3bd);
+  line-height: 1.4;
+}
+.script-act-sep {
+  display: flex;
+  align-items: center;
+  color: var(--text-3, #5b667f);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* ────────────────────────────────────────────────
+   3. 主界面顶部「当前幕」徽章
+   ──────────────────────────────────────────────── */
+.tb-act {
+  display: inline-flex;
+  align-items: center;
+  margin-left: var(--sp-3, 12px);
+  padding: 4px 10px;
+  background: var(--script-soft, rgba(255,213,79,0.10));
+  color: var(--script, #ffd54f);
+  border: 1px solid var(--script, #ffd54f);
+  border-radius: var(--r-sm, 4px);
+  font-size: var(--fs-xs, 11px);
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  cursor: help;
+  transition: box-shadow 0.2s;
+}
+.tb-act:hover {
+  box-shadow: 0 0 12px var(--script-soft);
+}
+
+/* ────────────────────────────────────────────────
+   4. 进幕过场卡
+   ──────────────────────────────────────────────── */
+.act-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 10002;
+  background: rgba(7, 9, 15, 0);
+  backdrop-filter: blur(0px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  visibility: hidden;
+  transition:
+    background-color 0.28s ease,
+    backdrop-filter 0.28s ease,
+    visibility 0s linear 0.28s;
+}
+.act-transition.show {
+  background: rgba(7, 9, 15, 0.78);
+  backdrop-filter: blur(6px);
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    background-color 0.28s ease,
+    backdrop-filter 0.28s ease,
+    visibility 0s;
+  cursor: pointer;
+}
+
+.act-transition-card {
+  width: 540px;
+  max-width: calc(100vw - 32px);
+  padding: var(--sp-7, 48px) var(--sp-6, 32px);
+  background: linear-gradient(180deg, var(--bg-2, #10162a) 0%, var(--bg-1, #0a0e1a) 100%);
+  border: 1px solid var(--script, #ffd54f);
+  border-radius: var(--r-xl, 14px);
+  box-shadow:
+    0 32px 80px -20px rgba(0, 0, 0, 0.7),
+    0 0 0 1px var(--script-soft, rgba(255,213,79,0.1)),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(20px) scale(0.96);
+  transition:
+    opacity 0.32s cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 0.36s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.act-transition.show .act-transition-card {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.act-transition-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--script, #ffd54f) 50%, transparent 100%);
+}
+.act-transition-card::after {
+  content: "";
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--script, #ffd54f) 50%, transparent 100%);
+  opacity: 0.5;
+}
+
+.act-trans-meta {
+  font-size: var(--fs-xs, 11px);
+  color: var(--text-3, #5b667f);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: var(--sp-3, 12px);
+}
+
+.act-trans-ord {
+  font-size: var(--fs-h1, 32px);
+  color: var(--script, #ffd54f);
+  letter-spacing: 0.16em;
+  font-weight: 600;
+  margin-bottom: var(--sp-2, 8px);
+  filter: drop-shadow(0 0 16px var(--script-soft, rgba(255,213,79,0.4)));
+}
+
+.act-trans-label {
+  font-size: var(--fs-display, 56px);
+  color: var(--text-1, #e6ebf5);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--sp-3, 12px);
+  font-family: var(--font-display);
+  line-height: 1.1;
+}
+
+.act-trans-tag {
+  font-size: var(--fs-h3, 17px);
+  color: var(--script, #ffd54f);
+  letter-spacing: 0.04em;
+  margin-bottom: var(--sp-5, 24px);
+  padding-bottom: var(--sp-4, 16px);
+  border-bottom: 1px solid var(--line, rgba(120,140,200,0.12));
+}
+
+.act-trans-line {
+  font-size: var(--fs-body, 15px);
+  color: var(--text-2, #98a3bd);
+  line-height: 1.7;
+  max-width: 420px;
+  margin: 0 auto var(--sp-5, 24px);
+  font-style: italic;
+}
+
+.act-trans-q {
+  font-size: var(--fs-xs, 11px);
+  color: var(--text-3, #5b667f);
+  letter-spacing: 0.16em;
+}
+
+/* ────────────────────────────────────────────────
+   5. 移动适配
+   ──────────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .script-banner { padding: var(--sp-3, 12px); }
+  .script-acts {
+    flex-direction: column;
+    gap: var(--sp-2, 8px);
+  }
+  .script-act-sep {
+    transform: rotate(90deg);
+    align-self: center;
+  }
+  .script-name { font-size: var(--fs-h3, 17px); }
+  .script-marker { display: none; }
+
+  .tb-act {
+    margin-left: var(--sp-2, 8px);
+    padding: 3px 6px;
+    font-size: 10px;
+  }
+
+  .act-transition-card {
+    width: calc(100vw - 24px);
+    padding: var(--sp-6, 32px) var(--sp-4, 16px);
+  }
+  .act-trans-label { font-size: 36px; }
+  .act-trans-line { font-size: var(--fs-sm, 13px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .act-transition,
+  .act-transition-card {
+    transition: none !important;
+  }
+}

@@ -1,15 +1,32 @@
+/* css/style.css — 全局兜底 + 旧组件残余
+ *
+ * R5 清理（2026-05-02）：
+ *   删除被 R3/R4 覆盖的死代码（约 250 行）：
+ *     - crisis-* 系列 → R3 .cmodal/.cm-* 取代
+ *     - modal-* 系列 → R3 .opmodal/.opm-* 取代
+ *     - toast-* 系列 → R3 .toast-stack/.toast 新版取代
+ *     - endgame-* / grade-* / radar-card → R4 .eg-host/.endscr 取代
+ *     - lb-* 旧版 → R4 .lb-host/.lb-modal 新版取代
+ *     - .nav 主菜单 → 已不再使用
+ *   保留：全局 reset、body、.fate 字号覆盖、.screen 容器、.val-*、按钮、nickname 弹窗
+ */
+
+/* ── 全局 reset ── */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-  background: #0a0e1a; color: #c8d4e8;
-  font-family: -apple-system, 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg-1, #0a0e1a);
+  color: var(--text-2, #98a3bd);
+  font-family: var(--font-sans);
   font-size: 13px;
 }
+
 /* fate card 用设计稿的 15px / 1.55 line-height（覆盖 body 的 13px） */
 .fate { font-size: var(--fs-body, 15px); line-height: 1.55; }
 /* fate 全屏背景：tokens.css 的 .fate 默认 100%/100%，需要外层撑开 */
 body:has(.fate) { background: var(--bg-0, #07090f); }
 .screen:has(.fate) { padding: 0; min-height: 100vh; }
-/* 数字/代号统一用等宽字体，强化金融终端感 */
+
+/* 数字/代号统一用等宽字体（金融终端感）—— 兜底，main-ui.css 各组件可覆盖 */
 .metric-tile .metric-value, .metric-trend, .metric-unit,
 .role-code, .quarter-badge, .round-badge,
 .choice-tag, .action-code, .event-code, .event-time,
@@ -18,309 +35,88 @@ body:has(.fate) { background: var(--bg-0, #07090f); }
 .log-q, .log-code,
 .redemption-score, .redemption-banner-code,
 .timer strong {
-  font-family: 'SF Mono', 'JetBrains Mono', 'Menlo', 'Consolas', monospace;
+  font-family: var(--font-mono);
 }
 
-/* 导航 */
-.nav { display: flex; gap: 0; background: #0f1623; border-bottom: 1px solid #1e2d47; }
-.nav button { padding: 10px 24px; background: none; border: none; color: #4a6080; cursor: pointer; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; border-bottom: 2px solid transparent; transition: all 0.2s; }
-.nav button.active { color: #4fc3f7; border-bottom-color: #4fc3f7; }
-.nav button:hover { color: #7fb3d3; }
-
-/* 界面容器 */
+/* ── 屏幕容器 ── */
 .screen { display: none; padding: 20px; min-height: calc(100vh - 42px); }
 .screen.active { display: block; }
 
-.val-ok { color: #81c784; }
-.val-warn { color: #ffb74d; }
-.val-bad { color: #ef5350; }
+/* ── 数值色调（toneFromClass 输出） ── */
+.val-ok { color: var(--ok, #4caf50); }
+.val-warn { color: var(--warn, #ffb74d); }
+.val-bad { color: var(--danger, #ef5350); }
 
-/* ========== 界面三：危机处置（Plan 5 Round 3 重设计） ========== */
-.crisis-overlay-v2 {
-  position: fixed; inset: 0; z-index: 1600;
-  background: radial-gradient(ellipse at center, rgba(80,0,0,0.55) 0%, rgba(10,4,4,0.92) 70%);
-  overflow-y: auto; padding: 0 20px 40px;
-  animation: crisis-fade-in 0.25s ease;
+/* ── 通用按钮（被 nickname-card / endgame 早期版本用，现在仅 nickname 用）── */
+.btn-primary {
+  padding: 12px 32px;
+  background: var(--info, #4fc3f7);
+  border: none;
+  border-radius: var(--r-md, 6px);
+  color: var(--bg-1, #0a0e1a);
+  font-size: var(--fs-sm, 13px);
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.15s;
 }
-@keyframes crisis-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-.crisis-flash { animation: flash 1s ease-in-out 3; }
-@keyframes flash { 0%,100%{opacity:1} 50%{opacity:0.7} }
-.crisis-banner {
-  background: linear-gradient(90deg, #7f0000, #b71c1c, #7f0000);
-  padding: 12px 20px; text-align: center;
-  font-size: 11px; letter-spacing: 3px; color: #ffcdd2;
-  text-transform: uppercase;
-  margin: 0 -20px 24px;
-  animation: crisis-pulse 1.5s ease-in-out infinite;
-}
-@keyframes crisis-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
-.crisis-center { max-width: 720px; margin: 0 auto; }
-.crisis-card {
-  background: linear-gradient(180deg, #1a0a0a 0%, #0f0606 100%);
-  border: 1px solid #4a1010;
-  border-top: 3px solid #ef5350;
-  border-radius: 4px;
-  padding: 24px 28px;
-  box-shadow: 0 12px 48px rgba(0,0,0,0.7), 0 0 80px rgba(239,83,80,0.15);
-  animation: crisis-card-in 0.35s cubic-bezier(0.2,0.9,0.2,1);
-}
-@keyframes crisis-card-in {
-  from { transform: translateY(-12px) scale(0.97); opacity: 0; }
-  to { transform: translateY(0) scale(1); opacity: 1; }
-}
-.crisis-card-header {
-  display: flex; gap: 16px; align-items: flex-start; margin-bottom: 18px;
-  padding-bottom: 16px; border-bottom: 1px dashed #3a1010;
-}
-.crisis-icon {
-  flex-shrink: 0; width: 40px; height: 40px;
-  display: flex; align-items: center; justify-content: center;
-  background: #2e0808; border: 1px solid #ef5350; border-radius: 4px;
-  color: #ef5350; font-size: 22px;
-}
-.crisis-title {
-  font-size: 18px; color: #ffcdd2; margin-bottom: 6px;
-  letter-spacing: 1px; font-weight: bold;
-}
-.crisis-body { font-size: 12px; color: #b09090; line-height: 1.7; }
-.crisis-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
-.crisis-metric {
-  background: rgba(0,0,0,0.4); border-radius: 3px;
-  padding: 12px 10px; text-align: center; border: 1px solid #3a1010;
-}
-.crisis-metric-label { font-size: 10px; color: #8a6060; margin-bottom: 6px; letter-spacing: 1px; }
-.crisis-metric-value {
-  font-size: 20px; font-weight: bold; color: #ef5350;
-  font-family: 'SF Mono', monospace;
-}
-.crisis-options-title {
-  font-size: 10px; color: #8a6060; letter-spacing: 2px;
-  margin-bottom: 10px; text-transform: uppercase;
-}
-.crisis-options { display: flex; flex-direction: column; gap: 10px; }
-.crisis-option {
-  text-align: left; width: 100%;
-  padding: 16px 18px;
-  background: linear-gradient(180deg, #1a0808 0%, #100404 100%);
-  border: 1px solid #3a1010; border-left: 3px solid #ef5350;
-  border-radius: 3px;
-  cursor: pointer; transition: all 0.2s ease;
-  font-family: inherit; color: inherit;
-}
-.crisis-option:hover {
-  border-color: #ef5350; background: linear-gradient(180deg, #2a0a0a 0%, #1a0808 100%);
-  transform: translateX(2px);
-  box-shadow: -2px 0 0 #ef5350;
-}
-.crisis-option-header {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 8px;
-}
-.crisis-option-name { font-size: 13px; color: #ffcdd2; font-weight: bold; }
-.crisis-option-cost {
-  font-size: 10px; padding: 3px 10px; border-radius: 3px;
-  letter-spacing: 0.5px; font-weight: bold;
-}
-.cost-high { background: #3a1010; color: #ef5350; border: 1px solid #4a1818; }
-.cost-med  { background: #2e1e10; color: #ffb74d; border: 1px solid #3e2a14; }
-.cost-low  { background: #1a2e1a; color: #81c784; border: 1px solid #244024; }
-.crisis-option-desc { font-size: 11px; color: #8a6060; line-height: 1.6; margin-bottom: 6px; }
-.crisis-option-effects {
-  font-size: 10px; color: #ffb74d; padding-top: 6px;
-  border-top: 1px dashed #3a1010; letter-spacing: 0.5px;
-}
-.crisis-footer {
-  text-align: center; font-size: 11px; color: #6a4040;
-  margin-top: 18px; letter-spacing: 1px;
-}
-.crisis-timer { text-align: center; font-size: 11px; color: #4a2020; margin-top: 16px; letter-spacing: 1px; }
+.btn-primary:hover { background: #5fcbf8; }
 
-/* === 终局界面 === */
-.endgame-container { max-width: 800px; margin: 30px auto; }
-.endgame-header { text-align: center; margin-bottom: 30px; }
-.endgame-grade { font-size: 96px; font-weight: 100; margin: 10px 0; }
-.grade-S { color: #ffd54f; }
-.grade-A { color: #81c784; }
-.grade-B { color: #4fc3f7; }
-.grade-C { color: #ffb74d; }
-.grade-D { color: #ef5350; }
-.endgame-status { font-size: 14px; color: #6a8aaa; }
-.radar-card { background: #0f1623; border: 1px solid #1e2d47; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
-.endgame-actions { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
-.btn-primary { padding: 12px 32px; background: #1565c0; border: none; border-radius: 6px; color: #e0eaf8; font-size: 13px; letter-spacing: 1px; cursor: pointer; }
-.btn-secondary { padding: 12px 32px; background: transparent; border: 1px solid #1e3a5f; border-radius: 6px; color: #4fc3f7; font-size: 13px; cursor: pointer; }
-
-/* === 排行榜弹窗 === */
-.lb-container { max-width: 900px; margin: 30px auto; }
-.lb-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.lb-title { font-size: 18px; color: #e0eaf8; letter-spacing: 2px; }
-.lb-close-btn { background: none; border: 1px solid #1e2d47; color: #4a6080; width: 32px; height: 32px; border-radius: 4px; cursor: pointer; font-size: 14px; }
-.lb-close-btn:hover { border-color: #4fc3f7; color: #4fc3f7; }
-.lb-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
-.lb-tab { padding: 7px 14px; background: #07101e; border: 1px solid #1e2d47; border-radius: 4px; color: #6a8aaa; font-size: 12px; cursor: pointer; }
-.lb-tab:hover { border-color: #1e4a6f; color: #8fa8c8; }
-.lb-tab.active { background: #0f1e35; border-color: #4fc3f7; color: #4fc3f7; }
-.lb-table { width: 100%; border-collapse: collapse; background: #0f1623; border: 1px solid #1e2d47; border-radius: 6px; overflow: hidden; }
-.lb-table th { font-size: 10px; letter-spacing: 1px; color: #4a6080; text-transform: uppercase; text-align: left; padding: 10px 12px; border-bottom: 1px solid #1e2d47; background: #0a1020; }
-.lb-table td { padding: 10px 12px; border-bottom: 1px solid #0d1a2e; font-size: 12px; }
-.lb-rank { color: #4fc3f7; font-weight: bold; min-width: 40px; }
-.lb-role { color: #9fa8da; font-size: 11px; white-space: nowrap; }
-.lb-name { color: #e0eaf8; }
-.lb-platform { color: #6a8aaa; }
-.lb-difficulty { color: #4a6080; font-size: 11px; }
-.lb-grade { font-weight: bold; font-size: 14px; }
-.lb-score { color: #4fc3f7; font-weight: bold; }
-.lb-quarters { color: #6a8aaa; }
-
-/* === 昵称输入弹窗 === */
-.nickname-card { background: #0f1623; border: 1px solid #1e2d47; border-radius: 12px; padding: 36px; text-align: center; max-width: 400px; width: 90%; }
-.nickname-title { font-size: 20px; color: #e0eaf8; margin-bottom: 8px; }
-.nickname-subtitle { font-size: 12px; color: #4a6080; margin-bottom: 24px; }
-.nickname-input { width: 100%; padding: 12px 16px; background: #07101e; border: 1px solid #1e3a5f; border-radius: 6px; color: #e0eaf8; font-size: 14px; text-align: center; outline: none; margin-bottom: 20px; }
-.nickname-input:focus { border-color: #4fc3f7; }
-.nickname-input::placeholder { color: #2a4060; }
-.nickname-actions { display: flex; gap: 12px; justify-content: center; }
-
-/* ============================================================
-   Toast 通知系统（Plan 5 Round 3）
-   ============================================================ */
-#toast-container {
-  position: fixed; top: 20px; right: 20px; z-index: 2000;
-  display: flex; flex-direction: column; gap: 10px;
-  max-width: 360px; pointer-events: none;
+.btn-secondary {
+  padding: 12px 32px;
+  background: transparent;
+  border: 1px solid var(--line-strong, rgba(120,140,200,0.22));
+  border-radius: var(--r-md, 6px);
+  color: var(--info, #4fc3f7);
+  font-size: var(--fs-sm, 13px);
+  cursor: pointer;
+  transition: all 0.15s;
 }
-.toast {
-  display: flex; align-items: flex-start; gap: 12px;
-  padding: 12px 14px;
-  background: #0f1623; border-left: 3px solid #4fc3f7;
-  border-radius: 4px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-  font-size: 13px; color: #c8d4e8;
-  pointer-events: auto;
-  transform: translateX(120%); opacity: 0;
-  transition: transform 0.25s ease, opacity 0.25s ease;
-}
-.toast.toast-in { transform: translateX(0); opacity: 1; }
-.toast.toast-out { transform: translateX(120%); opacity: 0; }
-.toast-success { border-left-color: #81c784; }
-.toast-error   { border-left-color: #ef5350; }
-.toast-info    { border-left-color: #4fc3f7; }
-.toast-icon {
-  flex-shrink: 0; width: 20px; height: 20px;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 50%; font-size: 12px; font-weight: bold;
-}
-.toast-success .toast-icon { background: #1a2e1a; color: #81c784; }
-.toast-error   .toast-icon { background: #2e1a1a; color: #ef5350; }
-.toast-info    .toast-icon { background: #0f2a3f; color: #4fc3f7; }
-.toast-body { flex: 1; line-height: 1.5; min-width: 0; word-break: break-word; }
-.toast-close {
-  flex-shrink: 0; background: none; border: none; color: #4a6080;
-  font-size: 18px; cursor: pointer; padding: 0; width: 20px; height: 20px;
-  line-height: 1;
-}
-.toast-close:hover { color: #c8d4e8; }
-
-@media (max-width: 640px) {
-  #toast-container { top: 0; left: 0; right: 0; max-width: none; padding: 8px; }
-  .toast { transform: translateY(-120%); }
-  .toast.toast-in { transform: translateY(0); }
-  .toast.toast-out { transform: translateY(-120%); }
+.btn-secondary:hover {
+  border-color: var(--info, #4fc3f7);
+  background: rgba(79, 195, 247, 0.06);
 }
 
-/* ============================================================
-   操作输入 Modal（Plan 5 Round 3）
-   ============================================================ */
-.modal-overlay {
-  position: fixed; inset: 0; z-index: 1500;
-  background: rgba(5, 8, 16, 0.72);
-  display: flex; align-items: center; justify-content: center;
-  padding: 20px;
-  backdrop-filter: blur(2px);
-  animation: modal-fade-in 0.18s ease;
+/* ── 昵称输入弹窗（renderNicknamePrompt） ── */
+.nickname-card {
+  background: var(--bg-2, #10162a);
+  border: 1px solid var(--line-strong, rgba(120,140,200,0.22));
+  border-radius: var(--r-lg, 10px);
+  padding: var(--sp-7, 48px) var(--sp-6, 36px);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.55);
 }
-@keyframes modal-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.nickname-title {
+  font-size: var(--fs-h2, 22px);
+  color: var(--text-1, #e6ebf5);
+  margin-bottom: var(--sp-2, 8px);
+  letter-spacing: 0.02em;
 }
-.modal-card {
-  background: #0f1623;
-  border: 1px solid #1e3a5f;
-  border-top: 2px solid #4fc3f7;
-  border-radius: 6px;
-  width: 100%; max-width: 440px;
-  padding: 0; overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-  animation: modal-card-in 0.22s cubic-bezier(0.2,0.8,0.2,1);
+.nickname-subtitle {
+  font-size: var(--fs-sm, 13px);
+  color: var(--text-3, #5b667f);
+  margin-bottom: var(--sp-5, 24px);
 }
-@keyframes modal-card-in {
-  from { transform: translateY(8px) scale(0.98); opacity: 0; }
-  to { transform: translateY(0) scale(1); opacity: 1; }
+.nickname-input {
+  width: 100%;
+  padding: var(--sp-3, 12px) var(--sp-4, 16px);
+  background: var(--bg-1, #0a0e1a);
+  border: 1px solid var(--line-strong, rgba(120,140,200,0.22));
+  border-radius: var(--r-md, 6px);
+  color: var(--text-1, #e6ebf5);
+  font-size: var(--fs-body, 15px);
+  font-family: var(--font-sans);
+  text-align: center;
+  outline: none;
+  margin-bottom: var(--sp-5, 24px);
+  transition: border-color 0.15s;
 }
-.modal-header {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 14px 18px; border-bottom: 1px solid #1e2d47;
-  background: linear-gradient(180deg, #112338 0%, #0f1623 100%);
-}
-.modal-title { font-size: 14px; color: #e0eaf8; letter-spacing: 1px; font-weight: bold; }
-.modal-close {
-  background: none; border: none; color: #4a6080;
-  font-size: 22px; cursor: pointer; padding: 0; line-height: 1;
-}
-.modal-close:hover { color: #ef5350; }
-.modal-desc {
-  padding: 12px 18px; font-size: 12px; color: #8fa8c8;
-  line-height: 1.6; border-bottom: 1px dashed #1e2d47;
-}
-.modal-fields { padding: 16px 18px; display: flex; flex-direction: column; gap: 14px; }
-.modal-field { display: flex; flex-direction: column; gap: 6px; }
-.modal-label {
-  display: flex; justify-content: space-between; align-items: center;
-  font-size: 11px; color: #8fa8c8; letter-spacing: 0.5px;
-}
-.modal-hint { font-size: 10px; color: #4a6080; }
-.modal-input-row { display: flex; align-items: center; gap: 10px; }
-.modal-input {
-  width: 96px; padding: 8px 10px;
-  background: #07101e; border: 1px solid #1e3a5f; border-radius: 3px;
-  color: #4fc3f7; font-family: 'SF Mono', monospace; font-size: 14px; font-weight: bold;
-  outline: none; text-align: right;
-}
-.modal-input:focus { border-color: #4fc3f7; box-shadow: 0 0 0 2px rgba(79,195,247,0.15); }
-.modal-slider {
-  flex: 1; -webkit-appearance: none; appearance: none;
-  height: 4px; background: #1e2d47; border-radius: 2px; outline: none;
-}
-.modal-slider::-webkit-slider-thumb {
-  -webkit-appearance: none; appearance: none;
-  width: 14px; height: 14px; background: #4fc3f7; border-radius: 50%;
-  cursor: pointer; border: 2px solid #0f1623;
-}
-.modal-slider::-moz-range-thumb {
-  width: 14px; height: 14px; background: #4fc3f7; border-radius: 50%;
-  cursor: pointer; border: 2px solid #0f1623;
-}
-.modal-preview {
-  margin: 0 18px 14px; padding: 10px 12px;
-  background: #07101e; border: 1px dashed #1e3a5f; border-radius: 3px;
-  font-size: 11px; color: #4fc3f7; line-height: 1.5;
-}
-.modal-actions {
-  display: flex; justify-content: flex-end; gap: 10px;
-  padding: 12px 18px; background: #0a1020; border-top: 1px solid #1e2d47;
-}
-.modal-actions .btn-secondary,
-.modal-actions .btn-primary {
-  padding: 8px 20px; font-size: 12px;
-}
-
-@media (max-width: 640px) {
-  .modal-overlay { padding: 12px; align-items: flex-end; }
-  .modal-card { max-width: none; border-radius: 6px 6px 0 0; }
+.nickname-input:focus { border-color: var(--info, #4fc3f7); }
+.nickname-input::placeholder { color: var(--text-4, #38415a); }
+.nickname-actions {
+  display: flex;
+  gap: var(--sp-3, 12px);
+  justify-content: center;
 }

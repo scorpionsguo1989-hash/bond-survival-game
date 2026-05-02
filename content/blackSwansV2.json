@@ -1,0 +1,2357 @@
+[
+  {
+    "id": "swan_v2_offshore_property_default",
+    "kind": "black_swan",
+    "weight": 1,
+    "title": "千亿房企境外断付持续发酵",
+    "swanTag": "境外火烧境内",
+    "policyShift": -2,
+    "act_hint": "tightening",
+    "tags": [
+      "房地产",
+      "美元债"
+    ],
+    "involves_npc": [
+      "npc_issuer_north_developer",
+      "npc_wm_top5_alpha"
+    ],
+    "triggerCondition": {
+      "minQuarter": 3,
+      "maxQuarter": 11,
+      "requireRole": null,
+      "regionTier": null,
+      "healthLevel": null,
+      "policyMin": -3,
+      "policyMax": 3,
+      "cashMax": 4
+    },
+    "roles": {
+      "cfo": {
+        "body": "鼎丰地产集团突然成了全市场盯着的黑天鹅，境外火烧境内这四个字被写进每一份晨会纪要，主承和银行同一上午打来三轮电话，问你下季12亿到期债怎么续。二级估值收益率先上行72bp，备用授信还有38%没批。你要在现金、价格和合规留痕之间做取舍。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "找大行A锁定周转授信并留痕备案",
+            "effects": {
+              "cash": 1.76,
+              "financingCost": 0.34,
+              "creditUsage": 4.05,
+              "score.liquidity": 5,
+              "score.crisisResponse": 2,
+              "_uncertainty": 0.45,
+              "_delayedEffect": {
+                "afterQuarters": 3,
+                "effects": {
+                  "financingCost": 0.2,
+                  "score.compliance": -3
+                }
+              }
+            }
+          },
+          {
+            "label": "压缩非急项目付款保兑付并留痕备案",
+            "effects": {
+              "cash": -2.36,
+              "leverageRatio": -0.81,
+              "score.compliance": 5,
+              "score.costControl": 3
+            }
+          },
+          {
+            "label": "拿经营资产补一轮增信并留痕备案",
+            "effects": {
+              "cash": 0.41,
+              "financingCost": 1.2,
+              "score.development": 4,
+              "score.compliance": -2,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "im": {
+        "body": "鼎丰地产集团突然成了全市场盯着的黑天鹅，境外火烧境内这四个字被写进每一份晨会纪要，成交盘从早上就变薄，报价屏上同期限券利差被抬高83bp。组合里相关仓位占6%，渠道午后追问净值波动。你要判断是区域 beta，还是个券已经变味。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "向渠道逐户解释持仓差异并留痕备案",
+            "effects": {
+              "nav": 0.0068,
+              "duration": 0.27,
+              "concentration": 2.7,
+              "score.costControl": 4,
+              "score.projectProgress": 2
+            }
+          },
+          {
+            "label": "缩久期保净值曲线并留痕备案",
+            "effects": {
+              "redemptionPressure": -4.05,
+              "creditExposure": 4.05,
+              "score.compliance": 3,
+              "score.development": 3,
+              "_uncertainty": 0.55
+            }
+          },
+          {
+            "label": "用利率债对冲信用波动并留痕备案",
+            "effects": {
+              "nav": -0.0095,
+              "cashRatio": 2.7,
+              "creditExposure": -2.7,
+              "score.liquidity": 4,
+              "score.crisisResponse": 3,
+              "_delayedEffect": {
+                "afterQuarters": 5,
+                "effects": {
+                  "redemptionPressure": 4,
+                  "score.liquidity": -3
+                }
+              },
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "gov": {
+        "body": "鼎丰地产集团突然成了全市场盯着的黑天鹅，境外火烧境内这四个字被写进每一份晨会纪要，财政、金融办和几家平台被临时叫到一间会议室。辖区下季刚性支出排到7亿，银行口头额度却只剩52%。你要先保信用，还是先保项目进度。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "公开项目清单稳金融机构并留痕备案",
+            "effects": {
+              "industryIndex": 4.05,
+              "specialBondQuota": -1.35,
+              "politicalScore": 2.7,
+              "score.development": 4,
+              "score.costControl": 2,
+              "_uncertainty": 0.55
+            }
+          },
+          {
+            "label": "压实区县平台还款计划并留痕备案",
+            "effects": {
+              "cash": -1.08,
+              "hiddenDebtRisk": -5.4,
+              "politicalScore": 2.7,
+              "score.compliance": 4,
+              "score.crisisResponse": 2,
+              "_delayedEffect": {
+                "afterQuarters": 4,
+                "effects": {
+                  "hiddenDebtRisk": 5,
+                  "politicalScore": -2
+                }
+              }
+            }
+          },
+          {
+            "label": "把招引项目优先保开工并留痕备案",
+            "effects": {
+              "cash": 1.08,
+              "debtRatio": 4.05,
+              "hiddenDebtRisk": 4.05,
+              "score.projectProgress": 4,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "swan_v2_regional_default_chain",
+    "kind": "black_swan",
+    "weight": 2,
+    "title": "邻省平台兑付失败持续发酵",
+    "swanTag": "区域信用重估",
+    "policyShift": -3,
+    "act_hint": "crisis",
+    "tags": [
+      "城投",
+      "违约"
+    ],
+    "involves_npc": [
+      "npc_lgfv_lake_newtown",
+      "npc_lgfv_qian_mountain"
+    ],
+    "triggerCondition": {
+      "minQuarter": 4,
+      "maxQuarter": 11,
+      "requireRole": null,
+      "regionTier": null,
+      "healthLevel": null,
+      "policyMin": -3,
+      "policyMax": 3,
+      "navMax": 0.96
+    },
+    "roles": {
+      "cfo": {
+        "body": "镜湖新城发展突然成了全市场盯着的黑天鹅，区域信用重估这四个字被写进每一份晨会纪要，主承和银行同一上午打来三轮电话，问你下季6亿到期债怎么续。二级估值收益率先上行83bp，备用授信还有45%没批。你要在现金、价格和合规留痕之间做取舍。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "提前公告偿债安排稳估值并留痕备案",
+            "effects": {
+              "cash": -2.36,
+              "leverageRatio": -1.08,
+              "score.compliance": 6,
+              "score.costControl": 3
+            }
+          },
+          {
+            "label": "接受高价续作先保不断档并留痕备案",
+            "effects": {
+              "cash": 0.41,
+              "financingCost": 1.2,
+              "score.development": 4,
+              "score.compliance": -2,
+              "_uncertainty": 0.55
+            }
+          },
+          {
+            "label": "推迟发行等窗口回暖并留痕备案",
+            "effects": {
+              "cash": 1.49,
+              "financingCost": 0.34,
+              "creditUsage": 4.05,
+              "score.liquidity": 4,
+              "score.crisisResponse": 2,
+              "_delayedEffect": {
+                "afterQuarters": 3,
+                "effects": {
+                  "financingCost": 0.2,
+                  "score.compliance": -3
+                }
+              },
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "im": {
+        "body": "镜湖新城发展突然成了全市场盯着的黑天鹅，区域信用重估这四个字被写进每一份晨会纪要，成交盘从早上就变薄，报价屏上同期限券利差被抬高94bp。组合里相关仓位占7%，渠道午后追问净值波动。你要判断是区域 beta，还是个券已经变味。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "暂停下沉等待成交恢复并留痕备案",
+            "effects": {
+              "redemptionPressure": -5.4,
+              "creditExposure": 4.05,
+              "score.compliance": 3,
+              "score.development": 3,
+              "_uncertainty": 0.55
+            }
+          },
+          {
+            "label": "小仓位试探高票息资产并留痕备案",
+            "effects": {
+              "nav": -0.0095,
+              "cashRatio": 2.7,
+              "creditExposure": -2.7,
+              "score.liquidity": 4,
+              "score.crisisResponse": 3,
+              "_delayedEffect": {
+                "afterQuarters": 5,
+                "effects": {
+                  "redemptionPressure": 4,
+                  "score.liquidity": -3
+                }
+              }
+            }
+          },
+          {
+            "label": "申请估值偏离专项复核并留痕备案",
+            "effects": {
+              "nav": 0.0054,
+              "duration": 0.27,
+              "concentration": 1.35,
+              "score.costControl": 4,
+              "score.projectProgress": 2,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "gov": {
+        "body": "镜湖新城发展突然成了全市场盯着的黑天鹅，区域信用重估这四个字被写进每一份晨会纪要，财政、金融办和几家平台被临时叫到一间会议室。辖区下季刚性支出排到8亿，银行口头额度却只剩59%。你要先保信用，还是先保项目进度。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "先保公开债兑付资金链并留痕备案",
+            "effects": {
+              "cash": -1.08,
+              "hiddenDebtRisk": -6.75,
+              "politicalScore": 4.05,
+              "score.compliance": 4,
+              "score.crisisResponse": 2,
+              "_delayedEffect": {
+                "afterQuarters": 4,
+                "effects": {
+                  "hiddenDebtRisk": 5,
+                  "politicalScore": -2
+                }
+              }
+            }
+          },
+          {
+            "label": "争取省级置换额度入池并留痕备案",
+            "effects": {
+              "cash": 1.08,
+              "debtRatio": 4.05,
+              "hiddenDebtRisk": 4.05,
+              "score.projectProgress": 4,
+              "_uncertainty": 0.65
+            }
+          },
+          {
+            "label": "停缓非刚性形象工程并留痕备案",
+            "effects": {
+              "industryIndex": 2.7,
+              "specialBondQuota": -2.7,
+              "politicalScore": 1.35,
+              "score.development": 4,
+              "score.costControl": 2,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "swan_v2_wm_redemption_wave",
+    "kind": "black_swan",
+    "weight": 3,
+    "title": "理财赎回踩踏持续发酵",
+    "swanTag": "净值化考验",
+    "policyShift": -2,
+    "act_hint": "crisis",
+    "tags": [
+      "理财",
+      "赎回"
+    ],
+    "involves_npc": [
+      "npc_wm_top5_alpha",
+      "npc_wm_city_beta"
+    ],
+    "triggerCondition": {
+      "minQuarter": 5,
+      "maxQuarter": 11,
+      "requireRole": null,
+      "regionTier": null,
+      "healthLevel": null,
+      "policyMin": -3,
+      "policyMax": 3,
+      "debtRatioMin": 230
+    },
+    "roles": {
+      "cfo": {
+        "body": "TOP 5 理财子 · 阿尔法突然成了全市场盯着的黑天鹅，净值化考验这四个字被写进每一份晨会纪要，主承和银行同一上午打来三轮电话，问你下季7亿到期债怎么续。二级估值收益率先上行94bp，备用授信还有52%没批。你要在现金、价格和合规留痕之间做取舍。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "补做底层现金流穿透表并留痕备案",
+            "effects": {
+              "cash": -0.14,
+              "financingCost": 1.2,
+              "score.development": 4,
+              "score.compliance": -3,
+              "_uncertainty": 0.55
+            }
+          },
+          {
+            "label": "用存单质押换短贷额度并留痕备案",
+            "effects": {
+              "cash": 1.49,
+              "financingCost": 0.34,
+              "creditUsage": 4.05,
+              "score.liquidity": 4,
+              "score.crisisResponse": 2,
+              "_delayedEffect": {
+                "afterQuarters": 3,
+                "effects": {
+                  "financingCost": 0.2,
+                  "score.compliance": -3
+                }
+              }
+            }
+          },
+          {
+            "label": "召开银企会解释还款来源并留痕备案",
+            "effects": {
+              "cash": -2.97,
+              "leverageRatio": -0.81,
+              "score.compliance": 5,
+              "score.costControl": 3,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "im": {
+        "body": "TOP 5 理财子 · 阿尔法突然成了全市场盯着的黑天鹅，净值化考验这四个字被写进每一份晨会纪要，成交盘从早上就变薄，报价屏上同期限券利差被抬高15bp。组合里相关仓位占8%，渠道午后追问净值波动。你要判断是区域 beta，还是个券已经变味。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "先卖弱主体留区域龙头并留痕备案",
+            "effects": {
+              "nav": -0.0095,
+              "cashRatio": 2.7,
+              "creditExposure": -4.05,
+              "score.liquidity": 4,
+              "score.crisisResponse": 3,
+              "_delayedEffect": {
+                "afterQuarters": 5,
+                "effects": {
+                  "redemptionPressure": 4,
+                  "score.liquidity": -3
+                }
+              }
+            }
+          },
+          {
+            "label": "提高现金仓应对渠道赎回并留痕备案",
+            "effects": {
+              "nav": 0.0054,
+              "duration": 0.27,
+              "concentration": 1.35,
+              "score.costControl": 4,
+              "score.projectProgress": 2,
+              "_uncertainty": 0.65
+            }
+          },
+          {
+            "label": "逆势吃票息等估值修复并留痕备案",
+            "effects": {
+              "redemptionPressure": -4.05,
+              "creditExposure": 4.05,
+              "score.compliance": 3,
+              "score.development": 3,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "gov": {
+        "body": "TOP 5 理财子 · 阿尔法突然成了全市场盯着的黑天鹅，净值化考验这四个字被写进每一份晨会纪要，财政、金融办和几家平台被临时叫到一间会议室。辖区下季刚性支出排到9亿，银行口头额度却只剩66%。你要先保信用，还是先保项目进度。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "组织平台逐户压降非标并留痕备案",
+            "effects": {
+              "cash": 1.22,
+              "debtRatio": 4.05,
+              "hiddenDebtRisk": 4.05,
+              "score.projectProgress": 4,
+              "_uncertainty": 0.65
+            }
+          },
+          {
+            "label": "把现金流项目打包申报并留痕备案",
+            "effects": {
+              "industryIndex": 2.7,
+              "specialBondQuota": -2.7,
+              "politicalScore": 1.35,
+              "score.development": 4,
+              "score.costControl": 2
+            }
+          },
+          {
+            "label": "用财政贴息换银行展期并留痕备案",
+            "effects": {
+              "cash": -1.08,
+              "hiddenDebtRisk": -5.4,
+              "politicalScore": 2.7,
+              "score.compliance": 4,
+              "score.crisisResponse": 2,
+              "_uncertainty": 0.35,
+              "_delayedEffect": {
+                "afterQuarters": 4,
+                "effects": {
+                  "hiddenDebtRisk": 5,
+                  "politicalScore": -2
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "swan_v2_small_bank_run",
+    "kind": "black_swan",
+    "weight": 1,
+    "title": "小银行取款排队持续发酵",
+    "swanTag": "负债端失火",
+    "policyShift": -2,
+    "act_hint": "crisis",
+    "tags": [
+      "银行",
+      "流动性"
+    ],
+    "involves_npc": [
+      "npc_bank_rural_e",
+      "npc_lgfv_icecity_heat"
+    ],
+    "triggerCondition": {
+      "minQuarter": 6,
+      "maxQuarter": 11,
+      "requireRole": null,
+      "regionTier": null,
+      "healthLevel": null,
+      "policyMin": -3,
+      "policyMax": 3,
+      "cashMax": 4
+    },
+    "roles": {
+      "cfo": {
+        "body": "农商行 E突然成了全市场盯着的黑天鹅，负债端失火这四个字被写进每一份晨会纪要，主承和银行同一上午打来三轮电话，问你下季8亿到期债怎么续。二级估值收益率先上行15bp，备用授信还有59%没批。你要在现金、价格和合规留痕之间做取舍。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "找股份行D锁定周转授信并留痕备案",
+            "effects": {
+              "cash": 1.76,
+              "financingCost": 0.34,
+              "creditUsage": 4.05,
+              "score.liquidity": 5,
+              "score.crisisResponse": 2,
+              "_delayedEffect": {
+                "afterQuarters": 3,
+                "effects": {
+                  "financingCost": 0.2,
+                  "score.compliance": -3
+                }
+              }
+            }
+          },
+          {
+            "label": "压缩非急项目付款保兑付并留痕备案",
+            "effects": {
+              "cash": -2.97,
+              "leverageRatio": -0.81,
+              "score.compliance": 5,
+              "score.costControl": 3,
+              "_uncertainty": 0.65
+            }
+          },
+          {
+            "label": "拿经营资产补一轮增信并留痕备案",
+            "effects": {
+              "cash": 0.41,
+              "financingCost": 1.2,
+              "score.development": 4,
+              "score.compliance": -2,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "im": {
+        "body": "农商行 E突然成了全市场盯着的黑天鹅，负债端失火这四个字被写进每一份晨会纪要，成交盘从早上就变薄，报价屏上同期限券利差被抬高26bp。组合里相关仓位占9%，渠道午后追问净值波动。你要判断是区域 beta，还是个券已经变味。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "向渠道逐户解释持仓差异并留痕备案",
+            "effects": {
+              "nav": 0.0068,
+              "duration": 0.27,
+              "concentration": 1.35,
+              "score.costControl": 4,
+              "score.projectProgress": 2,
+              "_uncertainty": 0.65
+            }
+          },
+          {
+            "label": "缩久期保净值曲线并留痕备案",
+            "effects": {
+              "redemptionPressure": -4.05,
+              "creditExposure": 4.05,
+              "score.compliance": 3,
+              "score.development": 3
+            }
+          },
+          {
+            "label": "用利率债对冲信用波动并留痕备案",
+            "effects": {
+              "nav": -0.0081,
+              "cashRatio": 1.35,
+              "creditExposure": -2.7,
+              "score.liquidity": 4,
+              "score.crisisResponse": 3,
+              "_uncertainty": 0.35,
+              "_delayedEffect": {
+                "afterQuarters": 4,
+                "effects": {
+                  "redemptionPressure": 4,
+                  "score.liquidity": -3
+                }
+              }
+            }
+          }
+        ]
+      },
+      "gov": {
+        "body": "农商行 E突然成了全市场盯着的黑天鹅，负债端失火这四个字被写进每一份晨会纪要，财政、金融办和几家平台被临时叫到一间会议室。辖区下季刚性支出排到10亿，银行口头额度却只剩73%。你要先保信用，还是先保项目进度。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "公开项目清单稳金融机构并留痕备案",
+            "effects": {
+              "industryIndex": 4.05,
+              "specialBondQuota": -2.7,
+              "politicalScore": 2.7,
+              "score.development": 4,
+              "score.costControl": 2
+            }
+          },
+          {
+            "label": "压实区县平台还款计划并留痕备案",
+            "effects": {
+              "cash": -1.08,
+              "hiddenDebtRisk": -5.4,
+              "politicalScore": 2.7,
+              "score.compliance": 4,
+              "score.crisisResponse": 2,
+              "_uncertainty": 0.5,
+              "_delayedEffect": {
+                "afterQuarters": 4,
+                "effects": {
+                  "hiddenDebtRisk": 5,
+                  "politicalScore": -2
+                }
+              }
+            }
+          },
+          {
+            "label": "把招引项目优先保开工并留痕备案",
+            "effects": {
+              "cash": 1.08,
+              "debtRatio": 4.05,
+              "hiddenDebtRisk": 5.4,
+              "score.projectProgress": 4,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "swan_v2_audit_freeze",
+    "kind": "black_swan",
+    "weight": 2,
+    "title": "审计冻结项目付款持续发酵",
+    "swanTag": "合规急刹车",
+    "policyShift": -2,
+    "act_hint": "tightening",
+    "tags": [
+      "审计",
+      "监管"
+    ],
+    "involves_npc": [
+      "npc_lgfv_yu_north",
+      "npc_bank_main_state"
+    ],
+    "triggerCondition": {
+      "minQuarter": 3,
+      "maxQuarter": 11,
+      "requireRole": null,
+      "regionTier": null,
+      "healthLevel": null,
+      "policyMin": -3,
+      "policyMax": 3,
+      "navMax": 0.96
+    },
+    "roles": {
+      "cfo": {
+        "body": "玄武郡投控突然成了全市场盯着的黑天鹅，合规急刹车这四个字被写进每一份晨会纪要，主承和银行同一上午打来三轮电话，问你下季9亿到期债怎么续。二级估值收益率先上行26bp，备用授信还有66%没批。你要在现金、价格和合规留痕之间做取舍。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "提前公告偿债安排稳估值并留痕备案",
+            "effects": {
+              "cash": -2.97,
+              "leverageRatio": -1.08,
+              "score.compliance": 6,
+              "score.costControl": 3,
+              "_uncertainty": 0.65
+            }
+          },
+          {
+            "label": "接受高价续作先保不断档并留痕备案",
+            "effects": {
+              "cash": 0.41,
+              "financingCost": 1.2,
+              "score.development": 4,
+              "score.compliance": -2
+            }
+          },
+          {
+            "label": "推迟发行等窗口回暖并留痕备案",
+            "effects": {
+              "cash": 1.49,
+              "financingCost": 0.34,
+              "creditUsage": 4.05,
+              "score.liquidity": 4,
+              "score.crisisResponse": 2,
+              "_uncertainty": 0.35,
+              "_delayedEffect": {
+                "afterQuarters": 3,
+                "effects": {
+                  "financingCost": 0.2,
+                  "score.compliance": -3
+                }
+              }
+            }
+          }
+        ]
+      },
+      "im": {
+        "body": "玄武郡投控突然成了全市场盯着的黑天鹅，合规急刹车这四个字被写进每一份晨会纪要，成交盘从早上就变薄，报价屏上同期限券利差被抬高37bp。组合里相关仓位占10%，渠道午后追问净值波动。你要判断是区域 beta，还是个券已经变味。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "暂停下沉等待成交恢复并留痕备案",
+            "effects": {
+              "redemptionPressure": -5.4,
+              "creditExposure": 4.05,
+              "score.compliance": 3,
+              "score.development": 3
+            }
+          },
+          {
+            "label": "小仓位试探高票息资产并留痕备案",
+            "effects": {
+              "nav": -0.0081,
+              "cashRatio": 1.35,
+              "creditExposure": -2.7,
+              "score.liquidity": 4,
+              "score.crisisResponse": 3,
+              "_uncertainty": 0.5,
+              "_delayedEffect": {
+                "afterQuarters": 4,
+                "effects": {
+                  "redemptionPressure": 4,
+                  "score.liquidity": -3
+                }
+              }
+            }
+          },
+          {
+            "label": "申请估值偏离专项复核并留痕备案",
+            "effects": {
+              "nav": 0.0054,
+              "duration": 0.27,
+              "concentration": 2.7,
+              "score.costControl": 4,
+              "score.projectProgress": 2,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "gov": {
+        "body": "玄武郡投控突然成了全市场盯着的黑天鹅，合规急刹车这四个字被写进每一份晨会纪要，财政、金融办和几家平台被临时叫到一间会议室。辖区下季刚性支出排到11亿，银行口头额度却只剩80%。你要先保信用，还是先保项目进度。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "先保公开债兑付资金链并留痕备案",
+            "effects": {
+              "cash": -1.08,
+              "hiddenDebtRisk": -6.75,
+              "politicalScore": 4.05,
+              "score.compliance": 4,
+              "score.crisisResponse": 2,
+              "_uncertainty": 0.5,
+              "_delayedEffect": {
+                "afterQuarters": 4,
+                "effects": {
+                  "hiddenDebtRisk": 5,
+                  "politicalScore": -2
+                }
+              }
+            }
+          },
+          {
+            "label": "争取省级置换额度入池并留痕备案",
+            "effects": {
+              "cash": 1.08,
+              "debtRatio": 4.05,
+              "hiddenDebtRisk": 5.4,
+              "score.projectProgress": 4
+            }
+          },
+          {
+            "label": "停缓非刚性形象工程并留痕备案",
+            "effects": {
+              "industryIndex": 2.7,
+              "specialBondQuota": -1.35,
+              "politicalScore": 1.35,
+              "score.development": 4,
+              "score.costControl": 2,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "swan_v2_policy_swap_big",
+    "kind": "black_swan",
+    "weight": 3,
+    "title": "万亿置换窗口打开持续发酵",
+    "swanTag": "政策窗口",
+    "policyShift": 3,
+    "act_hint": "expansion",
+    "tags": [
+      "化债",
+      "置换"
+    ],
+    "involves_npc": [
+      "npc_lgfv_qian_mountain",
+      "npc_bank_policy_b"
+    ],
+    "triggerCondition": {
+      "minQuarter": 4,
+      "maxQuarter": 11,
+      "requireRole": null,
+      "regionTier": null,
+      "healthLevel": null,
+      "policyMin": -3,
+      "policyMax": 3,
+      "debtRatioMin": 230
+    },
+    "roles": {
+      "cfo": {
+        "body": "苍梧产投集团突然成了全市场盯着的黑天鹅，政策窗口这四个字被写进每一份晨会纪要，主承和银行同一上午打来三轮电话，问你下季10亿到期债怎么续。二级估值收益率先上行37bp，备用授信还有73%没批。你要在现金、价格和合规留痕之间做取舍。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "补做底层现金流穿透表并留痕备案",
+            "effects": {
+              "cash": -0.14,
+              "financingCost": 1.2,
+              "score.development": 4,
+              "score.compliance": -3
+            }
+          },
+          {
+            "label": "用存单质押换短贷额度并留痕备案",
+            "effects": {
+              "cash": 1.49,
+              "financingCost": 0.34,
+              "creditUsage": 4.05,
+              "score.liquidity": 4,
+              "score.crisisResponse": 2,
+              "_uncertainty": 0.5,
+              "_delayedEffect": {
+                "afterQuarters": 3,
+                "effects": {
+                  "financingCost": 0.2,
+                  "score.compliance": -3
+                }
+              }
+            }
+          },
+          {
+            "label": "召开银企会解释还款来源并留痕备案",
+            "effects": {
+              "cash": -0.88,
+              "leverageRatio": -0.81,
+              "score.compliance": 5,
+              "score.costControl": 3,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "im": {
+        "body": "苍梧产投集团突然成了全市场盯着的黑天鹅，政策窗口这四个字被写进每一份晨会纪要，成交盘从早上就变薄，报价屏上同期限券利差被抬高48bp。组合里相关仓位占11%，渠道午后追问净值波动。你要判断是区域 beta，还是个券已经变味。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "先卖弱主体留区域龙头并留痕备案",
+            "effects": {
+              "nav": -0.0081,
+              "cashRatio": 1.35,
+              "creditExposure": -4.05,
+              "score.liquidity": 4,
+              "score.crisisResponse": 3,
+              "_uncertainty": 0.5,
+              "_delayedEffect": {
+                "afterQuarters": 4,
+                "effects": {
+                  "redemptionPressure": 4,
+                  "score.liquidity": -3
+                }
+              }
+            }
+          },
+          {
+            "label": "提高现金仓应对渠道赎回并留痕备案",
+            "effects": {
+              "nav": 0.0054,
+              "duration": 0.27,
+              "concentration": 2.7,
+              "score.costControl": 4,
+              "score.projectProgress": 2
+            }
+          },
+          {
+            "label": "逆势吃票息等估值修复并留痕备案",
+            "effects": {
+              "redemptionPressure": -4.05,
+              "creditExposure": 4.05,
+              "score.compliance": 3,
+              "score.development": 3,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "gov": {
+        "body": "苍梧产投集团突然成了全市场盯着的黑天鹅，政策窗口这四个字被写进每一份晨会纪要，财政、金融办和几家平台被临时叫到一间会议室。辖区下季刚性支出排到12亿，银行口头额度却只剩87%。你要先保信用，还是先保项目进度。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "组织平台逐户压降非标并留痕备案",
+            "effects": {
+              "cash": 1.22,
+              "debtRatio": 4.05,
+              "hiddenDebtRisk": 5.4,
+              "score.projectProgress": 4
+            }
+          },
+          {
+            "label": "把现金流项目打包申报并留痕备案",
+            "effects": {
+              "industryIndex": 2.7,
+              "specialBondQuota": -1.35,
+              "politicalScore": 1.35,
+              "score.development": 4,
+              "score.costControl": 2,
+              "_uncertainty": 0.6
+            }
+          },
+          {
+            "label": "用财政贴息换银行展期并留痕备案",
+            "effects": {
+              "cash": -1.08,
+              "hiddenDebtRisk": -5.4,
+              "politicalScore": 2.7,
+              "score.compliance": 4,
+              "score.crisisResponse": 2,
+              "_delayedEffect": {
+                "afterQuarters": 4,
+                "effects": {
+                  "hiddenDebtRisk": 5,
+                  "politicalScore": -2
+                }
+              },
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "swan_v2_rate_surge",
+    "kind": "black_swan",
+    "weight": 1,
+    "title": "长端利率单周跳升持续发酵",
+    "swanTag": "久期反杀",
+    "policyShift": -2,
+    "act_hint": "tightening",
+    "tags": [
+      "利率",
+      "久期"
+    ],
+    "involves_npc": [
+      "npc_wm_insurance_delta",
+      "npc_wm_broker_epsilon"
+    ],
+    "triggerCondition": {
+      "minQuarter": 5,
+      "maxQuarter": 11,
+      "requireRole": null,
+      "regionTier": null,
+      "healthLevel": null,
+      "policyMin": -3,
+      "policyMax": 3,
+      "cashMax": 4
+    },
+    "roles": {
+      "cfo": {
+        "body": "保险资管 · 德尔塔突然成了全市场盯着的黑天鹅，久期反杀这四个字被写进每一份晨会纪要，主承和银行同一上午打来三轮电话，问你下季11亿到期债怎么续。二级估值收益率先上行48bp，备用授信还有80%没批。你要在现金、价格和合规留痕之间做取舍。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "找政策行B锁定周转授信并留痕备案",
+            "effects": {
+              "cash": 1.76,
+              "financingCost": 0.34,
+              "creditUsage": 4.05,
+              "score.liquidity": 5,
+              "score.crisisResponse": 2,
+              "_uncertainty": 0.5,
+              "_delayedEffect": {
+                "afterQuarters": 3,
+                "effects": {
+                  "financingCost": 0.2,
+                  "score.compliance": -3
+                }
+              }
+            }
+          },
+          {
+            "label": "压缩非急项目付款保兑付并留痕备案",
+            "effects": {
+              "cash": -0.88,
+              "leverageRatio": -0.81,
+              "score.compliance": 5,
+              "score.costControl": 3
+            }
+          },
+          {
+            "label": "拿经营资产补一轮增信并留痕备案",
+            "effects": {
+              "cash": 0.41,
+              "financingCost": 1.2,
+              "score.development": 4,
+              "score.compliance": -2,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "im": {
+        "body": "保险资管 · 德尔塔突然成了全市场盯着的黑天鹅，久期反杀这四个字被写进每一份晨会纪要，成交盘从早上就变薄，报价屏上同期限券利差被抬高59bp。组合里相关仓位占12%，渠道午后追问净值波动。你要判断是区域 beta，还是个券已经变味。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "向渠道逐户解释持仓差异并留痕备案",
+            "effects": {
+              "nav": 0.0068,
+              "duration": 0.27,
+              "concentration": 2.7,
+              "score.costControl": 4,
+              "score.projectProgress": 2
+            }
+          },
+          {
+            "label": "缩久期保净值曲线并留痕备案",
+            "effects": {
+              "redemptionPressure": -4.05,
+              "creditExposure": 4.05,
+              "score.compliance": 3,
+              "score.development": 3,
+              "_uncertainty": 0.6
+            }
+          },
+          {
+            "label": "用利率债对冲信用波动并留痕备案",
+            "effects": {
+              "nav": -0.0068,
+              "cashRatio": 2.7,
+              "creditExposure": -2.7,
+              "score.liquidity": 4,
+              "score.crisisResponse": 3,
+              "_delayedEffect": {
+                "afterQuarters": 3,
+                "effects": {
+                  "redemptionPressure": 4,
+                  "score.liquidity": -3
+                }
+              },
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "gov": {
+        "body": "保险资管 · 德尔塔突然成了全市场盯着的黑天鹅，久期反杀这四个字被写进每一份晨会纪要，财政、金融办和几家平台被临时叫到一间会议室。辖区下季刚性支出排到6亿，银行口头额度却只剩94%。你要先保信用，还是先保项目进度。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "公开项目清单稳金融机构并留痕备案",
+            "effects": {
+              "industryIndex": 4.05,
+              "specialBondQuota": -1.35,
+              "politicalScore": 2.7,
+              "score.development": 4,
+              "score.costControl": 2,
+              "_uncertainty": 0.6
+            }
+          },
+          {
+            "label": "压实区县平台还款计划并留痕备案",
+            "effects": {
+              "cash": -1.08,
+              "hiddenDebtRisk": -5.4,
+              "politicalScore": 2.7,
+              "score.compliance": 4,
+              "score.crisisResponse": 2,
+              "_delayedEffect": {
+                "afterQuarters": 4,
+                "effects": {
+                  "hiddenDebtRisk": 5,
+                  "politicalScore": -2
+                }
+              }
+            }
+          },
+          {
+            "label": "把招引项目优先保开工并留痕备案",
+            "effects": {
+              "cash": 1.08,
+              "debtRatio": 4.05,
+              "hiddenDebtRisk": 4.05,
+              "score.projectProgress": 4,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "swan_v2_trade_fake",
+    "kind": "black_swan",
+    "weight": 2,
+    "title": "贸易流水穿透造假持续发酵",
+    "swanTag": "收入塌方",
+    "policyShift": -2,
+    "act_hint": "crisis",
+    "tags": [
+      "贸易",
+      "信披"
+    ],
+    "involves_npc": [
+      "npc_issuer_trade_holdco",
+      "npc_lgfv_bohai_port"
+    ],
+    "triggerCondition": {
+      "minQuarter": 6,
+      "maxQuarter": 11,
+      "requireRole": null,
+      "regionTier": null,
+      "healthLevel": null,
+      "policyMin": -3,
+      "policyMax": 3,
+      "navMax": 0.96
+    },
+    "roles": {
+      "cfo": {
+        "body": "远帆贸易控股突然成了全市场盯着的黑天鹅，收入塌方这四个字被写进每一份晨会纪要，主承和银行同一上午打来三轮电话，问你下季12亿到期债怎么续。二级估值收益率先上行59bp，备用授信还有87%没批。你要在现金、价格和合规留痕之间做取舍。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "提前公告偿债安排稳估值并留痕备案",
+            "effects": {
+              "cash": -0.88,
+              "leverageRatio": -1.08,
+              "score.compliance": 6,
+              "score.costControl": 3
+            }
+          },
+          {
+            "label": "接受高价续作先保不断档并留痕备案",
+            "effects": {
+              "cash": 0.41,
+              "financingCost": 1.2,
+              "score.development": 4,
+              "score.compliance": -2,
+              "_uncertainty": 0.6
+            }
+          },
+          {
+            "label": "推迟发行等窗口回暖并留痕备案",
+            "effects": {
+              "cash": 1.49,
+              "financingCost": 0.34,
+              "creditUsage": 4.05,
+              "score.liquidity": 4,
+              "score.crisisResponse": 2,
+              "_delayedEffect": {
+                "afterQuarters": 3,
+                "effects": {
+                  "financingCost": 0.2,
+                  "score.compliance": -3
+                }
+              },
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "im": {
+        "body": "远帆贸易控股突然成了全市场盯着的黑天鹅，收入塌方这四个字被写进每一份晨会纪要，成交盘从早上就变薄，报价屏上同期限券利差被抬高70bp。组合里相关仓位占6%，渠道午后追问净值波动。你要判断是区域 beta，还是个券已经变味。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "暂停下沉等待成交恢复并留痕备案",
+            "effects": {
+              "redemptionPressure": -5.4,
+              "creditExposure": 4.05,
+              "score.compliance": 3,
+              "score.development": 3,
+              "_uncertainty": 0.6
+            }
+          },
+          {
+            "label": "小仓位试探高票息资产并留痕备案",
+            "effects": {
+              "nav": -0.0068,
+              "cashRatio": 2.7,
+              "creditExposure": -2.7,
+              "score.liquidity": 4,
+              "score.crisisResponse": 3,
+              "_delayedEffect": {
+                "afterQuarters": 3,
+                "effects": {
+                  "redemptionPressure": 4,
+                  "score.liquidity": -3
+                }
+              }
+            }
+          },
+          {
+            "label": "申请估值偏离专项复核并留痕备案",
+            "effects": {
+              "nav": 0.0054,
+              "duration": 0.27,
+              "concentration": 1.35,
+              "score.costControl": 4,
+              "score.projectProgress": 2,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "gov": {
+        "body": "远帆贸易控股突然成了全市场盯着的黑天鹅，收入塌方这四个字被写进每一份晨会纪要，财政、金融办和几家平台被临时叫到一间会议室。辖区下季刚性支出排到7亿，银行口头额度却只剩21%。你要先保信用，还是先保项目进度。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "先保公开债兑付资金链并留痕备案",
+            "effects": {
+              "cash": -1.08,
+              "hiddenDebtRisk": -6.75,
+              "politicalScore": 4.05,
+              "score.compliance": 4,
+              "score.crisisResponse": 2,
+              "_delayedEffect": {
+                "afterQuarters": 4,
+                "effects": {
+                  "hiddenDebtRisk": 5,
+                  "politicalScore": -2
+                }
+              }
+            }
+          },
+          {
+            "label": "争取省级置换额度入池并留痕备案",
+            "effects": {
+              "cash": 1.08,
+              "debtRatio": 4.05,
+              "hiddenDebtRisk": 4.05,
+              "score.projectProgress": 4,
+              "_uncertainty": 0.45
+            }
+          },
+          {
+            "label": "停缓非刚性形象工程并留痕备案",
+            "effects": {
+              "industryIndex": 2.7,
+              "specialBondQuota": -2.7,
+              "politicalScore": 1.35,
+              "score.development": 4,
+              "score.costControl": 2,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "swan_v2_nonstd_exposure",
+    "kind": "black_swan",
+    "weight": 3,
+    "title": "非标兑付集中爆雷持续发酵",
+    "swanTag": "非标回潮",
+    "policyShift": -3,
+    "act_hint": "crisis",
+    "tags": [
+      "非标",
+      "兑付"
+    ],
+    "involves_npc": [
+      "npc_bank_trust_f",
+      "npc_lgfv_xibei_agri"
+    ],
+    "triggerCondition": {
+      "minQuarter": 3,
+      "maxQuarter": 11,
+      "requireRole": null,
+      "regionTier": null,
+      "healthLevel": null,
+      "policyMin": -3,
+      "policyMax": 3,
+      "debtRatioMin": 230
+    },
+    "roles": {
+      "cfo": {
+        "body": "信托通道 F突然成了全市场盯着的黑天鹅，非标回潮这四个字被写进每一份晨会纪要，主承和银行同一上午打来三轮电话，问你下季6亿到期债怎么续。二级估值收益率先上行70bp，备用授信还有94%没批。你要在现金、价格和合规留痕之间做取舍。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "补做底层现金流穿透表并留痕备案",
+            "effects": {
+              "cash": -0.14,
+              "financingCost": 1.2,
+              "score.development": 4,
+              "score.compliance": -3,
+              "_uncertainty": 0.6
+            }
+          },
+          {
+            "label": "用存单质押换短贷额度并留痕备案",
+            "effects": {
+              "cash": 1.49,
+              "financingCost": 0.34,
+              "creditUsage": 4.05,
+              "score.liquidity": 4,
+              "score.crisisResponse": 2,
+              "_delayedEffect": {
+                "afterQuarters": 3,
+                "effects": {
+                  "financingCost": 0.2,
+                  "score.compliance": -3
+                }
+              }
+            }
+          },
+          {
+            "label": "召开银企会解释还款来源并留痕备案",
+            "effects": {
+              "cash": -1.49,
+              "leverageRatio": -0.81,
+              "score.compliance": 5,
+              "score.costControl": 3,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "im": {
+        "body": "信托通道 F突然成了全市场盯着的黑天鹅，非标回潮这四个字被写进每一份晨会纪要，成交盘从早上就变薄，报价屏上同期限券利差被抬高81bp。组合里相关仓位占7%，渠道午后追问净值波动。你要判断是区域 beta，还是个券已经变味。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "先卖弱主体留区域龙头并留痕备案",
+            "effects": {
+              "nav": -0.0068,
+              "cashRatio": 2.7,
+              "creditExposure": -4.05,
+              "score.liquidity": 4,
+              "score.crisisResponse": 3,
+              "_delayedEffect": {
+                "afterQuarters": 3,
+                "effects": {
+                  "redemptionPressure": 4,
+                  "score.liquidity": -3
+                }
+              }
+            }
+          },
+          {
+            "label": "提高现金仓应对渠道赎回并留痕备案",
+            "effects": {
+              "nav": 0.0054,
+              "duration": 0.27,
+              "concentration": 1.35,
+              "score.costControl": 4,
+              "score.projectProgress": 2,
+              "_uncertainty": 0.45
+            }
+          },
+          {
+            "label": "逆势吃票息等估值修复并留痕备案",
+            "effects": {
+              "redemptionPressure": -4.05,
+              "creditExposure": 4.05,
+              "score.compliance": 3,
+              "score.development": 3,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "gov": {
+        "body": "信托通道 F突然成了全市场盯着的黑天鹅，非标回潮这四个字被写进每一份晨会纪要，财政、金融办和几家平台被临时叫到一间会议室。辖区下季刚性支出排到8亿，银行口头额度却只剩28%。你要先保信用，还是先保项目进度。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "组织平台逐户压降非标并留痕备案",
+            "effects": {
+              "cash": 1.22,
+              "debtRatio": 4.05,
+              "hiddenDebtRisk": 4.05,
+              "score.projectProgress": 4,
+              "_uncertainty": 0.45
+            }
+          },
+          {
+            "label": "把现金流项目打包申报并留痕备案",
+            "effects": {
+              "industryIndex": 2.7,
+              "specialBondQuota": -2.7,
+              "politicalScore": 1.35,
+              "score.development": 4,
+              "score.costControl": 2
+            }
+          },
+          {
+            "label": "用财政贴息换银行展期并留痕备案",
+            "effects": {
+              "cash": -1.08,
+              "hiddenDebtRisk": -5.4,
+              "politicalScore": 2.7,
+              "score.compliance": 4,
+              "score.crisisResponse": 2,
+              "_uncertainty": 0.35,
+              "_delayedEffect": {
+                "afterQuarters": 4,
+                "effects": {
+                  "hiddenDebtRisk": 5,
+                  "politicalScore": -2
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "swan_v2_land_freeze",
+    "kind": "black_swan",
+    "weight": 1,
+    "title": "土地市场连续流拍持续发酵",
+    "swanTag": "库款抽水",
+    "policyShift": -2,
+    "act_hint": "tightening",
+    "tags": [
+      "土地",
+      "财政"
+    ],
+    "involves_npc": [
+      "npc_lgfv_songbei_urban",
+      "npc_lgfv_lake_newtown"
+    ],
+    "triggerCondition": {
+      "minQuarter": 4,
+      "maxQuarter": 11,
+      "requireRole": null,
+      "regionTier": null,
+      "healthLevel": null,
+      "policyMin": -3,
+      "policyMax": 3,
+      "cashMax": 4
+    },
+    "roles": {
+      "cfo": {
+        "body": "寒林城更集团突然成了全市场盯着的黑天鹅，库款抽水这四个字被写进每一份晨会纪要，主承和银行同一上午打来三轮电话，问你下季7亿到期债怎么续。二级估值收益率先上行81bp，备用授信还有21%没批。你要在现金、价格和合规留痕之间做取舍。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "找农商行E锁定周转授信并留痕备案",
+            "effects": {
+              "cash": 1.76,
+              "financingCost": 0.34,
+              "creditUsage": 4.05,
+              "score.liquidity": 5,
+              "score.crisisResponse": 2,
+              "_delayedEffect": {
+                "afterQuarters": 3,
+                "effects": {
+                  "financingCost": 0.2,
+                  "score.compliance": -3
+                }
+              }
+            }
+          },
+          {
+            "label": "压缩非急项目付款保兑付并留痕备案",
+            "effects": {
+              "cash": -1.49,
+              "leverageRatio": -0.81,
+              "score.compliance": 5,
+              "score.costControl": 3,
+              "_uncertainty": 0.45
+            }
+          },
+          {
+            "label": "拿经营资产补一轮增信并留痕备案",
+            "effects": {
+              "cash": 0.41,
+              "financingCost": 1.2,
+              "score.development": 4,
+              "score.compliance": -2,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "im": {
+        "body": "寒林城更集团突然成了全市场盯着的黑天鹅，库款抽水这四个字被写进每一份晨会纪要，成交盘从早上就变薄，报价屏上同期限券利差被抬高92bp。组合里相关仓位占8%，渠道午后追问净值波动。你要判断是区域 beta，还是个券已经变味。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "向渠道逐户解释持仓差异并留痕备案",
+            "effects": {
+              "nav": 0.0068,
+              "duration": 0.27,
+              "concentration": 1.35,
+              "score.costControl": 4,
+              "score.projectProgress": 2,
+              "_uncertainty": 0.45
+            }
+          },
+          {
+            "label": "缩久期保净值曲线并留痕备案",
+            "effects": {
+              "redemptionPressure": -4.05,
+              "creditExposure": 4.05,
+              "score.compliance": 3,
+              "score.development": 3
+            }
+          },
+          {
+            "label": "用利率债对冲信用波动并留痕备案",
+            "effects": {
+              "nav": -0.0054,
+              "cashRatio": 1.35,
+              "creditExposure": -2.7,
+              "score.liquidity": 4,
+              "score.crisisResponse": 3,
+              "_uncertainty": 0.35,
+              "_delayedEffect": {
+                "afterQuarters": 2,
+                "effects": {
+                  "redemptionPressure": 4,
+                  "score.liquidity": -3
+                }
+              }
+            }
+          }
+        ]
+      },
+      "gov": {
+        "body": "寒林城更集团突然成了全市场盯着的黑天鹅，库款抽水这四个字被写进每一份晨会纪要，财政、金融办和几家平台被临时叫到一间会议室。辖区下季刚性支出排到9亿，银行口头额度却只剩35%。你要先保信用，还是先保项目进度。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "公开项目清单稳金融机构并留痕备案",
+            "effects": {
+              "industryIndex": 4.05,
+              "specialBondQuota": -2.7,
+              "politicalScore": 2.7,
+              "score.development": 4,
+              "score.costControl": 2
+            }
+          },
+          {
+            "label": "压实区县平台还款计划并留痕备案",
+            "effects": {
+              "cash": -1.08,
+              "hiddenDebtRisk": -5.4,
+              "politicalScore": 2.7,
+              "score.compliance": 4,
+              "score.crisisResponse": 2,
+              "_uncertainty": 0.55,
+              "_delayedEffect": {
+                "afterQuarters": 4,
+                "effects": {
+                  "hiddenDebtRisk": 5,
+                  "politicalScore": -2
+                }
+              }
+            }
+          },
+          {
+            "label": "把招引项目优先保开工并留痕备案",
+            "effects": {
+              "cash": 1.08,
+              "debtRatio": 4.05,
+              "hiddenDebtRisk": 5.4,
+              "score.projectProgress": 4,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "swan_v2_resource_price_drop",
+    "kind": "black_swan",
+    "weight": 2,
+    "title": "资源价格急跌持续发酵",
+    "swanTag": "资源财政转向",
+    "policyShift": -2,
+    "act_hint": "crisis",
+    "tags": [
+      "资源",
+      "财政"
+    ],
+    "involves_npc": [
+      "npc_lgfv_shanbei_mining",
+      "npc_issuer_mining_private"
+    ],
+    "triggerCondition": {
+      "minQuarter": 5,
+      "maxQuarter": 11,
+      "requireRole": null,
+      "regionTier": null,
+      "healthLevel": null,
+      "policyMin": -3,
+      "policyMax": 3,
+      "navMax": 0.96
+    },
+    "roles": {
+      "cfo": {
+        "body": "玉沙矿区城投突然成了全市场盯着的黑天鹅，资源财政转向这四个字被写进每一份晨会纪要，主承和银行同一上午打来三轮电话，问你下季8亿到期债怎么续。二级估值收益率先上行92bp，备用授信还有28%没批。你要在现金、价格和合规留痕之间做取舍。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "提前公告偿债安排稳估值并留痕备案",
+            "effects": {
+              "cash": -1.49,
+              "leverageRatio": -1.08,
+              "score.compliance": 6,
+              "score.costControl": 3,
+              "_uncertainty": 0.45
+            }
+          },
+          {
+            "label": "接受高价续作先保不断档并留痕备案",
+            "effects": {
+              "cash": 0.41,
+              "financingCost": 1.2,
+              "score.development": 4,
+              "score.compliance": -2
+            }
+          },
+          {
+            "label": "推迟发行等窗口回暖并留痕备案",
+            "effects": {
+              "cash": 1.49,
+              "financingCost": 0.34,
+              "creditUsage": 4.05,
+              "score.liquidity": 4,
+              "score.crisisResponse": 2,
+              "_uncertainty": 0.35,
+              "_delayedEffect": {
+                "afterQuarters": 3,
+                "effects": {
+                  "financingCost": 0.2,
+                  "score.compliance": -3
+                }
+              }
+            }
+          }
+        ]
+      },
+      "im": {
+        "body": "玉沙矿区城投突然成了全市场盯着的黑天鹅，资源财政转向这四个字被写进每一份晨会纪要，成交盘从早上就变薄，报价屏上同期限券利差被抬高13bp。组合里相关仓位占9%，渠道午后追问净值波动。你要判断是区域 beta，还是个券已经变味。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "暂停下沉等待成交恢复并留痕备案",
+            "effects": {
+              "redemptionPressure": -5.4,
+              "creditExposure": 4.05,
+              "score.compliance": 3,
+              "score.development": 3
+            }
+          },
+          {
+            "label": "小仓位试探高票息资产并留痕备案",
+            "effects": {
+              "nav": -0.0054,
+              "cashRatio": 1.35,
+              "creditExposure": -2.7,
+              "score.liquidity": 4,
+              "score.crisisResponse": 3,
+              "_uncertainty": 0.55,
+              "_delayedEffect": {
+                "afterQuarters": 2,
+                "effects": {
+                  "redemptionPressure": 4,
+                  "score.liquidity": -3
+                }
+              }
+            }
+          },
+          {
+            "label": "申请估值偏离专项复核并留痕备案",
+            "effects": {
+              "nav": 0.0054,
+              "duration": 0.27,
+              "concentration": 2.7,
+              "score.costControl": 4,
+              "score.projectProgress": 2,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "gov": {
+        "body": "玉沙矿区城投突然成了全市场盯着的黑天鹅，资源财政转向这四个字被写进每一份晨会纪要，财政、金融办和几家平台被临时叫到一间会议室。辖区下季刚性支出排到10亿，银行口头额度却只剩42%。你要先保信用，还是先保项目进度。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "先保公开债兑付资金链并留痕备案",
+            "effects": {
+              "cash": -1.08,
+              "hiddenDebtRisk": -6.75,
+              "politicalScore": 4.05,
+              "score.compliance": 4,
+              "score.crisisResponse": 2,
+              "_uncertainty": 0.55,
+              "_delayedEffect": {
+                "afterQuarters": 4,
+                "effects": {
+                  "hiddenDebtRisk": 5,
+                  "politicalScore": -2
+                }
+              }
+            }
+          },
+          {
+            "label": "争取省级置换额度入池并留痕备案",
+            "effects": {
+              "cash": 1.08,
+              "debtRatio": 4.05,
+              "hiddenDebtRisk": 5.4,
+              "score.projectProgress": 4
+            }
+          },
+          {
+            "label": "停缓非刚性形象工程并留痕备案",
+            "effects": {
+              "industryIndex": 2.7,
+              "specialBondQuota": -1.35,
+              "politicalScore": 1.35,
+              "score.development": 4,
+              "score.costControl": 2,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "swan_v2_abs_servicer_fail",
+    "kind": "black_swan",
+    "weight": 3,
+    "title": "ABS 服务机构失联",
+    "swanTag": "现金流断点",
+    "policyShift": -2,
+    "act_hint": "crisis",
+    "tags": [
+      "ABS",
+      "服务机构"
+    ],
+    "involves_npc": [
+      "npc_issuer_healthcare_group",
+      "npc_lgfv_han_river"
+    ],
+    "triggerCondition": {
+      "minQuarter": 6,
+      "maxQuarter": 11,
+      "requireRole": null,
+      "regionTier": null,
+      "healthLevel": null,
+      "policyMin": -3,
+      "policyMax": 3,
+      "debtRatioMin": 230
+    },
+    "roles": {
+      "cfo": {
+        "body": "仁鹤医养集团突然成了全市场盯着的黑天鹅，现金流断点这四个字被写进每一份晨会纪要，主承和银行同一上午打来三轮电话，问你下季9亿到期债怎么续。二级估值收益率先上行13bp，备用授信还有35%没批。你要在现金、价格和合规留痕之间做取舍。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "补做底层现金流穿透表并留痕备案",
+            "effects": {
+              "cash": -0.14,
+              "financingCost": 1.2,
+              "score.development": 4,
+              "score.compliance": -3
+            }
+          },
+          {
+            "label": "用存单质押换短贷额度并留痕备案",
+            "effects": {
+              "cash": 1.49,
+              "financingCost": 0.34,
+              "creditUsage": 4.05,
+              "score.liquidity": 4,
+              "score.crisisResponse": 2,
+              "_uncertainty": 0.55,
+              "_delayedEffect": {
+                "afterQuarters": 3,
+                "effects": {
+                  "financingCost": 0.2,
+                  "score.compliance": -3
+                }
+              }
+            }
+          },
+          {
+            "label": "召开银企会解释还款来源并留痕备案",
+            "effects": {
+              "cash": -2.09,
+              "leverageRatio": -0.81,
+              "score.compliance": 5,
+              "score.costControl": 3,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "im": {
+        "body": "仁鹤医养集团突然成了全市场盯着的黑天鹅，现金流断点这四个字被写进每一份晨会纪要，成交盘从早上就变薄，报价屏上同期限券利差被抬高24bp。组合里相关仓位占10%，渠道午后追问净值波动。你要判断是区域 beta，还是个券已经变味。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "先卖弱主体留区域龙头并留痕备案",
+            "effects": {
+              "nav": -0.0054,
+              "cashRatio": 1.35,
+              "creditExposure": -4.05,
+              "score.liquidity": 4,
+              "score.crisisResponse": 3,
+              "_uncertainty": 0.55,
+              "_delayedEffect": {
+                "afterQuarters": 2,
+                "effects": {
+                  "redemptionPressure": 4,
+                  "score.liquidity": -3
+                }
+              }
+            }
+          },
+          {
+            "label": "提高现金仓应对渠道赎回并留痕备案",
+            "effects": {
+              "nav": 0.0054,
+              "duration": 0.27,
+              "concentration": 2.7,
+              "score.costControl": 4,
+              "score.projectProgress": 2
+            }
+          },
+          {
+            "label": "逆势吃票息等估值修复并留痕备案",
+            "effects": {
+              "redemptionPressure": -4.05,
+              "creditExposure": 4.05,
+              "score.compliance": 3,
+              "score.development": 3,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "gov": {
+        "body": "仁鹤医养集团突然成了全市场盯着的黑天鹅，现金流断点这四个字被写进每一份晨会纪要，财政、金融办和几家平台被临时叫到一间会议室。辖区下季刚性支出排到11亿，银行口头额度却只剩49%。你要先保信用，还是先保项目进度。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "组织平台逐户压降非标并留痕备案",
+            "effects": {
+              "cash": 1.22,
+              "debtRatio": 4.05,
+              "hiddenDebtRisk": 5.4,
+              "score.projectProgress": 4
+            }
+          },
+          {
+            "label": "把现金流项目打包申报并留痕备案",
+            "effects": {
+              "industryIndex": 2.7,
+              "specialBondQuota": -1.35,
+              "politicalScore": 1.35,
+              "score.development": 4,
+              "score.costControl": 2,
+              "_uncertainty": 0.65
+            }
+          },
+          {
+            "label": "用财政贴息换银行展期并留痕备案",
+            "effects": {
+              "cash": -1.08,
+              "hiddenDebtRisk": -5.4,
+              "politicalScore": 2.7,
+              "score.compliance": 4,
+              "score.crisisResponse": 2,
+              "_delayedEffect": {
+                "afterQuarters": 4,
+                "effects": {
+                  "hiddenDebtRisk": 5,
+                  "politicalScore": -2
+                }
+              },
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "swan_v2_bank_credit_ban",
+    "kind": "black_swan",
+    "weight": 1,
+    "title": "总行叫停弱区授信持续发酵",
+    "swanTag": "授信闸门",
+    "policyShift": -2,
+    "act_hint": "tightening",
+    "tags": [
+      "银行",
+      "授信"
+    ],
+    "involves_npc": [
+      "npc_bank_joint_d",
+      "npc_lgfv_liao_east"
+    ],
+    "triggerCondition": {
+      "minQuarter": 3,
+      "maxQuarter": 11,
+      "requireRole": null,
+      "regionTier": null,
+      "healthLevel": null,
+      "policyMin": -3,
+      "policyMax": 3,
+      "cashMax": 4
+    },
+    "roles": {
+      "cfo": {
+        "body": "股份行 D突然成了全市场盯着的黑天鹅，授信闸门这四个字被写进每一份晨会纪要，主承和银行同一上午打来三轮电话，问你下季10亿到期债怎么续。二级估值收益率先上行24bp，备用授信还有42%没批。你要在现金、价格和合规留痕之间做取舍。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "找城商行C锁定周转授信并留痕备案",
+            "effects": {
+              "cash": 1.76,
+              "financingCost": 0.34,
+              "creditUsage": 4.05,
+              "score.liquidity": 5,
+              "score.crisisResponse": 2,
+              "_uncertainty": 0.55,
+              "_delayedEffect": {
+                "afterQuarters": 3,
+                "effects": {
+                  "financingCost": 0.2,
+                  "score.compliance": -3
+                }
+              }
+            }
+          },
+          {
+            "label": "压缩非急项目付款保兑付并留痕备案",
+            "effects": {
+              "cash": -2.09,
+              "leverageRatio": -0.81,
+              "score.compliance": 5,
+              "score.costControl": 3
+            }
+          },
+          {
+            "label": "拿经营资产补一轮增信并留痕备案",
+            "effects": {
+              "cash": 0.41,
+              "financingCost": 1.2,
+              "score.development": 4,
+              "score.compliance": -2,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "im": {
+        "body": "股份行 D突然成了全市场盯着的黑天鹅，授信闸门这四个字被写进每一份晨会纪要，成交盘从早上就变薄，报价屏上同期限券利差被抬高35bp。组合里相关仓位占11%，渠道午后追问净值波动。你要判断是区域 beta，还是个券已经变味。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "向渠道逐户解释持仓差异并留痕备案",
+            "effects": {
+              "nav": 0.0068,
+              "duration": 0.27,
+              "concentration": 2.7,
+              "score.costControl": 4,
+              "score.projectProgress": 2
+            }
+          },
+          {
+            "label": "缩久期保净值曲线并留痕备案",
+            "effects": {
+              "redemptionPressure": -4.05,
+              "creditExposure": 4.05,
+              "score.compliance": 3,
+              "score.development": 3,
+              "_uncertainty": 0.65
+            }
+          },
+          {
+            "label": "用利率债对冲信用波动并留痕备案",
+            "effects": {
+              "nav": -0.0095,
+              "cashRatio": 2.7,
+              "creditExposure": -2.7,
+              "score.liquidity": 4,
+              "score.crisisResponse": 3,
+              "_delayedEffect": {
+                "afterQuarters": 5,
+                "effects": {
+                  "redemptionPressure": 4,
+                  "score.liquidity": -3
+                }
+              },
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "gov": {
+        "body": "股份行 D突然成了全市场盯着的黑天鹅，授信闸门这四个字被写进每一份晨会纪要，财政、金融办和几家平台被临时叫到一间会议室。辖区下季刚性支出排到12亿，银行口头额度却只剩56%。你要先保信用，还是先保项目进度。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "公开项目清单稳金融机构并留痕备案",
+            "effects": {
+              "industryIndex": 4.05,
+              "specialBondQuota": -1.35,
+              "politicalScore": 2.7,
+              "score.development": 4,
+              "score.costControl": 2,
+              "_uncertainty": 0.65
+            }
+          },
+          {
+            "label": "压实区县平台还款计划并留痕备案",
+            "effects": {
+              "cash": -1.08,
+              "hiddenDebtRisk": -5.4,
+              "politicalScore": 2.7,
+              "score.compliance": 4,
+              "score.crisisResponse": 2,
+              "_delayedEffect": {
+                "afterQuarters": 4,
+                "effects": {
+                  "hiddenDebtRisk": 5,
+                  "politicalScore": -2
+                }
+              }
+            }
+          },
+          {
+            "label": "把招引项目优先保开工并留痕备案",
+            "effects": {
+              "cash": 1.08,
+              "debtRatio": 4.05,
+              "hiddenDebtRisk": 4.05,
+              "score.projectProgress": 4,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "swan_v2_policy_easing_rally",
+    "kind": "black_swan",
+    "weight": 2,
+    "title": "强刺激带来抢券潮持续发酵",
+    "swanTag": "估值反弹",
+    "policyShift": 2,
+    "act_hint": "expansion",
+    "tags": [
+      "政策",
+      "抢券"
+    ],
+    "involves_npc": [
+      "npc_wm_top5_alpha",
+      "npc_lgfv_hailan_asset"
+    ],
+    "triggerCondition": {
+      "minQuarter": 4,
+      "maxQuarter": 11,
+      "requireRole": null,
+      "regionTier": null,
+      "healthLevel": null,
+      "policyMin": -3,
+      "policyMax": 3,
+      "navMax": 0.96
+    },
+    "roles": {
+      "cfo": {
+        "body": "TOP 5 理财子 · 阿尔法突然成了全市场盯着的黑天鹅，估值反弹这四个字被写进每一份晨会纪要，主承和银行同一上午打来三轮电话，问你下季11亿到期债怎么续。二级估值收益率先上行35bp，备用授信还有49%没批。你要在现金、价格和合规留痕之间做取舍。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "提前公告偿债安排稳估值并留痕备案",
+            "effects": {
+              "cash": -2.09,
+              "leverageRatio": -1.08,
+              "score.compliance": 6,
+              "score.costControl": 3
+            }
+          },
+          {
+            "label": "接受高价续作先保不断档并留痕备案",
+            "effects": {
+              "cash": 0.41,
+              "financingCost": 1.2,
+              "score.development": 4,
+              "score.compliance": -2,
+              "_uncertainty": 0.65
+            }
+          },
+          {
+            "label": "推迟发行等窗口回暖并留痕备案",
+            "effects": {
+              "cash": 1.49,
+              "financingCost": 0.34,
+              "creditUsage": 4.05,
+              "score.liquidity": 4,
+              "score.crisisResponse": 2,
+              "_delayedEffect": {
+                "afterQuarters": 3,
+                "effects": {
+                  "financingCost": 0.2,
+                  "score.compliance": -3
+                }
+              },
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "im": {
+        "body": "TOP 5 理财子 · 阿尔法突然成了全市场盯着的黑天鹅，估值反弹这四个字被写进每一份晨会纪要，成交盘从早上就变薄，报价屏上同期限券利差被抬高46bp。组合里相关仓位占12%，渠道午后追问净值波动。你要判断是区域 beta，还是个券已经变味。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "暂停下沉等待成交恢复并留痕备案",
+            "effects": {
+              "redemptionPressure": -5.4,
+              "creditExposure": 4.05,
+              "score.compliance": 3,
+              "score.development": 3,
+              "_uncertainty": 0.65
+            }
+          },
+          {
+            "label": "小仓位试探高票息资产并留痕备案",
+            "effects": {
+              "nav": -0.0095,
+              "cashRatio": 2.7,
+              "creditExposure": -2.7,
+              "score.liquidity": 4,
+              "score.crisisResponse": 3,
+              "_delayedEffect": {
+                "afterQuarters": 5,
+                "effects": {
+                  "redemptionPressure": 4,
+                  "score.liquidity": -3
+                }
+              }
+            }
+          },
+          {
+            "label": "申请估值偏离专项复核并留痕备案",
+            "effects": {
+              "nav": 0.0054,
+              "duration": 0.27,
+              "concentration": 1.35,
+              "score.costControl": 4,
+              "score.projectProgress": 2,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "gov": {
+        "body": "TOP 5 理财子 · 阿尔法突然成了全市场盯着的黑天鹅，估值反弹这四个字被写进每一份晨会纪要，财政、金融办和几家平台被临时叫到一间会议室。辖区下季刚性支出排到6亿，银行口头额度却只剩63%。你要先保信用，还是先保项目进度。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "先保公开债兑付资金链并留痕备案",
+            "effects": {
+              "cash": -1.08,
+              "hiddenDebtRisk": -6.75,
+              "politicalScore": 4.05,
+              "score.compliance": 4,
+              "score.crisisResponse": 2,
+              "_delayedEffect": {
+                "afterQuarters": 4,
+                "effects": {
+                  "hiddenDebtRisk": 5,
+                  "politicalScore": -2
+                }
+              }
+            }
+          },
+          {
+            "label": "争取省级置换额度入池并留痕备案",
+            "effects": {
+              "cash": 1.08,
+              "debtRatio": 4.05,
+              "hiddenDebtRisk": 4.05,
+              "score.projectProgress": 4,
+              "_uncertainty": 0.5
+            }
+          },
+          {
+            "label": "停缓非刚性形象工程并留痕备案",
+            "effects": {
+              "industryIndex": 2.7,
+              "specialBondQuota": -2.7,
+              "politicalScore": 1.35,
+              "score.development": 4,
+              "score.costControl": 2,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "swan_v2_public_opinion",
+    "kind": "black_swan",
+    "weight": 3,
+    "title": "欠薪视频冲上热榜持续发酵",
+    "swanTag": "舆情破圈",
+    "policyShift": -2,
+    "act_hint": "crisis",
+    "tags": [
+      "舆情",
+      "民生"
+    ],
+    "involves_npc": [
+      "npc_lgfv_icecity_heat",
+      "npc_lgfv_lake_newtown"
+    ],
+    "triggerCondition": {
+      "minQuarter": 5,
+      "maxQuarter": 11,
+      "requireRole": null,
+      "regionTier": null,
+      "healthLevel": null,
+      "policyMin": -3,
+      "policyMax": 3,
+      "debtRatioMin": 230
+    },
+    "roles": {
+      "cfo": {
+        "body": "玄霜热力集团突然成了全市场盯着的黑天鹅，舆情破圈这四个字被写进每一份晨会纪要，主承和银行同一上午打来三轮电话，问你下季12亿到期债怎么续。二级估值收益率先上行46bp，备用授信还有56%没批。你要在现金、价格和合规留痕之间做取舍。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "补做底层现金流穿透表并留痕备案",
+            "effects": {
+              "cash": -0.14,
+              "financingCost": 1.2,
+              "score.development": 4,
+              "score.compliance": -3,
+              "_uncertainty": 0.65
+            }
+          },
+          {
+            "label": "用存单质押换短贷额度并留痕备案",
+            "effects": {
+              "cash": 1.49,
+              "financingCost": 0.34,
+              "creditUsage": 4.05,
+              "score.liquidity": 4,
+              "score.crisisResponse": 2,
+              "_delayedEffect": {
+                "afterQuarters": 3,
+                "effects": {
+                  "financingCost": 0.2,
+                  "score.compliance": -3
+                }
+              }
+            }
+          },
+          {
+            "label": "召开银企会解释还款来源并留痕备案",
+            "effects": {
+              "cash": -2.7,
+              "leverageRatio": -0.81,
+              "score.compliance": 5,
+              "score.costControl": 3,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "im": {
+        "body": "玄霜热力集团突然成了全市场盯着的黑天鹅，舆情破圈这四个字被写进每一份晨会纪要，成交盘从早上就变薄，报价屏上同期限券利差被抬高57bp。组合里相关仓位占6%，渠道午后追问净值波动。你要判断是区域 beta，还是个券已经变味。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "先卖弱主体留区域龙头并留痕备案",
+            "effects": {
+              "nav": -0.0095,
+              "cashRatio": 2.7,
+              "creditExposure": -4.05,
+              "score.liquidity": 4,
+              "score.crisisResponse": 3,
+              "_delayedEffect": {
+                "afterQuarters": 5,
+                "effects": {
+                  "redemptionPressure": 4,
+                  "score.liquidity": -3
+                }
+              }
+            }
+          },
+          {
+            "label": "提高现金仓应对渠道赎回并留痕备案",
+            "effects": {
+              "nav": 0.0054,
+              "duration": 0.27,
+              "concentration": 1.35,
+              "score.costControl": 4,
+              "score.projectProgress": 2,
+              "_uncertainty": 0.5
+            }
+          },
+          {
+            "label": "逆势吃票息等估值修复并留痕备案",
+            "effects": {
+              "redemptionPressure": -4.05,
+              "creditExposure": 4.05,
+              "score.compliance": 3,
+              "score.development": 3,
+              "_uncertainty": 0.35
+            }
+          }
+        ]
+      },
+      "gov": {
+        "body": "玄霜热力集团突然成了全市场盯着的黑天鹅，舆情破圈这四个字被写进每一份晨会纪要，财政、金融办和几家平台被临时叫到一间会议室。辖区下季刚性支出排到7亿，银行口头额度却只剩70%。你要先保信用，还是先保项目进度。 这次不是普通波动，半天内已经影响到报价、舆情和下一笔公开市场融资。",
+        "choices": [
+          {
+            "label": "组织平台逐户压降非标并留痕备案",
+            "effects": {
+              "cash": 1.22,
+              "debtRatio": 4.05,
+              "hiddenDebtRisk": 4.05,
+              "score.projectProgress": 4,
+              "_uncertainty": 0.5
+            }
+          },
+          {
+            "label": "把现金流项目打包申报并留痕备案",
+            "effects": {
+              "industryIndex": 2.7,
+              "specialBondQuota": -2.7,
+              "politicalScore": 1.35,
+              "score.development": 4,
+              "score.costControl": 2
+            }
+          },
+          {
+            "label": "用财政贴息换银行展期并留痕备案",
+            "effects": {
+              "cash": -1.08,
+              "hiddenDebtRisk": -5.4,
+              "politicalScore": 2.7,
+              "score.compliance": 4,
+              "score.crisisResponse": 2,
+              "_uncertainty": 0.35,
+              "_delayedEffect": {
+                "afterQuarters": 4,
+                "effects": {
+                  "hiddenDebtRisk": 5,
+                  "politicalScore": -2
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+]

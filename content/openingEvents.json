@@ -1,0 +1,605 @@
+{
+  "_meta": "开场事件池：3 角色 × 4 剧本 × 4 主题（政策/市场/同业/内部）+ 2 个 generic 兜底 = 50 个。Q1 必触发，pickOpeningEvent 优先匹配 role+scriptId 全命中的，没有再 fallback 到 generic。",
+  "events": [
+    {
+      "id": "opening_cfo_rise_quota",
+      "role": "cfo", "scriptId": "rise_and_fall", "theme": "policy",
+      "title": "开年首日：特殊再融资额度落地",
+      "policyShift": 0,
+      "body": "省财政厅刚发文，给你这边批了 2 亿特殊再融资额度。手机里同时进来三条消息：土储部门要钱、主开户行问要不要锁一笔授信、邻市的明星平台已经在卡续作。这 2 亿怎么用，是这一年的开局节奏题。",
+      "choices": [
+        { "label": "全砸在已批土储项目，趁地价低吃满", "effects": { "cash": 1.5, "projectGap": -0.5, "score.development": 3, "score.liquidity": -2 } },
+        { "label": "一半投项目、一半锁主开户行授信", "effects": { "cash": 1.0, "creditUsed": -0.5, "score.compliance": 3, "score.development": 1 } },
+        { "label": "全留备付，等 Q3 紧缩窗口出价", "effects": { "cash": 0.5, "score.liquidity": 4, "score.crisisResponse": 2 } }
+      ]
+    },
+    {
+      "id": "opening_cfo_rise_market",
+      "role": "cfo", "scriptId": "rise_and_fall", "theme": "market",
+      "title": "开年首日：中票发行利率创近年新低",
+      "policyShift": 1,
+      "body": "节后第一周，AAA 中票二级估值创近三年新低，主承劝你「现在不发更待何时」。你账上 Q3 才有大笔到期，但上一笔 5 年期的成本足足 5.6%。要不要现在就锁一笔 10 年期。",
+      "choices": [
+        { "label": "立刻发一笔 5 年期 5 亿，锁低成本", "effects": { "cash": 5.0, "leverageRatio": 2, "financingCost": -0.4, "score.costControl": 5 } },
+        { "label": "发短债 1 亿小试水温，留余地", "effects": { "cash": 1.0, "financingCost": -0.1, "score.compliance": 3 } },
+        { "label": "等 Q2 政策定调再发", "effects": { "score.liquidity": 3, "_delayedEffect": { "afterQuarters": 3, "effects": { "financingCost": 0.2, "score.costControl": -2 } } } }
+      ]
+    },
+    {
+      "id": "opening_cfo_rise_peer",
+      "role": "cfo", "scriptId": "rise_and_fall", "theme": "peer",
+      "title": "开年首日：邻市平台公开发行 50 亿",
+      "policyShift": 0,
+      "body": "邻市的兄弟平台节后第一天宣布发行 50 亿公司债，规模和成本都比你年初规划的好。董事长午饭时拍桌子：「他们能做我们也能做」。你心里清楚他们和你的隐债结构差很多。",
+      "choices": [
+        { "label": "对标他们，立刻提交 30 亿发行方案", "effects": { "creditUsed": 2.0, "leverageRatio": 3, "score.development": 4, "score.compliance": -3 } },
+        { "label": "做减半版本 15 亿，留合规余地", "effects": { "creditUsed": 1.0, "leverageRatio": 1, "score.development": 2, "score.compliance": 2 } },
+        { "label": "向董事长详细汇报差异，先不跟风", "effects": { "score.compliance": 5, "score.development": -1, "_delayedEffect": { "afterQuarters": 5, "effects": { "score.compliance": 3 } } } }
+      ]
+    },
+    {
+      "id": "opening_cfo_rise_internal",
+      "role": "cfo", "scriptId": "rise_and_fall", "theme": "internal",
+      "title": "开年首日：新书记上任要见「大动作」",
+      "policyShift": 0,
+      "body": "节后第一个班子会，新到任的书记开门见山：「这一年要做几件让全市看见的事」。你作为 CFO 被点名汇报。是配合上几个形象项目，还是先稳财务底盘。",
+      "choices": [
+        { "label": "配合上 3 个新项目，争取个人能见度", "effects": { "projectGap": -1.0, "cash": -1.0, "score.development": 5, "score.liquidity": -3 } },
+        { "label": "提一个稳健方案 + 一个亮点项目", "effects": { "projectGap": -0.4, "cash": -0.4, "score.development": 3, "score.compliance": 2 } },
+        { "label": "汇报 12 个月现金流压力，劝缓上项目", "effects": { "score.compliance": 4, "score.liquidity": 4, "score.development": -2 } }
+      ]
+    },
+    {
+      "id": "opening_cfo_v_window",
+      "role": "cfo", "scriptId": "v_shape", "theme": "policy",
+      "title": "开年首日：发改窗口指导收紧",
+      "policyShift": -1,
+      "body": "开年第一个工作日，省发改下来一道「非标融资全面备案」的口头通知，主承上午就来电问要不要把下季度公开债往后挪。你看着 Q2 那笔 4 亿到期，心里掂量着是抗住高成本硬续，还是赌 Q5 政策回暖。",
+      "choices": [
+        { "label": "接受高成本硬续，保现金不断档", "effects": { "financingCost": 0.3, "cash": 1.0, "score.crisisResponse": 3, "score.costControl": -2 } },
+        { "label": "暂停发债动用现金垫，等政策回暖", "effects": { "cash": -0.8, "score.liquidity": 4, "_delayedEffect": { "afterQuarters": 4, "effects": { "cash": 1.5, "score.costControl": 3 } } } },
+        { "label": "转向银团贷款，绕开公开市场", "effects": { "creditUsed": 1.0, "financingCost": 0.1, "score.compliance": 2 } }
+      ]
+    },
+    {
+      "id": "opening_cfo_v_market",
+      "role": "cfo", "scriptId": "v_shape", "theme": "market",
+      "title": "开年首日：二级估值集中走宽 20bp",
+      "policyShift": -1,
+      "body": "你的存量债二级估值开年第三天集中走宽 20bp，渠道反馈机构在挂盘卖。这种走势如果传导到一级，下次发行成本至少上 50bp。要不要立刻沟通主承「托一把盘」。",
+      "choices": [
+        { "label": "联系主承做做市报价，托住估值", "effects": { "cash": -0.3, "score.costControl": 3, "score.compliance": -2 } },
+        { "label": "提前公告偿债安排稳定情绪", "effects": { "score.compliance": 5, "financingCost": -0.1 } },
+        { "label": "什么都不做，让市场自己消化", "effects": { "_delayedEffect": { "afterQuarters": 3, "effects": { "financingCost": 0.4, "creditUsage": 5 } } } }
+      ]
+    },
+    {
+      "id": "opening_cfo_v_peer",
+      "role": "cfo", "scriptId": "v_shape", "theme": "peer",
+      "title": "开年首日：邻省平台被全国通报",
+      "policyShift": -2,
+      "body": "节后第一周，邻省一家区县平台被监管全国通报「违规新增隐性债务」。你的主开户行连夜打电话：「下周开始你们所有授信都要补充说明」。",
+      "choices": [
+        { "label": "主动整理材料，配合行里走流程", "effects": { "score.compliance": 5, "creditUsage": 2, "score.crisisResponse": 3 } },
+        { "label": "去省里争取「未涉及隐债」的明牌", "effects": { "score.compliance": 3, "_uncertainty": 0.5 } },
+        { "label": "不主动接触，看行里态度再说", "effects": { "_delayedEffect": { "afterQuarters": 3, "effects": { "creditUsage": 8, "financingCost": 0.3, "score.compliance": -3 } } } }
+      ]
+    },
+    {
+      "id": "opening_cfo_v_internal",
+      "role": "cfo", "scriptId": "v_shape", "theme": "internal",
+      "title": "开年首日：董事长追问 12 个月现金流",
+      "policyShift": 0,
+      "body": "年度财务汇报会，董事长翻到现金流页停下来：「第三季度这个缺口你怎么补」。会议室一下安静。你手里有三个备选方案，哪个先抛。",
+      "choices": [
+        { "label": "推非标续作，承诺成本可控", "effects": { "financingCost": 0.3, "cash": 1.5, "score.compliance": -3, "score.development": 2 } },
+        { "label": "推资产盘活方案，处置闲置土地", "effects": { "cash": 1.0, "collateralRoom": "downgrade", "score.crisisResponse": 4 } },
+        { "label": "坦诚说不易，建议董事长压一压新项目", "effects": { "projectGap": 0.3, "score.compliance": 5, "score.development": -2 } }
+      ]
+    },
+    {
+      "id": "opening_cfo_slow_clean",
+      "role": "cfo", "scriptId": "slow_boil", "theme": "internal",
+      "title": "开年首日：年报数据漂亮，奖金到位",
+      "policyShift": 0,
+      "body": "本年度业绩表彰会刚结束，平台拿了「红旗单位」。董事长拍着你肩说「这一年稳住」。你回办公室路上接到老朋友电话：听说邻区在拉网式排查隐债，下半年这阵风可能也吹到你们。现在是借势透明化，还是继续低头做事。",
+      "choices": [
+        { "label": "借势主动报送隐债结构，争取主动", "effects": { "score.compliance": 5, "financingCost": 0.1, "score.development": -1 } },
+        { "label": "装没听见，按原计划推项目", "effects": { "projectGap": -0.3, "score.development": 3, "_delayedEffect": { "afterQuarters": 7, "effects": { "score.compliance": -5, "financingCost": 0.3 } } } },
+        { "label": "提前压一压非标，避开年中检查", "effects": { "financingCost": -0.1, "cash": -0.5, "score.compliance": 4 } }
+      ]
+    },
+    {
+      "id": "opening_cfo_slow_market",
+      "role": "cfo", "scriptId": "slow_boil", "theme": "market",
+      "title": "开年首日：中票成本悄悄从 5.0 升到 5.5",
+      "policyShift": 0,
+      "body": "你做了很多年发行，对成本变化最敏感。开年第一笔询价，主承给的指导价从年前的 5.0% 报到 5.5%。问你为什么，他只说「最近大家都在抢资金」。这是巧合，还是信号。",
+      "choices": [
+        { "label": "立刻提前发行 3 亿短债锁成本", "effects": { "cash": 3.0, "leverageRatio": 1, "financingCost": 0.1, "score.costControl": 3 } },
+        { "label": "推迟一周，找两家主承再问", "effects": { "score.compliance": 3, "_uncertainty": 0.55 } },
+        { "label": "不发，先观察 30 天", "effects": { "_delayedEffect": { "afterQuarters": 4, "effects": { "financingCost": 0.4 } } } }
+      ]
+    },
+    {
+      "id": "opening_cfo_slow_peer",
+      "role": "cfo", "scriptId": "slow_boil", "theme": "peer",
+      "title": "开年首日：圈内传「X 区在排查」",
+      "policyShift": 0,
+      "body": "几个老同事在圈内饭局上说：「听说 X 区开始拉网排查城投隐债，下一站可能是 Y 区」。Y 区跟你这边只隔一个市。你心里估了下，自己账内最敏感的是那笔 3 亿信托。",
+      "choices": [
+        { "label": "立刻找信托方协商提前结清", "effects": { "cash": -2.0, "financingCost": -0.2, "score.compliance": 5 } },
+        { "label": "把信托过户到子公司，做账面隔离", "effects": { "score.compliance": -3, "score.crisisResponse": 3, "_delayedEffect": { "afterQuarters": 6, "effects": { "score.compliance": -3 } } } },
+        { "label": "什么都不做，赌排查不会到本辖区", "effects": { "_uncertainty": 0.45, "score.compliance": -2 } }
+      ]
+    },
+    {
+      "id": "opening_cfo_slow_policy",
+      "role": "cfo", "scriptId": "slow_boil", "theme": "policy",
+      "title": "开年首日：金融机构关联交易自查通知",
+      "policyShift": -1,
+      "body": "银保监开年第一份通知：「金融机构关联交易自查」，城投关联非标也在范围。你那笔通过本地融资租赁公司绕的 1.5 亿，技术上正好踩边。",
+      "choices": [
+        { "label": "主动汇报这笔交易并补充资料", "effects": { "score.compliance": 5, "_delayedEffect": { "afterQuarters": 4, "effects": { "score.compliance": 3 } } } },
+        { "label": "调结构把租赁拆成两笔规避", "effects": { "financingCost": 0.15, "score.compliance": -3 } },
+        { "label": "等监管来问再说", "effects": { "_delayedEffect": { "afterQuarters": 6, "effects": { "score.compliance": -8, "financingCost": 0.4 } } } }
+      ]
+    },
+    {
+      "id": "opening_cfo_redm_list",
+      "role": "cfo", "scriptId": "redemption", "theme": "policy",
+      "title": "开年首日：被列入化债重点观察名单",
+      "policyShift": -1,
+      "body": "开年第一周，主管局通知你被列入「化债重点观察名单」，省级巡查 30 天后进驻。这意味着接下来一年所有新增融资都要审批，老账也要逐笔说清楚。你有三种走法。",
+      "choices": [
+        { "label": "主动汇报全部隐债，争取化债试点", "effects": { "score.compliance": 6, "_delayedEffect": { "afterQuarters": 4, "effects": { "cash": 2.0, "score.crisisResponse": 4 } } } },
+        { "label": "把非标转成银行贷款，做账面化债", "effects": { "financingCost": 0.4, "score.compliance": -3, "score.crisisResponse": 2 } },
+        { "label": "通过老领导斡旋，争取被踢出名单", "effects": { "score.compliance": -5, "_uncertainty": 0.4, "score.crisisResponse": 4 } }
+      ]
+    },
+    {
+      "id": "opening_cfo_redm_market",
+      "role": "cfo", "scriptId": "redemption", "theme": "market",
+      "title": "开年首日：你的债二级上行 80bp",
+      "policyShift": -2,
+      "body": "节后开盘第二天，你存量债的二级估值收益率上行 80bp。市场实际在拒收。下个月还有一笔 4 亿到期，按这个估值续作几乎不可能。",
+      "choices": [
+        { "label": "联系区里财政紧急拨付补缺口", "effects": { "cash": 2.0, "score.compliance": -2, "_uncertainty": 0.5 } },
+        { "label": "和持有人协商展期，付溢价", "effects": { "financingCost": 0.5, "cash": 0.5, "score.crisisResponse": 5 } },
+        { "label": "正常发行，让市场看到我们没退缩", "effects": { "financingCost": 0.8, "creditUsage": 5, "score.development": 2 } }
+      ]
+    },
+    {
+      "id": "opening_cfo_redm_peer",
+      "role": "cfo", "scriptId": "redemption", "theme": "peer",
+      "title": "开年首日：兄弟平台已经技术性违约",
+      "policyShift": -2,
+      "body": "ABCD 名单里你是 B。A 已经在节前技术性违约，全市目光转到你身上。主开户行电话：「请下周一到行长室喝茶」。这场茶要怎么喝。",
+      "choices": [
+        { "label": "带着完整化债方案去，主动展示底牌", "effects": { "score.compliance": 6, "score.crisisResponse": 4, "score.development": -2 } },
+        { "label": "去之前先联系市领导背书", "effects": { "_uncertainty": 0.55, "score.crisisResponse": 3 } },
+        { "label": "拖延，先观察 A 的处置走向", "effects": { "_delayedEffect": { "afterQuarters": 3, "effects": { "creditUsage": 8, "financingCost": 0.5 } } } }
+      ]
+    },
+    {
+      "id": "opening_cfo_redm_internal",
+      "role": "cfo", "scriptId": "redemption", "theme": "internal",
+      "title": "开年首日：主开户行重新评估全部授信",
+      "policyShift": -1,
+      "body": "节后开盘第一天，主开户行客户经理过来送红头文件：「行内决定对你公司全部 30 亿授信重新评估，60 天内出结论」。这意味着这 60 天授信线随时可能腰斩。",
+      "choices": [
+        { "label": "立刻找第二家行扩授信对冲", "effects": { "creditUsed": 1.5, "financingCost": 0.15, "score.crisisResponse": 4 } },
+        { "label": "全力配合主行评估，争取保全", "effects": { "score.compliance": 5, "_uncertainty": 0.55 } },
+        { "label": "提前抽提全部可用授信", "effects": { "cash": 5.0, "creditUsed": 5.0, "score.compliance": -4, "score.crisisResponse": 6 } }
+      ]
+    },
+    {
+      "id": "opening_im_rise_spread",
+      "role": "im", "scriptId": "rise_and_fall", "theme": "market",
+      "title": "开年首日：信用利差全面收窄",
+      "policyShift": 0,
+      "body": "开年三天，AA 及以下城投利差全线压缩 15bp，渠道开始催着上规模。你看着自己组合那 8% 的现金比例，犹豫的不是要不要加仓，而是加什么。",
+      "choices": [
+        { "label": "拉长久期到 3.5 年吃利差，赌方向", "effects": { "duration": 1.0, "nav": 0.005, "score.development": 3 } },
+        { "label": "用部分现金下沉到 AA 城投", "effects": { "creditExposure": 5, "cashRatio": -1.0, "score.development": 4, "score.liquidity": -2 } },
+        { "label": "继续防御，留 12% 现金等更好窗口", "effects": { "cashRatio": 2, "score.liquidity": 3, "score.crisisResponse": 2 } }
+      ]
+    },
+    {
+      "id": "opening_im_rise_policy",
+      "role": "im", "scriptId": "rise_and_fall", "theme": "policy",
+      "title": "开年首日：债基限购令暂时取消",
+      "policyShift": 1,
+      "body": "证监会节后第一天发文，对部分债基的「日限购」额度取消。渠道经理上午就来电：「现在大客户能进来了，我们要不要扩产品规模」。",
+      "choices": [
+        { "label": "立刻打开大额申购，吸 30 亿", "effects": { "aum": 30, "cashRatio": 5, "score.development": 5 } },
+        { "label": "保守开放 10 亿，看建仓节奏", "effects": { "aum": 10, "cashRatio": 2, "score.compliance": 3 } },
+        { "label": "维持现规模，质量优先", "effects": { "score.compliance": 4, "score.liquidity": 3 } }
+      ]
+    },
+    {
+      "id": "opening_im_rise_peer",
+      "role": "im", "scriptId": "rise_and_fall", "theme": "peer",
+      "title": "开年首日：同业第一名规模又涨 30 亿",
+      "policyShift": 0,
+      "body": "节后第二个工作日，同业排名第一的产品发布数据：又涨了 30 亿。你们公司销售总监上午冲进办公室：「我们怎么和他们打」。",
+      "choices": [
+        { "label": "对标他们的久期 + 信用结构", "effects": { "duration": 0.5, "creditExposure": 4, "score.development": 4, "score.compliance": -2 } },
+        { "label": "走差异化路线，主打稳健", "effects": { "score.compliance": 4, "score.liquidity": 3, "score.development": -1 } },
+        { "label": "向销售解释「不打无把握的仗」", "effects": { "score.compliance": 5, "score.development": -2 } }
+      ]
+    },
+    {
+      "id": "opening_im_rise_internal",
+      "role": "im", "scriptId": "rise_and_fall", "theme": "internal",
+      "title": "开年首日：大客户 5 亿一次到账",
+      "policyShift": 0,
+      "body": "节后开盘第一天，机构客户一笔 5 亿申购到账。AUM 一下从 200 亿涨到 205 亿，但你心里清楚这种「一笔进来」也意味着「一笔出去」时的冲击会大。",
+      "choices": [
+        { "label": "立刻按比例建仓，保持组合结构", "effects": { "aum": 5, "duration": 0.1, "creditExposure": 1, "score.development": 3 } },
+        { "label": "先放在现金里，等市场回调", "effects": { "aum": 5, "cashRatio": 3, "score.liquidity": 4 } },
+        { "label": "用部分增量上久期博方向", "effects": { "aum": 5, "duration": 0.5, "score.development": 4, "_uncertainty": 0.5 } }
+      ]
+    },
+    {
+      "id": "opening_im_v_rrr",
+      "role": "im", "scriptId": "v_shape", "theme": "policy",
+      "title": "开年首日：央行突发降准，债市集体狂欢",
+      "policyShift": 1,
+      "body": "央行节后第一个工作日宣布全面降准 25bp，10 年国债早盘下行 8bp，群里全是兴奋表情包。你冷静的部分提醒自己：这种「利好出尽就是利空」的格局，下一步要么是更松，要么是政策开始收。",
+      "choices": [
+        { "label": "趁势拉久期到 4 年吃反弹", "effects": { "duration": 1.5, "nav": 0.008, "_delayedEffect": { "afterQuarters": 3, "effects": { "nav": -0.015, "redemptionPressure": 5 } } } },
+        { "label": "反向缩短久期，赌降准就是顶", "effects": { "duration": -0.5, "nav": -0.003, "score.crisisResponse": 4, "score.liquidity": 3 } },
+        { "label": "分批建仓，中性久期", "effects": { "duration": 0.3, "score.compliance": 3, "score.costControl": 2 } }
+      ]
+    },
+    {
+      "id": "opening_im_v_market",
+      "role": "im", "scriptId": "v_shape", "theme": "market",
+      "title": "开年首日：政治局会议「稳字当头」",
+      "policyShift": 1,
+      "body": "中央政治局会议口径转向「稳字当头」，但市场反应却谨慎，10 年国债只下行 3bp。说明这次「稳」的解读分歧大。你要押哪一边。",
+      "choices": [
+        { "label": "押「稳 = 宽」，加久期", "effects": { "duration": 1.0, "nav": 0.005, "_uncertainty": 0.5 } },
+        { "label": "押「稳 = 不动」，组合不调", "effects": { "score.compliance": 3, "score.liquidity": 2 } },
+        { "label": "押「稳 = 收紧不再宽」，缩久期", "effects": { "duration": -0.5, "cashRatio": 2, "score.crisisResponse": 4 } }
+      ]
+    },
+    {
+      "id": "opening_im_v_peer",
+      "role": "im", "scriptId": "v_shape", "theme": "peer",
+      "title": "开年首日：业内大佬喊「超调到位」",
+      "policyShift": 0,
+      "body": "节后第一个工作日，业内某知名固收 PM 在公开场合表态「债市超调到位，可加仓」。市场反应分歧，但你公司内部销售已经开始拿这话当卖点。",
+      "choices": [
+        { "label": "跟随他的判断，加仓利率债", "effects": { "duration": 0.8, "leverage": 5, "score.development": 3 } },
+        { "label": "等数据验证再说", "effects": { "score.compliance": 4, "score.liquidity": 2 } },
+        { "label": "反向做，用对冲降风险", "effects": { "duration": -0.3, "cashRatio": 2, "score.crisisResponse": 3 } }
+      ]
+    },
+    {
+      "id": "opening_im_v_internal",
+      "role": "im", "scriptId": "v_shape", "theme": "internal",
+      "title": "开年首日：老板要求「1 个百分点超额」",
+      "policyShift": 0,
+      "body": "新年第一个投决会，老板拍板：「今年的产品要做出 1 个百分点的超额收益」。你心里清楚，固收做出 1 个百分点要么靠久期、要么靠信用、要么靠杠杆——没有第四条路。",
+      "choices": [
+        { "label": "上久期到 4 年", "effects": { "duration": 1.5, "score.development": 4, "_uncertainty": 0.5 } },
+        { "label": "信用下沉到 AA-", "effects": { "creditExposure": 8, "concentration": 1, "score.development": 4, "score.compliance": -3 } },
+        { "label": "加杠杆到 115%", "effects": { "leverage": 15, "duration": 0.3, "score.development": 3, "score.crisisResponse": -2 } }
+      ]
+    },
+    {
+      "id": "opening_im_slow_anomaly",
+      "role": "im", "scriptId": "slow_boil", "theme": "market",
+      "title": "开年首日：一只城投估值轻微异动",
+      "policyShift": 0,
+      "body": "组合里某只 AA+ 城投开年第三天估值悄悄走宽 8bp，没什么舆情，没新闻。但你做了 10 年信用，你知道这种「无声的异动」通常是先知先觉的人在出货。",
+      "choices": [
+        { "label": "立刻全部清仓，宁可错杀", "effects": { "aum": -5, "creditExposure": -8, "score.crisisResponse": 5, "nav": -0.005 } },
+        { "label": "减半留观察仓，看后续数据", "effects": { "creditExposure": -3, "score.compliance": 2, "score.liquidity": 2 } },
+        { "label": "不动，等基本面证伪", "effects": { "_delayedEffect": { "afterQuarters": 4, "effects": { "nav": -0.02, "redemptionPressure": 8 } } } }
+      ]
+    },
+    {
+      "id": "opening_im_slow_policy",
+      "role": "im", "scriptId": "slow_boil", "theme": "policy",
+      "title": "开年首日：「穿透核查城投信用」",
+      "policyShift": -1,
+      "body": "节后第一份监管文件：要求基金公司穿透核查城投仓位的真实信用。你组合里 12% 城投，其中 4% 是「弱区域 + 强主体」类型，这种组合最容易踩雷。",
+      "choices": [
+        { "label": "提前主动汇报组合结构，争取认可", "effects": { "score.compliance": 5, "score.crisisResponse": 3 } },
+        { "label": "立刻减持「弱区域」类仓位", "effects": { "creditExposure": -5, "aum": -3, "score.compliance": 3 } },
+        { "label": "调整持仓不汇报，等监管来检查", "effects": { "creditExposure": -2, "score.compliance": -3, "_delayedEffect": { "afterQuarters": 5, "effects": { "score.compliance": -5 } } } }
+      ]
+    },
+    {
+      "id": "opening_im_slow_peer",
+      "role": "im", "scriptId": "slow_boil", "theme": "peer",
+      "title": "开年首日：同业某产品净值悄悄回撤",
+      "policyShift": 0,
+      "body": "节后第三天，同业一只规模 80 亿的固收产品净值悄悄回撤 0.5%，公告里只说「正常市场波动」。但圈内传：他们踩了一只城投。你组合里有相同的标的。",
+      "choices": [
+        { "label": "立刻减持相同标的", "effects": { "aum": -3, "creditExposure": -5, "score.crisisResponse": 5 } },
+        { "label": "查清楚到底是不是真的踩雷", "effects": { "score.compliance": 4, "_uncertainty": 0.6 } },
+        { "label": "不动，赌「同业误判」", "effects": { "_delayedEffect": { "afterQuarters": 4, "effects": { "nav": -0.03, "redemptionPressure": 10 } } } }
+      ]
+    },
+    {
+      "id": "opening_im_slow_internal",
+      "role": "im", "scriptId": "slow_boil", "theme": "internal",
+      "title": "开年首日：渠道反馈「大客户在问询风险」",
+      "policyShift": 0,
+      "body": "渠道经理午饭时压低声音：「最近有 3 个大客户分别在问城投占比，看起来不是巧合」。这种问询往往是赎回的前奏，提前 30-60 天。",
+      "choices": [
+        { "label": "主动找大客户做一对一沟通", "effects": { "redemptionPressure": -5, "score.compliance": 4, "_uncertainty": 0.55 } },
+        { "label": "立刻把现金比例从 8% 提到 15%", "effects": { "cashRatio": 7, "duration": -0.3, "score.liquidity": 5 } },
+        { "label": "什么都不做，让事情自然发生", "effects": { "_delayedEffect": { "afterQuarters": 4, "effects": { "redemptionPressure": 15, "aum": -10 } } } }
+      ]
+    },
+    {
+      "id": "opening_im_redm_drawdown",
+      "role": "im", "scriptId": "redemption", "theme": "market",
+      "title": "开年首日：组合昨日回撤 1.5%",
+      "policyShift": -1,
+      "body": "开年第一周，10 年国债上行 30bp，你的组合昨晚跌了 1.5%。早上 8 点，渠道经理已经发来三条消息，最大客户的电话还没接。你必须在开盘前定出操作。",
+      "choices": [
+        { "label": "立刻砍 10 亿仓位，把杠杆压到 95%", "effects": { "aum": -10, "leverage": -10, "score.crisisResponse": 6, "nav": -0.005 } },
+        { "label": "主动联系大客户，承诺净值企稳前不动", "effects": { "redemptionPressure": -10, "score.compliance": -2, "_uncertainty": 0.6 } },
+        { "label": "反向加杠杆，抄底高等级利率债", "effects": { "duration": 0.5, "leverage": 5, "_uncertainty": 0.4, "score.development": 4 } }
+      ]
+    },
+    {
+      "id": "opening_im_redm_policy",
+      "role": "im", "scriptId": "redemption", "theme": "policy",
+      "title": "开年首日：监管「不得大规模赎回」窗口指导",
+      "policyShift": -1,
+      "body": "节后第二个工作日，监管对头部资管口头通知「春节后两周不得大规模赎回」。你不在头部，但客户能听到风声后一定会先来你这里赎。",
+      "choices": [
+        { "label": "提前抛 5 亿弱资质仓位换现金", "effects": { "aum": -5, "creditExposure": -10, "cashRatio": 5, "score.crisisResponse": 5 } },
+        { "label": "主动公告产品费率优惠稳客户", "effects": { "redemptionPressure": -8, "score.compliance": 3 } },
+        { "label": "跟监管申请被纳入「窗口指导名单」", "effects": { "_uncertainty": 0.4, "score.crisisResponse": 4 } }
+      ]
+    },
+    {
+      "id": "opening_im_redm_peer",
+      "role": "im", "scriptId": "redemption", "theme": "peer",
+      "title": "开年首日：同业某产品已暂停赎回",
+      "policyShift": -2,
+      "body": "节后第一周，同业某 50 亿规模产品宣布「暂停赎回」。市场恐慌情绪传染，你的产品赎回压力指数已经拉到 35。",
+      "choices": [
+        { "label": "立刻砍仓 + 提高现金比例", "effects": { "aum": -8, "cashRatio": 6, "creditExposure": -5, "score.crisisResponse": 5 } },
+        { "label": "和销售连夜准备客户沟通话术", "effects": { "redemptionPressure": -5, "score.compliance": 4, "_uncertainty": 0.55 } },
+        { "label": "先撑两周观察情绪", "effects": { "_delayedEffect": { "afterQuarters": 2, "effects": { "redemptionPressure": 15, "nav": -0.02 } } } }
+      ]
+    },
+    {
+      "id": "opening_im_redm_internal",
+      "role": "im", "scriptId": "redemption", "theme": "internal",
+      "title": "开年首日：风控要求立刻减杠杆 + 砍信用",
+      "policyShift": 0,
+      "body": "节后开盘第一天，公司风控部下达硬性要求：杠杆压到 100% 以下，信用敞口压到 25% 以下，30 天内完成。你手里的弱资质仓位还有 12 亿。",
+      "choices": [
+        { "label": "立刻按风控要求砍仓", "effects": { "aum": -12, "leverage": -10, "creditExposure": -15, "nav": -0.01, "score.compliance": 5 } },
+        { "label": "申请延期至 60 天，分批处置", "effects": { "creditExposure": -8, "score.compliance": 3, "_uncertainty": 0.5 } },
+        { "label": "和风控对抗，要求重新评估", "effects": { "score.compliance": -5, "_uncertainty": 0.3, "score.crisisResponse": 3 } }
+      ]
+    },
+    {
+      "id": "opening_gov_rise_dual",
+      "role": "gov", "scriptId": "rise_and_fall", "theme": "policy",
+      "title": "开年首日：专项债指标 + 化债任务双下达",
+      "policyShift": 0,
+      "body": "正月初八省财政会议，给你这边下达两个数：8 亿专项债指标 + 化债任务 12 亿。两个数加起来比预期多得多。一年之计在于春，你要决定这年的政绩重心。",
+      "choices": [
+        { "label": "全力上项目，化债任务慢慢做", "effects": { "industryIndex": 5, "hiddenDebtRisk": 10, "politicalScore": 3, "score.development": 3 } },
+        { "label": "一半项目一半化债，平稳推进", "effects": { "industryIndex": 2, "hiddenDebtRisk": -8, "score.compliance": 3, "score.development": 1 } },
+        { "label": "全力化债，今年不上新项目", "effects": { "hiddenDebtRisk": -20, "industryIndex": -3, "politicalScore": -3, "score.compliance": 5 } }
+      ]
+    },
+    {
+      "id": "opening_gov_rise_market",
+      "role": "gov", "scriptId": "rise_and_fall", "theme": "market",
+      "title": "开年首日：辖区房企暴雷，土地出让停摆",
+      "policyShift": -1,
+      "body": "节前最后一天，辖区一家民企房企宣布违约。它名下 3 块地的出让金还有 18 亿没回款，今年土地预算少了一大块。",
+      "choices": [
+        { "label": "走诉讼程序追讨，强硬到底", "effects": { "landRevenue": 5, "_uncertainty": 0.5, "score.compliance": 4 } },
+        { "label": "推动「债转地」，让平台接盘", "effects": { "hiddenDebtRisk": 8, "industryIndex": 2, "score.development": 3 } },
+        { "label": "对外低调处理，避免影响市场信心", "effects": { "score.compliance": -3, "_delayedEffect": { "afterQuarters": 5, "effects": { "landRevenue": -10, "politicalScore": -3 } } } }
+      ]
+    },
+    {
+      "id": "opening_gov_rise_peer",
+      "role": "gov", "scriptId": "rise_and_fall", "theme": "peer",
+      "title": "开年首日：兄弟市产业转型成「学习典型」",
+      "policyShift": 0,
+      "body": "省里在年度大会上点名表扬邻市的产业转型成绩，省委书记说「要全省学习」。你这边产业基础和他们差不多，压力立刻就来。",
+      "choices": [
+        { "label": "立刻立项 3 个新产业园配合学习", "effects": { "industryIndex": 8, "hiddenDebtRisk": 12, "politicalScore": 5, "score.development": 4 } },
+        { "label": "派一个小组去考察学习半年", "effects": { "industryIndex": 2, "score.compliance": 3, "score.development": 2 } },
+        { "label": "汇报本辖区差异，争取留出空间", "effects": { "score.compliance": 4, "politicalScore": -2 } }
+      ]
+    },
+    {
+      "id": "opening_gov_rise_internal",
+      "role": "gov", "scriptId": "rise_and_fall", "theme": "internal",
+      "title": "开年首日：财政厅长换任，新人新政",
+      "policyShift": 0,
+      "body": "节后第一天接到通知：省财政厅长换任，新厅长以「严控隐债、严控新增、严控成本」三严著称。你年初的几个非标项目方案需要重新审视。",
+      "choices": [
+        { "label": "主动撤回非标方案，配合新政", "effects": { "hiddenDebtRisk": -10, "industryIndex": -3, "score.compliance": 5 } },
+        { "label": "调整方案细节，名义合规推进", "effects": { "hiddenDebtRisk": 3, "score.compliance": -2, "score.development": 2 } },
+        { "label": "等新厅长正式上任后再说", "effects": { "_delayedEffect": { "afterQuarters": 3, "effects": { "hiddenDebtRisk": 5, "score.compliance": -3 } } } }
+      ]
+    },
+    {
+      "id": "opening_gov_v_tone",
+      "role": "gov", "scriptId": "v_shape", "theme": "policy",
+      "title": "开年首日：省财政会议定调严控化债",
+      "policyShift": -1,
+      "body": "省财政会议第一句话：「今年化债任务硬指标，谁完不成谁担责。」你回来路上盘了一下：辖区还有 3 家平台需要续贷，其中一家 Q3 就到期 5 亿。强压可能引发连锁，不压上头会问你。",
+      "choices": [
+        { "label": "全面配合省里口径，强压平台续贷", "effects": { "hiddenDebtRisk": -15, "transferPayment": 1.5, "politicalScore": -3, "score.compliance": 4 } },
+        { "label": "走中间路线，部分平台先化部分债", "effects": { "hiddenDebtRisk": -8, "score.compliance": 3, "score.crisisResponse": 2 } },
+        { "label": "私下让平台先扛过去，赌政策回暖", "effects": { "hiddenDebtRisk": 5, "score.compliance": -3, "_delayedEffect": { "afterQuarters": 4, "effects": { "transferPayment": 2.0, "politicalScore": 3 } } } }
+      ]
+    },
+    {
+      "id": "opening_gov_v_market",
+      "role": "gov", "scriptId": "v_shape", "theme": "market",
+      "title": "开年首日：央行降准，但你辖区融资成本上升",
+      "policyShift": 1,
+      "body": "央行节后第一周降准 25bp，但你辖区平台的融资成本反而上升 30bp。原因很简单：市场把你这种区域和「优质区域」分开重定价。",
+      "choices": [
+        { "label": "动用专项债额度替换高成本债务", "effects": { "specialBondQuota": -3, "hiddenDebtRisk": -5, "score.compliance": 4 } },
+        { "label": "组织市级路演，让投资人重新认识", "effects": { "industryIndex": 2, "_uncertainty": 0.55 } },
+        { "label": "什么都不做，等政策传导", "effects": { "_delayedEffect": { "afterQuarters": 3, "effects": { "transferPayment": -2, "hiddenDebtRisk": 5 } } } }
+      ]
+    },
+    {
+      "id": "opening_gov_v_peer",
+      "role": "gov", "scriptId": "v_shape", "theme": "peer",
+      "title": "开年首日：邻省发首笔特殊再融资",
+      "policyShift": 1,
+      "body": "邻省节后第一周宣布：成功发行首笔特殊再融资 200 亿。你这边的申报材料还没准备好，省财政电话来催。",
+      "choices": [
+        { "label": "连夜赶材料，争取第二批入池", "effects": { "transferPayment": 2.5, "hiddenDebtRisk": -10, "score.development": 4, "score.compliance": 3 } },
+        { "label": "先按部就班，材料下个月报", "effects": { "score.compliance": 3, "_delayedEffect": { "afterQuarters": 3, "effects": { "transferPayment": 1, "hiddenDebtRisk": -5 } } } },
+        { "label": "对外低调，避免引来注意", "effects": { "score.compliance": -2, "_delayedEffect": { "afterQuarters": 5, "effects": { "transferPayment": -3 } } } }
+      ]
+    },
+    {
+      "id": "opening_gov_v_internal",
+      "role": "gov", "scriptId": "v_shape", "theme": "internal",
+      "title": "开年首日：政府工作报告要重新写",
+      "policyShift": 0,
+      "body": "节后第一天，秘书长来找你：「省里要求我们的政府工作报告重新写，去掉一些『大干快上』的表述」。你心里估了下，原报告里 3 个项目要不要从『今年开工』改成『力争开工』。",
+      "choices": [
+        { "label": "全部从「今年开工」改成「论证中」", "effects": { "industryIndex": -5, "score.compliance": 5, "politicalScore": -3 } },
+        { "label": "保留 1 个旗舰项目，其余改", "effects": { "industryIndex": 2, "hiddenDebtRisk": 3, "score.compliance": 2 } },
+        { "label": "全部保留，对省里说「我们能做到」", "effects": { "hiddenDebtRisk": 8, "industryIndex": 5, "politicalScore": 3, "score.compliance": -3 } }
+      ]
+    },
+    {
+      "id": "opening_gov_slow_clean",
+      "role": "gov", "scriptId": "slow_boil", "theme": "internal",
+      "title": "开年首日：年报漂亮，但账你心里清楚",
+      "policyShift": 0,
+      "body": "去年统计快报：财政自给率 68%，债务率压降 12pp，全省排名第三。庆功宴上你举着杯，心里清楚那 12pp 一半是账面调整，真实隐债其实没动多少。这一年的姿态，决定明年中央巡视来时是主动还是被动。",
+      "choices": [
+        { "label": "主动汇报真实隐债结构，争取化债试点", "effects": { "hiddenDebtRisk": -5, "transferPayment": 2, "politicalScore": -3, "score.compliance": 5 } },
+        { "label": "继续做账面化债，先保政绩漂亮", "effects": { "politicalScore": 3, "score.compliance": -2, "_delayedEffect": { "afterQuarters": 7, "effects": { "hiddenDebtRisk": 20, "politicalScore": -5 } } } },
+        { "label": "暗中加快产业转型，对冲后期风险", "effects": { "industryIndex": 5, "score.development": 4, "score.crisisResponse": 2 } }
+      ]
+    },
+    {
+      "id": "opening_gov_slow_market",
+      "role": "gov", "scriptId": "slow_boil", "theme": "market",
+      "title": "开年首日：辖区平台债估值悄悄走宽",
+      "policyShift": 0,
+      "body": "节后第三天，辖区主要平台债二级估值收益率上行 12bp。没什么新闻，但市场不会无缘无故定价。这种走势如果不及时托住，下次发行就要付溢价。",
+      "choices": [
+        { "label": "财政出面联系做市商托住估值", "effects": { "cash": -1.0, "transferPayment": -1, "score.crisisResponse": 4 } },
+        { "label": "组织主承做投资人交流", "effects": { "industryIndex": 1, "score.compliance": 3 } },
+        { "label": "什么都不做，让市场自己消化", "effects": { "_delayedEffect": { "afterQuarters": 4, "effects": { "hiddenDebtRisk": 8, "transferPayment": -1 } } } }
+      ]
+    },
+    {
+      "id": "opening_gov_slow_peer",
+      "role": "gov", "scriptId": "slow_boil", "theme": "peer",
+      "title": "开年首日：邻区传「巡视组进驻」",
+      "policyShift": -1,
+      "body": "节后第二周，邻区开始传「中央巡视组下个月进驻」。你这边按惯例不会马上轮到，但消息一出，平台和银行的态度都开始微妙。",
+      "choices": [
+        { "label": "立刻启动「自我体检」，找问题主动整改", "effects": { "hiddenDebtRisk": -8, "score.compliance": 5, "politicalScore": -2 } },
+        { "label": "默默处理几个最敏感的隐债项目", "effects": { "hiddenDebtRisk": -5, "score.compliance": 2, "_uncertainty": 0.55 } },
+        { "label": "什么都不做，等真要来了再说", "effects": { "_delayedEffect": { "afterQuarters": 5, "effects": { "hiddenDebtRisk": 10, "politicalScore": -5, "score.compliance": -3 } } } }
+      ]
+    },
+    {
+      "id": "opening_gov_slow_policy",
+      "role": "gov", "scriptId": "slow_boil", "theme": "policy",
+      "title": "开年首日：穿透监管平台贷款新政",
+      "policyShift": -1,
+      "body": "银保监开年第一份文件「穿透监管平台贷款」，意味着以前用做账方式化的隐债很可能被识破。你过去三年做的 15 亿账面化债现在悬在空中。",
+      "choices": [
+        { "label": "立刻申报特殊再融资置换那 15 亿", "effects": { "specialBondQuota": -8, "hiddenDebtRisk": -15, "score.compliance": 6 } },
+        { "label": "按要求补做 1/3 真实化债，剩余等政策", "effects": { "hiddenDebtRisk": -5, "score.compliance": 2 } },
+        { "label": "继续观察，等政策细则明确", "effects": { "_delayedEffect": { "afterQuarters": 4, "effects": { "hiddenDebtRisk": 12, "politicalScore": -5, "score.compliance": -5 } } } }
+      ]
+    },
+    {
+      "id": "opening_gov_redm_default",
+      "role": "gov", "scriptId": "redemption", "theme": "peer",
+      "title": "开年首日：辖区平台违约 + 巡视进驻",
+      "policyShift": -2,
+      "body": "开年第二天，辖区一家平台 3 亿技术性违约。当天下午接到通知：中央巡视组下周一进驻。你这一周的处置方式会决定接下来一年是被动挨打还是主动布局。",
+      "choices": [
+        { "label": "立即财政兜底兑付，保住信用", "effects": { "cash": -2.0, "hiddenDebtRisk": 3, "politicalScore": 5, "score.compliance": -3, "score.crisisResponse": 4 } },
+        { "label": "协调银行展期，主动报送方案", "effects": { "hiddenDebtRisk": -5, "transferPayment": -1, "score.crisisResponse": 4, "score.compliance": 3 } },
+        { "label": "让市场出清，主动向巡视组汇报问题", "effects": { "hiddenDebtRisk": -8, "politicalScore": -5, "score.compliance": 6, "_delayedEffect": { "afterQuarters": 4, "effects": { "transferPayment": 3, "politicalScore": 5 } } } }
+      ]
+    },
+    {
+      "id": "opening_gov_redm_market",
+      "role": "gov", "scriptId": "redemption", "theme": "market",
+      "title": "开年首日：辖区平台债二级上行 200bp",
+      "policyShift": -2,
+      "body": "节后第二天，辖区主要平台的存量债二级估值收益率一夜上行 200bp。市场实际拒收。下个月那笔 8 亿到期续作几乎没可能。",
+      "choices": [
+        { "label": "财政紧急拨付 5 亿支援", "effects": { "cash": -3.0, "hiddenDebtRisk": 3, "politicalScore": 4, "score.compliance": -2 } },
+        { "label": "动用专项债额度做置换", "effects": { "specialBondQuota": -5, "hiddenDebtRisk": -8, "score.crisisResponse": 5 } },
+        { "label": "组织持有人会议申请展期", "effects": { "_uncertainty": 0.5, "score.crisisResponse": 4 } }
+      ]
+    },
+    {
+      "id": "opening_gov_redm_policy",
+      "role": "gov", "scriptId": "redemption", "theme": "policy",
+      "title": "开年首日：中央化债 2.0 启动名单制",
+      "policyShift": -1,
+      "body": "节后第一天，中央化债 2.0 方案出台，明确名单制管理。你这边按「重点观察区」分类，意味着接下来所有新增融资要审批，但同时有机会争取专项化债额度。",
+      "choices": [
+        { "label": "立刻申报「重点化债试点」", "effects": { "transferPayment": 5, "hiddenDebtRisk": -15, "politicalScore": -3, "score.compliance": 6 } },
+        { "label": "走「中间路线」，部分申报", "effects": { "transferPayment": 2, "hiddenDebtRisk": -8, "score.compliance": 3 } },
+        { "label": "争取「自力更生」标签", "effects": { "politicalScore": 5, "_uncertainty": 0.4, "_delayedEffect": { "afterQuarters": 4, "effects": { "hiddenDebtRisk": 15, "score.compliance": -3 } } } }
+      ]
+    },
+    {
+      "id": "opening_gov_redm_internal",
+      "role": "gov", "scriptId": "redemption", "theme": "internal",
+      "title": "开年首日：副市长被纪委约谈",
+      "policyShift": -1,
+      "body": "节后第二天，分管财政的副市长被纪委约谈，原因没公开。你直接对市委书记负责，但具体业务还要靠副市长系统。这种「悬空」状态下你怎么决策。",
+      "choices": [
+        { "label": "维持现有节奏，不主动改方向", "effects": { "score.compliance": 3, "_uncertainty": 0.55 } },
+        { "label": "立刻向市委书记汇报全部账", "effects": { "hiddenDebtRisk": -5, "politicalScore": -3, "score.compliance": 6 } },
+        { "label": "趁机推几个之前被卡的项目", "effects": { "hiddenDebtRisk": 10, "industryIndex": 4, "politicalScore": 3, "score.compliance": -4 } }
+      ]
+    },
+    {
+      "id": "opening_generic_cfo_handover",
+      "role": "cfo", "theme": "internal",
+      "title": "开年首日：老总监退休，你接班",
+      "policyShift": 0,
+      "body": "节前最后一天，老总监正式退休。他临走前留了一个抽屉的资料 + 一句话「有些账我处理不完，你看着办」。打开抽屉你看到三类东西：未签的非标续作、模糊的或有担保、几个老朋友的口头承诺。",
+      "choices": [
+        { "label": "全部「翻账」，把模糊的都暴露", "effects": { "score.compliance": 6, "financingCost": 0.2, "score.development": -3 } },
+        { "label": "继承老总监的处理方式", "effects": { "score.compliance": -2, "score.development": 2, "_delayedEffect": { "afterQuarters": 6, "effects": { "score.compliance": -4 } } } },
+        { "label": "选择性处理：明账继承，模糊账翻", "effects": { "score.compliance": 3, "score.crisisResponse": 3, "score.development": 1 } }
+      ]
+    },
+    {
+      "id": "opening_generic_im_strategy",
+      "role": "im", "theme": "internal",
+      "title": "开年首日：投决会要求重审策略",
+      "policyShift": 0,
+      "body": "节后第一个投决会，老板把所有 PM 叫到一起：「今年市场环境不一样，每个产品的策略全部重新审一遍」。你的固收 + 产品要不要主动调结构。",
+      "choices": [
+        { "label": "主动改名为「稳健型」，降风险", "effects": { "duration": -0.5, "creditExposure": -8, "score.compliance": 5 } },
+        { "label": "保持原策略，让业绩说话", "effects": { "score.compliance": -2, "score.development": 3 } },
+        { "label": "建议老板「等 Q1 数据出来再决定」", "effects": { "_uncertainty": 0.55, "score.compliance": 3 } }
+      ]
+    }
+  ]
+}

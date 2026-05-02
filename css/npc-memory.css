@@ -1,0 +1,415 @@
+/* css/npc-memory.css — NPC 名字标注 + 悬浮卡
+   依赖 css/tokens.css 提供 --bg-*, --text-*, --line, --gold, --r-*, --sp-*, --fs-*
+*/
+
+/* ────────────────────────────────────────────────
+   1. NPC 名字行内标记：金色虚下划线（区别于术语的浅蓝虚下划线）
+   ──────────────────────────────────────────────── */
+.gnpc {
+  border-bottom: 1px dashed rgba(255, 213, 79, 0.55);
+  cursor: help;
+  color: rgba(255, 213, 79, 0.92);
+  transition: color 0.15s ease, border-bottom-color 0.15s ease, background 0.15s ease;
+  text-decoration: none;
+  outline: none;
+  padding: 0 1px;
+  border-radius: 2px;
+}
+.gnpc:hover,
+.gnpc:focus-visible {
+  color: var(--gold, #ffd54f);
+  border-bottom-color: var(--gold, #ffd54f);
+  background: rgba(255, 213, 79, 0.10);
+}
+
+/* 在按钮 / 选项里 NPC 不染色，避免抢戏 */
+.opt .gnpc,
+.action-btn .gnpc,
+button .gnpc {
+  color: inherit;
+  border-bottom-color: rgba(255, 213, 79, 0.30);
+}
+.opt .gnpc:hover,
+.action-btn .gnpc:hover,
+button .gnpc:hover {
+  border-bottom-color: var(--gold, #ffd54f);
+  background: rgba(255, 213, 79, 0.06);
+}
+
+/* ────────────────────────────────────────────────
+   2. NPC tooltip
+   ──────────────────────────────────────────────── */
+.npc-tip {
+  position: fixed;
+  z-index: 10000;
+  width: 340px;
+  max-width: calc(100vw - 16px);
+  background: linear-gradient(180deg, var(--bg-2) 0%, var(--bg-1) 100%);
+  border: 1px solid rgba(255, 213, 79, 0.45);
+  border-radius: var(--r-lg);
+  padding: var(--sp-3) var(--sp-4);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  color: var(--text-1);
+  line-height: 1.55;
+  box-shadow:
+    0 18px 48px -16px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 213, 79, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease,
+    visibility 0s linear 0.16s;
+  pointer-events: none;
+  left: 0;
+  top: 0;
+}
+.npc-tip.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease,
+    visibility 0s linear 0s;
+  pointer-events: auto;
+}
+
+.npc-tip-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-2);
+  padding-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--line);
+}
+.npc-tip-name {
+  font-size: var(--fs-h3);
+  font-weight: 700;
+  color: var(--gold, #ffd54f);
+  letter-spacing: 0.01em;
+  filter: drop-shadow(0 0 6px rgba(255, 213, 79, 0.20));
+}
+.npc-tip-type {
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.npc-tip-meta {
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  letter-spacing: 0.06em;
+  margin-bottom: var(--sp-2);
+  text-transform: uppercase;
+}
+
+.npc-tip-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: var(--sp-2);
+}
+.npc-tag {
+  font-size: var(--fs-xs);
+  padding: 2px 8px;
+  background: rgba(255, 213, 79, 0.10);
+  color: var(--gold, #ffd54f);
+  border: 1px solid rgba(255, 213, 79, 0.32);
+  border-radius: var(--r-sm);
+  letter-spacing: 0.04em;
+  font-family: var(--font-sans);
+}
+
+.npc-tip-history {
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+  line-height: 1.6;
+  padding-top: var(--sp-2);
+  border-top: 1px dashed var(--line);
+}
+.npc-tip-history .npc-history-label {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+}
+
+/* ────────────────────────────────────────────────
+   3. 状态栏「NPC」按钮
+   ──────────────────────────────────────────────── */
+.statusbar .sb-npc {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 213, 79, 0.06);
+  border: 1px solid var(--line, rgba(120,140,200,0.12));
+  color: var(--text-2);
+  padding: 4px 10px;
+  border-radius: var(--r-sm);
+  font-size: var(--fs-xs);
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-transform: uppercase;
+}
+.statusbar .sb-npc:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(255, 213, 79, 0.10);
+}
+.statusbar .sb-npc .npc-count { color: var(--gold); }
+
+/* ────────────────────────────────────────────────
+   4. NPC 记忆抽屉
+   ──────────────────────────────────────────────── */
+.npc-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  visibility: hidden;
+  transition: visibility 0s linear 0.32s;
+}
+.npc-drawer.show {
+  visibility: visible;
+  transition: visibility 0s;
+  pointer-events: auto;
+}
+.npc-drawer-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(7, 9, 15, 0.65);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  transition: opacity 0.32s ease;
+}
+.npc-drawer.show .npc-drawer-mask { opacity: 1; }
+
+.npc-drawer-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 480px;
+  max-width: 92vw;
+  background: var(--bg-1);
+  border-left: 1px solid var(--line-strong);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: -16px 0 48px -16px rgba(0, 0, 0, 0.6);
+}
+.npc-drawer.show .npc-drawer-panel { transform: translateX(0); }
+
+.npc-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-2);
+  flex-shrink: 0;
+}
+.npc-drawer-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+}
+.npc-drawer-title h3 {
+  margin: 0;
+  font-size: var(--fs-h2);
+  color: var(--text-1);
+  letter-spacing: 0.02em;
+}
+.npc-drawer-count {
+  font-size: var(--fs-xs);
+  color: var(--gold);
+  letter-spacing: 0.05em;
+}
+.npc-drawer-close {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--text-2);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-md);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.npc-drawer-close:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: rgba(239, 83, 80, 0.08);
+}
+
+.npc-drawer-stats {
+  padding: var(--sp-2) var(--sp-5);
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--line);
+  letter-spacing: 0.04em;
+}
+
+.npc-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: var(--sp-5);
+}
+.npc-drawer-body::-webkit-scrollbar { width: 8px; }
+.npc-drawer-body::-webkit-scrollbar-thumb {
+  background: rgba(120, 140, 200, 0.18);
+  border-radius: 4px;
+}
+
+.npc-group {
+  margin-top: var(--sp-2);
+}
+.npc-cat {
+  padding: var(--sp-2) var(--sp-5);
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background: var(--bg-2);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.npc-item {
+  padding: var(--sp-3) var(--sp-5);
+  border-bottom: 1px solid var(--line);
+  transition: background 0.6s ease;
+}
+.npc-item.unseen {
+  opacity: 0.45;
+}
+.npc-item-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-2);
+}
+.npc-item-name-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+}
+.npc-item-name {
+  font-size: var(--fs-h3);
+  color: var(--text-1);
+  font-weight: 600;
+}
+.npc-item.seen .npc-item-name {
+  color: var(--gold);
+  text-shadow: 0 0 8px rgba(255, 213, 79, 0.18);
+}
+.npc-item-count {
+  font-size: var(--fs-xs);
+  color: var(--gold);
+  background: rgba(255, 213, 79, 0.10);
+  border: 1px solid rgba(255, 213, 79, 0.32);
+  padding: 1px 6px;
+  border-radius: var(--r-sm);
+  letter-spacing: 0.04em;
+}
+.npc-item-unseen {
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  letter-spacing: 0.06em;
+}
+.npc-item-type {
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.npc-item-last {
+  margin-top: var(--sp-1);
+  display: flex;
+  gap: var(--sp-2);
+  align-items: baseline;
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+}
+.npc-item-last-q {
+  font-size: var(--fs-xs);
+  color: var(--gold);
+  background: rgba(255, 213, 79, 0.10);
+  padding: 1px 6px;
+  border-radius: var(--r-sm);
+  flex-shrink: 0;
+}
+.npc-item-last-evt {
+  flex: 1;
+}
+.npc-item-last-choice {
+  margin-top: 2px;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  letter-spacing: 0.04em;
+  padding-left: var(--sp-3);
+  border-left: 2px solid rgba(255, 213, 79, 0.30);
+}
+
+.npc-item-tags {
+  margin-top: var(--sp-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.npc-item-history {
+  margin-top: var(--sp-2);
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+  line-height: 1.55;
+  padding-top: var(--sp-2);
+  border-top: 1px dashed var(--line);
+}
+.npc-item-history .npc-history-label {
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+}
+
+/* ────────────────────────────────────────────────
+   5. 移动适配
+   ──────────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .npc-tip {
+    width: calc(100vw - 16px);
+    max-width: 360px;
+  }
+  .npc-drawer-panel {
+    width: 100vw;
+    max-width: 100vw;
+  }
+  .npc-drawer-head { padding: var(--sp-3) var(--sp-4); }
+  .npc-drawer-stats { padding: var(--sp-2) var(--sp-4); }
+  .npc-cat { padding: var(--sp-2) var(--sp-4); }
+  .npc-item { padding: var(--sp-3) var(--sp-4); }
+  .npc-item-head { flex-direction: column; align-items: flex-start; }
+  .npc-item-type { text-align: left; }
+}

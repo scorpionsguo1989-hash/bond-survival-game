@@ -9,7 +9,9 @@ Claude Design project: 债市生存游戏 UI Redesign
 - Round 0 baseline review: complete.
 - Round 1 fate card design: complete after two user-driven refinements.
 - Round 2 main UI design: complete after user-driven layout refinements.
-- Round 3 overlay components: blocked by Claude Design usage limit before usable output was produced.
+- Round 3 overlay components: complete on 2026-05-02 after narrow re-run. Claude Design created `Overlays.html`, `overlays.jsx`, `overlays.css`.
+- Round 4 endgame / leaderboard / share card: complete on 2026-05-02. Claude Design created `Endgame.html`, `endgame.jsx`, `endgame.css`; verifier passed all 12 artboards after radar-label and rank-pill fixes.
+- Round 5 design system summary: complete on 2026-05-02. Claude Design created `DesignSystem.md`.
 - Local app source code: not modified by Codex.
 - Design archive and screenshots are under `docs/design_outputs/`.
 
@@ -100,27 +102,89 @@ Detailed archive:
 
 ## Round 3 - Overlay Components
 
-Round 3 was started but not completed. The prompt for operation modal, toast, and crisis modal was sent to Claude Design. Claude Design then hit its independent usage limit while reading `main-ui.css` tokens.
+Round 3 initially hit Claude Design usage limits, but was completed on 2026-05-02 after Codex started a narrower re-run in the same Claude Design project.
 
-Observed limit message:
+Final generated files:
 
-- `You've hit your Claude Design weekly limit`
-- Reset indicated around `周六 5:00` / about 14 hours later.
+- `Overlays.html`
+- `overlays.jsx`
+- `overlays.css`
 
-No usable Round 3 artboards, component code, screenshots, or verifier results were produced.
+Designed component families:
+
+- Operation Modal: serious terminal-style operation input flow, desktop/mobile.
+- Toasts: success / error / info variants, desktop/mobile.
+- Crisis Modal: IM redemption crisis, GOV/CFO crisis examples, desktop/mobile coverage.
+
+Implementation guidance:
+
+- Replace native `prompt()` and `alert()` with these overlay patterns.
+- Keep option cards high-stakes with cost, description, and predicted effects.
+- Mobile modals must scroll naturally and avoid clipped action buttons.
+
+Old usage-limit notes are retained in `round3.md` for history only; do not treat them as the current status.
 
 Detailed archive:
 
 - `docs/design_outputs/round3.md`
 
+## Round 4 - Endgame / Leaderboard / Share Card
+
+Round 4 completed on 2026-05-02 and was visually accepted by the user.
+
+Final generated files in Claude Design:
+
+- `Endgame.html`
+- `endgame.jsx`
+- `endgame.css`
+
+Surfaces:
+
+- End Screen: pass/fail terminal settlement screen, large grade glyph, score/rank/platform/role/survival metadata, six-dimension ability assessment.
+- Leaderboard Modal: Top-20 table, role tabs, highlighted current player row, mobile horizontal-scroll strategy.
+- Share Card: 750 x 1200 vertical poster card for screenshots, role-tinted grade, six-dimension bars, QR/watermark area.
+
+Verifier notes:
+
+- Initial radar labels were too close to the edge; Claude Design shrank the radar and widened the SVG viewBox.
+- Rank pill was fixed with no-wrap / no-shrink.
+- Final verifier reported all 12 artboards clean.
+
+Detailed archive:
+
+- `docs/design_outputs/round4.md`
+
+## Round 5 - Design System
+
+Round 5 completed on 2026-05-02.
+
+Claude Design generated:
+
+- `DesignSystem.md`
+
+Coverage:
+
+- Color tokens: background/text/role/status/grade/risk.
+- Typography: PingFang SC + SF Mono, tabular numeric rule, 10-220px size scale.
+- Spacing/radius/shadow scale.
+- 12 core components and implementation notes.
+- Responsive strategy: desktop three-column terminal to mobile segmented/horizontal switching with natural scroll.
+- Micro-interactions: metric change, choice hover/selected, toast enter/exit, crisis modal, end screen grade reveal.
+
+Detailed archive:
+
+- `docs/design_outputs/round5_design_system.md`
+
 Continuation prompt for Claude Code:
 
-- `docs/Codex_to_CC_设计优化继续落地_cdxV0.md`
+- `docs/Codex_to_CC_Round3-5_UI落地prompt_cdxV0.md`
 
 ## Next Round Queue
 
-Immediate next step should be handled by Claude Code rather than waiting for Claude Design:
+If continuing through Claude Design manually, use:
 
-- Implement Round 1 fate card refinements.
-- Implement Round 2 main UI layout refinements.
-- Implement Round 3 operation modal, toast, and crisis modal directly from the archived prompt.
+- `docs/Codex_to_ClaudeDesign_Round3-5续跑prompt_cdxV0.md`
+
+If handing off to Claude Code, use:
+
+- `docs/Codex_to_CC_Round3-5_UI落地prompt_cdxV0.md`

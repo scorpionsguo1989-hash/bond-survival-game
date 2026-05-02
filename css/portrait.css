@@ -1,0 +1,241 @@
+/* css/portrait.css — AI 战后画像卡片
+   依赖 css/tokens.css 提供 --bg-*, --text-*, --line, --role, --fs-*, --sp-*
+*/
+
+/* ────────────────────────────────────────────────
+   1. 主容器
+   ──────────────────────────────────────────────── */
+.portrait-card {
+  background: linear-gradient(180deg, var(--bg-2, #10162a) 0%, var(--bg-1, #0a0e1a) 100%);
+  border: 1px solid var(--line-strong, rgba(120,140,200,0.22));
+  border-radius: var(--r-lg, 10px);
+  padding: var(--sp-5, 24px);
+  margin-bottom: var(--sp-5, 24px);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 顶部一道 role 色细线，强化"专属"感 */
+.portrait-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--role, #4fc3f7) 30%,
+    var(--role, #4fc3f7) 70%,
+    transparent 100%
+  );
+  opacity: 0.6;
+}
+
+/* ────────────────────────────────────────────────
+   2. 卡片头：标题 + 来源标签
+   ──────────────────────────────────────────────── */
+.portrait-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3, 12px);
+  padding-bottom: var(--sp-3, 12px);
+  margin-bottom: var(--sp-4, 16px);
+  border-bottom: 1px solid var(--line, rgba(120,140,200,0.12));
+}
+
+.portrait-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2, 8px);
+  font-size: var(--fs-h2, 22px);
+  color: var(--text-1, #e6ebf5);
+  font-weight: 600;
+}
+.portrait-ax {
+  color: var(--role, #4fc3f7);
+  font-size: 14px;
+  display: inline-block;
+  transform: translateY(-2px);
+}
+.portrait-sub {
+  font-size: var(--fs-xs, 11px);
+  color: var(--text-3, #5b667f);
+  letter-spacing: 0.04em;
+  font-weight: 400;
+  margin-left: var(--sp-2, 8px);
+}
+
+.portrait-meta {
+  display: flex;
+  gap: var(--sp-2, 8px);
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* ────────────────────────────────────────────────
+   3. 来源徽章
+   ──────────────────────────────────────────────── */
+.portrait-source {
+  font-size: var(--fs-xs, 11px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: var(--r-sm, 4px);
+  border: 1px solid var(--line, rgba(120,140,200,0.12));
+}
+.portrait-source.ai {
+  color: var(--ok, #4caf50);
+  border-color: rgba(76, 175, 80, 0.3);
+  background: rgba(76, 175, 80, 0.08);
+}
+.portrait-source.fallback {
+  color: var(--text-3, #5b667f);
+  border-color: var(--line, rgba(120,140,200,0.12));
+  background: var(--bg-2, #10162a);
+}
+.portrait-source.err {
+  color: var(--danger, #ef5350);
+  border-color: rgba(239, 83, 80, 0.32);
+  background: rgba(239, 83, 80, 0.08);
+}
+
+.portrait-cached {
+  font-size: var(--fs-xs, 11px);
+  color: var(--text-3, #5b667f);
+  letter-spacing: 0.04em;
+  padding: 3px 6px;
+  border-radius: var(--r-sm, 4px);
+  background: rgba(120,140,200,0.06);
+}
+
+.portrait-loading {
+  font-size: var(--fs-xs, 11px);
+  color: var(--text-3, #5b667f);
+  letter-spacing: 0.04em;
+}
+.portrait-loading::after {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: var(--role, #4fc3f7);
+  animation: portrait-pulse 1.2s ease-in-out infinite;
+}
+@keyframes portrait-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* ────────────────────────────────────────────────
+   4. 正文：段落
+   ──────────────────────────────────────────────── */
+.portrait-body p {
+  margin: 0 0 var(--sp-3, 12px);
+  font-size: var(--fs-body, 15px);
+  line-height: 1.75;
+  color: var(--text-1, #e6ebf5);
+  text-indent: 2em;
+}
+.portrait-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* 错误态 */
+.portrait-error {
+  padding: var(--sp-4, 16px);
+  font-size: var(--fs-sm, 13px);
+  color: var(--danger, #ef5350);
+  background: rgba(239, 83, 80, 0.06);
+  border: 1px solid rgba(239, 83, 80, 0.2);
+  border-radius: var(--r-md, 6px);
+  text-align: center;
+}
+
+/* ────────────────────────────────────────────────
+   5. 骨架屏
+   ──────────────────────────────────────────────── */
+.portrait-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2, 8px);
+}
+.sk-line {
+  height: 14px;
+  background: linear-gradient(
+    90deg,
+    rgba(120,140,200,0.06) 0%,
+    rgba(120,140,200,0.14) 50%,
+    rgba(120,140,200,0.06) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 3px;
+  animation: sk-shimmer 1.6s ease-in-out infinite;
+}
+.sk-line.short { width: 65%; }
+.sk-gap { height: var(--sp-2, 8px); }
+@keyframes sk-shimmer {
+  0%, 100% { background-position: 200% 0; }
+  50% { background-position: -200% 0; }
+}
+
+/* ────────────────────────────────────────────────
+   6. 操作区（重新生成按钮）
+   ──────────────────────────────────────────────── */
+.portrait-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-2, 8px);
+  margin-top: var(--sp-4, 16px);
+  padding-top: var(--sp-3, 12px);
+  border-top: 1px solid var(--line, rgba(120,140,200,0.12));
+}
+.portrait-retry {
+  background: transparent;
+  border: 1px solid var(--line, rgba(120,140,200,0.12));
+  color: var(--text-2, #98a3bd);
+  padding: 6px 14px;
+  border-radius: var(--r-sm, 4px);
+  font-size: var(--fs-xs, 11px);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-transform: uppercase;
+}
+.portrait-retry:hover {
+  border-color: var(--role, #4fc3f7);
+  color: var(--role, #4fc3f7);
+  background: var(--role-soft, rgba(79,195,247,0.08));
+}
+
+/* ────────────────────────────────────────────────
+   7. 角色主题：根据 .endgame-container 内的角色色调
+       （endgame 容器没绑 data-role，借用全局 fallback 色）
+   ──────────────────────────────────────────────── */
+[data-role="cfo"] .portrait-card,
+.endgame-container .portrait-card {
+  /* 默认走 :root 的 --info 青蓝 */
+}
+[data-role="im"] .portrait-card { --role: #ffd54f; --role-soft: rgba(255,213,79,0.10); }
+[data-role="gov"] .portrait-card { --role: #ef5350; --role-soft: rgba(239,83,80,0.10); }
+
+/* ────────────────────────────────────────────────
+   8. 移动适配
+   ──────────────────────────────────────────────── */
+@media (max-width: 720px) {
+  .portrait-card { padding: var(--sp-4, 16px); }
+  .portrait-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-2, 8px);
+  }
+  .portrait-title { font-size: var(--fs-h3, 17px); }
+  .portrait-body p {
+    font-size: var(--fs-sm, 13px);
+    line-height: 1.7;
+  }
+}

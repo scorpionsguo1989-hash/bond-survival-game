@@ -3,6 +3,31 @@ node_modules/
 *.log
 dist/
 api/node_modules/
+
+# 数据库文件（玩家数据 + WAL/SHM）—— 生产数据库通过单独备份机制
 api/leaderboard.db
 api/leaderboard.db-shm
 api/leaderboard.db-wal
+
+# 真实环境变量（含 DeepSeek key 等密钥）—— 永不入仓
+api/.env
+.env
+.env.local
+.env.production
+api/ecosystem.config.cjs   # PM2 部署配置可能含密钥
+
+# 含真 API key 的本地笔记 —— 用户备忘文件
+docs/城投生存游戏DS api.md
+**/DS api.md
+**/*api_key*
+**/*deepseek*key*
+
+# IDE / 编辑器
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 系统临时
+Thumbs.db
+*.bak

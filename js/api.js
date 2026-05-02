@@ -6,6 +6,59 @@ const API_BASE = (typeof location !== 'undefined' && location.port === '8080')
   ? 'http://localhost:3000/api'
   : '/api';
 
+// ─── 内容鉴权下发：从后端拿 sessionId + bundle ───
+// 设计：sessionId 缓存到 sessionStorage（仅本浏览器 tab、关闭即销毁，不持久化）
+// 失败 fallback：直接降级到原 fetch content/*.json 路径（开发期 + 后端没改造时仍能跑）
+
+const SESSION_KEY = 'bond_game_sid';
+
+export async function fetchSessionId() {
+  // 优先用本 tab 已有 sessionId
+  const cached = (typeof sessionStorage !== 'undefined') ? sessionStorage.getItem(SESSION_KEY) : null;
+  if (cached) return cached;
+  try {
+    const resp = await fetch(`${API_BASE}/session/init`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    if (!data?.ok || !data.sessionId) return null;
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem(SESSION_KEY, data.sessionId);
+    }
+    return data.sessionId;
+  } catch (e) {
+    console.warn('fetchSessionId failed:', e);
+    return null;
+  }
+}
+
+export async function fetchContentBundle(sessionId) {
+  if (!sessionId) return null;
+  try {
+    const resp = await fetch(`${API_BASE}/content/bundle`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId }),
+    });
+    if (!resp.ok) {
+      // 401/429 等错误：清掉 sessionId 让下次重新拿
+      if (resp.status === 401 || resp.status === 429) {
+        if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem(SESSION_KEY);
+      }
+      return null;
+    }
+    const data = await resp.json();
+    if (!data?.ok || !data.bundle) return null;
+    return data.bundle;
+  } catch (e) {
+    console.warn('fetchContentBundle failed:', e);
+    return null;
+  }
+}
+
 export async function submitScore(data) {
   try {
     const resp = await fetch(`${API_BASE}/scores`, {
@@ -42,5 +95,113 @@ export async function fetchRank(score, role = null) {
   } catch (e) {
     console.warn('fetchRank failed:', e);
     return null;
+  }
+}
+
+// 同侪信号：拉取某事件×角色的群体分布
+// 返回 { ok, source: 'seed'|'mixed'|'real'|'none', samples, choices: [{idx, pct, highScorePct, survivedPct, archetype}] }
+// 失败时返回 null（不阻塞游戏，UI 静默降级）
+const _peerCache = new Map();  // 客户端缓存：同事件 × 角色，5 分钟内只拉一次
+const _peerInflight = new Map(); // 防并发：同 key 仅一个请求在飞
+const PEER_TTL = 5 * 60 * 1000;
+
+export async function fetchPeerSignal(eventId, role) {
+  if (!eventId || !role) return null;
+  const key = `${eventId}:${role}`;
+  const cached = _peerCache.get(key);
+  if (cached && Date.now() - cached.ts < PEER_TTL) return cached.data;
+  if (_peerInflight.has(key)) return await _peerInflight.get(key);
+
+  const promise = (async () => {
+    try {
+      const url = `${API_BASE}/peer-signal?eventId=${encodeURIComponent(eventId)}&role=${encodeURIComponent(role)}`;
+      const resp = await fetch(url);
+      if (!resp.ok) return null;
+      const data = await resp.json();
+      if (data?.ok) {
+        _peerCache.set(key, { data, ts: Date.now() });
+        return data;
+      }
+      return null;
+    } catch (e) {
+      console.warn('fetchPeerSignal failed:', e);
+      return null;
+    } finally {
+      _peerInflight.delete(key);
+    }
+  })();
+  _peerInflight.set(key, promise);
+  return await promise;
+}
+
+// 爆款标题：返回 { ok, headline, body, source, cached, reason }
+export async function fetchHeadline(payload, { timeoutMs = 28_000 } = {}) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const resp = await fetch(`${API_BASE}/headline`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: ctrl.signal,
+    });
+    clearTimeout(t);
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      return { ok: false, error: err.error || `HTTP ${resp.status}`, status: resp.status };
+    }
+    return await resp.json();
+  } catch (e) {
+    clearTimeout(t);
+    return { ok: false, error: e.message?.includes('abort') ? '请求超时' : '网络错误' };
+  }
+}
+
+// 决策助手：返回 { ok, advice, source, reason }
+export async function fetchCoachAdvice(payload, { timeoutMs = 22_000 } = {}) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const resp = await fetch(`${API_BASE}/coach`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: ctrl.signal,
+    });
+    clearTimeout(t);
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      return { ok: false, error: err.error || `HTTP ${resp.status}`, status: resp.status };
+    }
+    return await resp.json();
+  } catch (e) {
+    clearTimeout(t);
+    return { ok: false, error: e.message?.includes('abort') ? '请求超时' : '网络错误' };
+  }
+}
+
+// AI 战后画像：调用后端，后端代理 DeepSeek 或走模板兜底
+// 返回 { ok, portrait, source: 'deepseek'|'fallback', cached, reason }
+// 网络全断时返回 { ok: false, error }，由 UI 显示重试按钮
+export async function fetchPortrait(payload, { timeoutMs = 30_000 } = {}) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const resp = await fetch(`${API_BASE}/portrait`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: ctrl.signal,
+    });
+    clearTimeout(t);
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      return { ok: false, error: err.error || `HTTP ${resp.status}`, status: resp.status };
+    }
+    return await resp.json();
+  } catch (e) {
+    clearTimeout(t);
+    console.warn('fetchPortrait failed:', e);
+    return { ok: false, error: e.message?.includes('abort') ? '请求超时' : '网络错误' };
   }
 }
