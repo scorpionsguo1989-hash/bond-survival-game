@@ -75,10 +75,14 @@ export function loadAllContent() {
 const _sessions = new Map();
 const SESSION_TTL_MS = 2 * 60 * 60 * 1000;          // 2 小时 token 过期
 const PER_IP_SESSION_WINDOW_MS = 60 * 60 * 1000;    // 1 小时窗口
-// 1 IP 1 小时最多开 50 个 session：考虑办公网 NAT / Cloudflare 出口 IP 共享、
-// 同一玩家反复刷新 / 多人 LAN 一起玩。50 仍然能挡批量爬虫（爬全套要 6 IP × 不同 UA）
-const PER_IP_MAX_SESSIONS = 50;
-const PER_TOKEN_BUNDLE_INTERVAL_MS = 60 * 60 * 1000; // 1 token 1 小时只能拿 1 次完整 bundle
+// 容量规划：2000 同时在线 · 最差 NAT 一出口 200+ 玩家挤同一公司白领上班点开微信
+// 500/h 兜得住公司级 NAT，挡爬虫靠 token-level 5s 冷却 + 水印溯源
+const PER_IP_MAX_SESSIONS = 500;
+// 同一 token 拿 bundle 的冷却：5 秒。
+// 之前设 1 小时太严 —— 玩家刷新页面就被卡（同 token 重复请求）。
+// 反正同 token 拿 N 次 bundle 的水印一样，溯源效果不变；爬虫也不会通过同 token 多拿。
+// 真正约束爬虫的是 PER_IP_MAX_SESSIONS 50/小时（不同 token 才能拿到不同水印）。
+const PER_TOKEN_BUNDLE_INTERVAL_MS = 5_000;
 
 // 定期清理过期 session
 setInterval(() => {
@@ -183,9 +187,10 @@ export function serveBundle(sessionId) {
   if (!s) {
     return { ok: false, status: 401, error: 'session 无效或已过期，请刷新页面重新开始' };
   }
-  // 同一 token 1 小时只能拿 1 次完整 bundle
+  // 同一 token 5 秒冷却（防爆破，但不影响刷新）
   if (s.bundleServedAt && Date.now() - s.bundleServedAt < PER_TOKEN_BUNDLE_INTERVAL_MS) {
-    return { ok: false, status: 429, error: '本局已加载，请刷新页面开新局' };
+    const wait = Math.ceil((PER_TOKEN_BUNDLE_INTERVAL_MS - (Date.now() - s.bundleServedAt)) / 1000);
+    return { ok: false, status: 429, error: `请等待 ${wait} 秒后再请求内容` };
   }
   const content = loadAllContent();
   const bundle = watermarkBundle(content, sessionId);

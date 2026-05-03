@@ -11,6 +11,8 @@ import { renderDebtWaterfall, renderCashTrend, renderNavChart, renderHoldingsCha
 import { attachGlossaryListeners } from './glossary.js';
 import { checkAndUnlock, showAchievementToasts, attachAchievementsListeners } from './achievements.js';
 import { initNpcLibrary, attachNpcListeners, syncNpcEncounters } from './npc-memory.js';
+import { renderHomePage } from './home.js';
+import { initEmbedded } from './embed.js';
 
 let state = null;
 let eventData = null;
@@ -22,6 +24,8 @@ async function init() {
   attachAchievementsListeners();
   // 公众号 logo + QR 后台预加载（不阻塞游戏启动；分享时如未加载完会自动等 2 秒再 fallback）
   preloadBrandAssets();
+  // iframe 嵌入主站时挂"返回主站"角标 + body.embedded class（直访 :8080 不生效）
+  initEmbedded();
 
   try {
     eventData = await loadEvents();
@@ -65,8 +69,41 @@ async function init() {
     }
   } else {
     clearSave();
-    startNewGame();
+    // 首次进入（localStorage 无 _home_seen）→ 显示首页
+    // 二次起 / 「再来一局」回流 → 直接进命运卡
+    if (shouldShowHome()) {
+      enterHomePage();
+    } else {
+      startNewGame();
+    }
   }
+}
+
+// ─── 首页流转 ──────────────────────────────
+const HOME_SEEN_KEY = 'bond_home_seen';
+function shouldShowHome() {
+  try {
+    return !localStorage.getItem(HOME_SEEN_KEY);
+  } catch (e) {
+    return false;  // localStorage 不可用 → 跳过首页直接进游戏
+  }
+}
+function markHomeSeen() {
+  try { localStorage.setItem(HOME_SEEN_KEY, '1'); } catch (e) {}
+}
+
+function enterHomePage() {
+  renderHomePage({
+    onStart: () => {
+      markHomeSeen();
+      startNewGame();
+    },
+    onLeaderboard: () => {
+      // 复用现有 showLeaderboard，弹同一个排行榜 modal
+      showLeaderboard();
+    },
+    // onWeChat 不传 → 走 home.js 内置 toast 提示
+  });
 }
 
 function startNewGame() {

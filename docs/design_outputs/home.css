@@ -1,0 +1,476 @@
+/* 债市生存游戏 — Round 6 Home (Landing)
+   启动门面：终端启动序列 + 巨型金色字标 + 单一主 CTA
+   依赖 tokens.css；不修改其它已锁 css。 */
+
+/* —— 全屏 stage —— */
+.hm-root {
+  position: relative;
+  min-height: 100vh;
+  background: var(--bg-1);
+  color: var(--text-1);
+  font-family: var(--font-sans);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* 背景：极淡的径向辉光 + 网格扫描线 + 噪点格栅 */
+.hm-root::before {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 42%,
+      rgba(255, 213, 79, 0.10) 0%,
+      rgba(255, 213, 79, 0.04) 28%,
+      transparent 62%),
+    radial-gradient(ellipse 90% 60% at 50% 100%,
+      rgba(79, 195, 247, 0.05) 0%,
+      transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+.hm-root::after {
+  content: "";
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(120, 140, 200, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(120, 140, 200, 0.045) 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-position: -1px -1px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, #000 35%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, #000 35%, transparent 80%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* —— 顶栏 meta（启动序列） —— */
+.hm-top {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 28px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  z-index: 5;
+}
+.hm-top .hm-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-2);
+}
+.hm-top .hm-brand .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 8px rgba(255, 213, 79, 0.6);
+  animation: hm-pulse 2.4s ease-in-out infinite;
+}
+.hm-top .hm-brand b {
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: var(--text-1);
+}
+.hm-top .hm-brand .sep {
+  color: var(--text-4);
+  margin: 0 2px;
+}
+.hm-top .hm-time {
+  display: inline-flex;
+  gap: 14px;
+  color: var(--text-3);
+}
+.hm-top .hm-time .tm-blink::after {
+  content: "_";
+  margin-left: 1px;
+  animation: hm-blink 1s steps(1) infinite;
+}
+
+/* —— 底栏 meta —— */
+.hm-bot {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 28px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-4);
+  z-index: 5;
+}
+.hm-bot .hm-bot-l, .hm-bot .hm-bot-r {
+  display: inline-flex;
+  gap: 14px;
+  align-items: center;
+}
+.hm-bot .sep { color: var(--text-4); }
+
+/* —— 主舞台 —— */
+.hm-stage {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 88px 28px 96px;
+}
+
+.hm-hero {
+  width: 100%;
+  max-width: 720px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* —— Hero meta runner —— */
+.hm-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.hm-meta .bar {
+  width: 24px;
+  height: 1px;
+  background: var(--text-4);
+}
+.hm-meta b {
+  color: var(--gold);
+  font-weight: 500;
+  letter-spacing: 0.32em;
+}
+.hm-meta .dim {
+  color: var(--text-4);
+}
+
+/* —— 巨型字标 —— */
+.hm-mark {
+  display: inline-flex;
+  align-items: center;
+  font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  font-weight: 600;
+  color: var(--gold);
+  letter-spacing: 0.04em;
+  line-height: 0.95;
+  text-shadow:
+    0 0 32px rgba(255, 213, 79, 0.32),
+    0 0 96px rgba(255, 213, 79, 0.18);
+  font-size: clamp(120px, 18vw, 200px);
+  margin: 4px 0 8px;
+  user-select: none;
+}
+.hm-mark .gao,
+.hm-mark .zhai {
+  display: inline-block;
+}
+.hm-mark .gap {
+  display: inline-block;
+  width: 0.42em;
+}
+
+/* "搞债" 下方的极小行书释义 */
+.hm-mark-sub {
+  margin-top: 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  display: inline-flex;
+  gap: 18px;
+  align-items: center;
+}
+.hm-mark-sub .glyph {
+  color: var(--text-4);
+  letter-spacing: 0.12em;
+}
+
+/* —— 标语 —— */
+.hm-tag {
+  margin-top: 28px;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-1);
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+}
+
+/* —— 描述段 —— */
+.hm-blurb {
+  margin-top: 14px;
+  max-width: 600px;
+  font-size: 13.5px;
+  color: var(--text-2);
+  line-height: 1.85;
+  letter-spacing: 0.02em;
+}
+.hm-blurb b {
+  font-weight: 500;
+  color: var(--text-1);
+}
+.hm-blurb .role {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: var(--r-sm);
+  background: rgba(255, 213, 79, 0.10);
+  color: var(--gold);
+  border: 1px solid rgba(255, 213, 79, 0.25);
+  white-space: nowrap;
+}
+.hm-blurb .role.cfo { background: rgba(79,195,247,0.10); color: #4fc3f7; border-color: rgba(79,195,247,0.28); }
+.hm-blurb .role.im  { background: rgba(255,213,79,0.10); color: #ffd54f; border-color: rgba(255,213,79,0.28); }
+.hm-blurb .role.gov { background: rgba(239,83,80,0.10);  color: #ef5350; border-color: rgba(239,83,80,0.28); }
+
+/* —— 主 CTA —— */
+.hm-cta-wrap {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.hm-cta {
+  --c: var(--gold);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 38px 16px 30px;
+  background: rgba(255, 213, 79, 0.10);
+  border: 1px solid rgba(255, 213, 79, 0.40);
+  border-radius: var(--r-md);
+  color: var(--gold);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 160ms ease, transform 160ms ease, box-shadow 200ms ease;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 213, 79, 0.06),
+    0 0 0 0 rgba(255, 213, 79, 0);
+}
+.hm-cta::before {
+  content: "";
+  position: absolute;
+  top: -1px; left: 0; right: 0;
+  height: 2px;
+  background: var(--gold);
+  box-shadow: 0 0 10px rgba(255, 213, 79, 0.6);
+}
+.hm-cta .play {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px; height: 22px;
+  border: 1px solid rgba(255, 213, 79, 0.5);
+  border-radius: 50%;
+  font-size: 9px;
+  color: var(--gold);
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+.hm-cta .arrow {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  letter-spacing: 0;
+  margin-left: 4px;
+}
+.hm-cta .kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px; height: 20px;
+  margin-left: 2px;
+  padding: 0 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: rgba(255, 213, 79, 0.85);
+  background: rgba(255, 213, 79, 0.06);
+  border: 1px solid rgba(255, 213, 79, 0.30);
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+}
+.hm-cta:hover {
+  background: rgba(255, 213, 79, 0.16);
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 213, 79, 0.10),
+    0 0 32px rgba(255, 213, 79, 0.18);
+}
+.hm-cta:active {
+  transform: translateY(0);
+}
+
+/* CTA 之下的小字统计行 */
+.hm-stats {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.hm-stats .stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.hm-stats .stat b {
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--text-1);
+  letter-spacing: 0.06em;
+}
+.hm-stats .stat.gold b { color: var(--gold); }
+.hm-stats .sep { color: var(--text-4); }
+
+/* —— 次级动作（横排两枚 ghost 链接） —— */
+.hm-sub-actions {
+  margin-top: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: rgba(16, 22, 42, 0.55);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  overflow: hidden;
+}
+.hm-sub-actions a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  color: var(--text-2);
+  text-decoration: none;
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  transition: background 140ms ease, color 140ms ease;
+}
+.hm-sub-actions a + a {
+  border-left: 1px solid var(--line-strong);
+}
+.hm-sub-actions a .ic {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--text-3);
+}
+.hm-sub-actions a:hover {
+  background: var(--bg-3);
+  color: var(--text-1);
+}
+.hm-sub-actions a:hover .ic { color: var(--gold); }
+
+/* —— 角色色块预告（CTA 上方一道极细的横线） —— */
+.hm-role-rule {
+  display: inline-flex;
+  width: 280px;
+  height: 2px;
+  margin-top: 22px;
+  border-radius: 1px;
+  overflow: hidden;
+  background: rgba(120, 140, 200, 0.12);
+}
+.hm-role-rule i {
+  display: block;
+  flex: 1;
+  height: 100%;
+}
+.hm-role-rule i.cfo { background: linear-gradient(90deg, transparent, rgba(79,195,247,0.55), transparent); }
+.hm-role-rule i.im  { background: linear-gradient(90deg, transparent, rgba(255,213,79,0.55), transparent); }
+.hm-role-rule i.gov { background: linear-gradient(90deg, transparent, rgba(239,83,80,0.55), transparent); }
+
+/* —— 启动序列（CTA 上方的三行扫描日志） —— */
+.hm-boot {
+  margin-top: 18px;
+  margin-bottom: 4px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  width: min(420px, 92%);
+}
+.hm-boot .row {
+  display: grid;
+  grid-template-columns: 56px 16px 1fr;
+  align-items: center;
+  gap: 8px;
+}
+.hm-boot .ts { color: var(--text-4); }
+.hm-boot .glyph { color: var(--ok); }
+.hm-boot .glyph.warn { color: var(--warn); }
+.hm-boot .msg { color: var(--text-2); letter-spacing: 0.10em; }
+.hm-boot .msg b { color: var(--text-1); font-weight: 500; }
+
+/* —— 动画 —— */
+@keyframes hm-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.85); }
+}
+@keyframes hm-blink {
+  0%, 50%  { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
+}
+
+/* —— 移动端 —— */
+@media (max-width: 639px) {
+  .hm-top, .hm-bot {
+    padding: 14px 16px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+  }
+  .hm-top .hm-time { gap: 8px; }
+  .hm-stage { padding: 76px 18px 92px; }
+  .hm-meta { font-size: 10px; letter-spacing: 0.24em; gap: 8px; margin-bottom: 12px; }
+  .hm-meta .bar { width: 14px; }
+  .hm-mark { font-size: clamp(96px, 36vw, 132px); }
+  .hm-mark .gap { width: 0.36em; }
+  .hm-mark-sub { font-size: 10px; letter-spacing: 0.28em; gap: 12px; margin-top: 10px; }
+  .hm-tag { font-size: 18px; margin-top: 22px; }
+  .hm-blurb { font-size: 13px; margin-top: 12px; max-width: none; }
+  .hm-cta-wrap { margin-top: 24px; gap: 12px; width: 100%; }
+  .hm-cta {
+    width: 100%;
+    justify-content: center;
+    padding: 16px 20px;
+    font-size: 15px;
+  }
+  .hm-stats { font-size: 10px; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .hm-sub-actions { width: 100%; }
+  .hm-sub-actions a { flex: 1; justify-content: center; padding: 12px 10px; }
+  .hm-role-rule { width: 80%; }
+  .hm-boot { font-size: 10px; width: 100%; }
+  .hm-boot .row { grid-template-columns: 44px 14px 1fr; }
+  .hm-bot { flex-direction: column; gap: 4px; align-items: flex-start; }
+  .hm-bot .hm-bot-r { align-self: flex-end; }
+}

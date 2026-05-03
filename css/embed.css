@@ -1,0 +1,79 @@
+/* css/embed.css — iframe 嵌入主站时的视觉适配
+   触发条件：document.body.embedded 类（由 js/embed.js initEmbedded() 添加）
+   依赖 tokens.css
+*/
+
+/* ─── 返回主站角标（右上角浮动） ─────────────────────
+   不放进 #app innerHTML —— 那块每次 renderXxx 会被覆盖。
+   挂到 body 上 + position:fixed + 高 z-index，全局常驻。
+   仅在 iframe 内由 js/embed.js 注入；直访 :8080 看不到。
+*/
+#embed-back-btn {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 99999;  /* 高于游戏所有 modal / 抽屉 */
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(7, 11, 18, 0.78);
+  border: 1px solid rgba(255, 213, 79, 0.32);
+  border-radius: var(--r-md, 6px);
+  color: var(--text-2, #98a3bd);
+  font-family: var(--font-mono, "SF Mono", monospace);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.2s;
+  cursor: pointer;
+  user-select: none;
+}
+#embed-back-btn:hover {
+  background: rgba(255, 213, 79, 0.10);
+  border-color: var(--gold, #ffd54f);
+  color: var(--gold, #ffd54f);
+  box-shadow: 0 0 16px rgba(255, 213, 79, 0.18), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+#embed-back-btn:active {
+  transform: translateY(1px);
+}
+#embed-back-btn .arr {
+  font-family: var(--font-mono, "SF Mono", monospace);
+  font-size: 14px;
+  letter-spacing: 0;
+  line-height: 1;
+}
+#embed-back-btn .lbl {
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  #embed-back-btn {
+    top: 10px;
+    right: 10px;
+    padding: 6px 10px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    gap: 6px;
+  }
+  #embed-back-btn .arr { font-size: 12px; }
+}
+
+/* ─── iframe 内的 body 适配（留口子） ─────────────────
+   当前游戏 UI 跟主站没明显重复元素，先留 .embedded class hook。
+   未来如果发现需要隐藏什么（比如游戏首页底栏的版本号在 iframe 内显得多余），
+   在这里加 `body.embedded .xxx { display: none; }` 即可。
+*/
+body.embedded {
+  /* 留空 —— 未来按需添加隐藏规则 */
+}
+
+/* 例：如果 iframe 内觉得游戏首页底栏的 RNG/UPTIME 信息太干扰主站氛围，
+   可以打开下面这条隐藏掉（当前保留，因为 terminal 风跟整体一致）：
+body.embedded .hm-bot { display: none; }
+*/

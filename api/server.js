@@ -48,14 +48,17 @@ function makeRateLimit(windowMs, label = 'submit') {
   };
 }
 
-const rateLimit = makeRateLimit(60_000, '提交');           // POST /api/scores
-const portraitRateLimit = makeRateLimit(20_000, '生成画像'); // POST /api/portrait（20s 一次，留重试空间）
-const headlineRateLimit = makeRateLimit(15_000, '生成标题'); // POST /api/headline（15s 一次）
-const coachRateLimit = makeRateLimit(10_000, '请教 AI');     // POST /api/coach（10s 一次，玩家可能想换决策再问）
-// session init 限流：3 秒一次（防爆破创建 token，同时不挡正常重试）
-const sessionInitRateLimit = makeRateLimit(3_000, '创建 session');
-// bundle 接口本身**不**加外层限流：contentVault 内部已有 PER_IP_MAX_SESSIONS=50/小时 +
-// 每 token 只能拿 1 次 bundle 的双重约束，外层再加 6s 窗口会卡死正常 init→bundle 串行流程
+// 容量规划：2000 同时在线 · 高峰每分钟 ~400 局开始/结束 · 公司 NAT 一出口 200 人挤
+// 旧 60s/20s/15s/10s 是按"防爬虫"思维设的，会卡死真用户 —— 改按"防爆破 + 用户体验优先"
+const rateLimit = makeRateLimit(5_000, '提交');           // POST /api/scores（一波结束 50 人都要交，放到 5s）
+// DeepSeek 3 接口：成本不敏感（一局 5-8 次调用约 ¥0.008），用户体验优先
+const portraitRateLimit = makeRateLimit(3_000, '生成画像'); // POST /api/portrait（结束页可能换重新生成）
+const headlineRateLimit = makeRateLimit(3_000, '生成标题'); // POST /api/headline（朋友圈想"换一段"频次高）
+const coachRateLimit    = makeRateLimit(2_000, '请教 AI');  // POST /api/coach（一局上限 3 次靠 COACHING_MAX_PER_GAME 控）
+// session init：防爆破即可（多人同 IP 同时进游戏的常见场景）
+const sessionInitRateLimit = makeRateLimit(1_000, '创建 session');
+// bundle 接口本身**不**加外层限流：contentVault 内部已有 PER_IP_MAX_SESSIONS=500/小时 +
+// 每 token 5s 冷却的双重约束
 
 // --- Routes ---
 

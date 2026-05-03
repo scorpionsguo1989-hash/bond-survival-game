@@ -1,9 +1,9 @@
 // js/api.js
 
-// 本地开发：前端 :8080 + API :3000，需要绝对 URL 跨端口
-// 生产：nginx 反代 /api → :3000，用相对路径走同源
+// 本地开发：前端 :8080 + 游戏 API :3001（3000 留给主站 next dev）
+// 生产：nginx 反代 /api → game backend，用相对路径走同源
 const API_BASE = (typeof location !== 'undefined' && location.port === '8080')
-  ? 'http://localhost:3000/api'
+  ? 'http://localhost:3001/api'
   : '/api';
 
 // ─── 内容鉴权下发：从后端拿 sessionId + bundle ───
@@ -37,24 +37,32 @@ export async function fetchSessionId() {
 
 export async function fetchContentBundle(sessionId) {
   if (!sessionId) return null;
+  // 第一次尝试：用传入的 sessionId
+  let bundle = await _doBundleFetch(sessionId);
+  if (bundle) return bundle;
+
+  // 失败兜底：旧 sessionId 可能 401（过期 / 服务器重启清了 map）→ 清缓存 + 重新 init + 再试一次
+  // 这覆盖最常见场景：玩家刷新页面，sessionStorage 还存着旧 sid，但服务器已经不认了
+  if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem(SESSION_KEY);
+  const newSid = await fetchSessionId();
+  if (!newSid) return null;
+  bundle = await _doBundleFetch(newSid);
+  return bundle;  // 即使是 null 也返回，main.js 有显性失败提示
+}
+
+async function _doBundleFetch(sessionId) {
   try {
     const resp = await fetch(`${API_BASE}/content/bundle`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sessionId }),
     });
-    if (!resp.ok) {
-      // 401/429 等错误：清掉 sessionId 让下次重新拿
-      if (resp.status === 401 || resp.status === 429) {
-        if (typeof sessionStorage !== 'undefined') sessionStorage.removeItem(SESSION_KEY);
-      }
-      return null;
-    }
+    if (!resp.ok) return null;
     const data = await resp.json();
     if (!data?.ok || !data.bundle) return null;
     return data.bundle;
   } catch (e) {
-    console.warn('fetchContentBundle failed:', e);
+    console.warn('_doBundleFetch failed:', e);
     return null;
   }
 }

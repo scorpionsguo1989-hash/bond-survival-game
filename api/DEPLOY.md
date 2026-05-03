@@ -175,6 +175,30 @@ pm2 logs bond-game-api | grep portrait
 
 **Nginx 必须屏蔽 /content/***（见上面 nginx 配置 `location /content/ { return 403; }`），否则前面这层鉴权完全失效。
 
+## 7.5 容量规划（2000 同时在线）
+
+按 **2000 同时在线** 校准的限流参数（位于 `server.js` + `contentVault.js`）：
+
+| 接口 | 限流 | 原因 |
+|---|---|---|
+| `session/init` | 1s/IP | 公司 NAT 多人同时进游戏，防爆破即可 |
+| `content/bundle` | 5s/token（vault 内部）| 玩家刷新无感，爬虫拿到也水印一致 |
+| `PER_IP_MAX_SESSIONS` | 500/小时 | 公司级 NAT 一出口可能 200 人 |
+| `scores` 提交 | 5s/IP | 一波结束 50 人都要交 |
+| `portrait` (DeepSeek) | 3s/IP | 结束页可能"重新生成"频次高 |
+| `headline` (DeepSeek) | 3s/IP | "换一段"按钮频次 |
+| `coach` (DeepSeek) | 2s/IP | 一局上限 3 次靠 `COACHING_MAX_PER_GAME` 控制 |
+
+**DeepSeek 成本**：一局 ~5-8 次调用 ≈ ¥0.005-0.008/局。
+- 高峰 2000 局/小时 ≈ ¥10-16/小时
+- 充 ¥50 ≈ 4-8 小时持续高峰，建议**自动告警 < ¥10 余额**
+
+**服务器资源（1.8GB VPS / 2 核 / 39GB）扛 2000 在线**：
+- bundle JSON ~100KB 内存常驻 → 内存无压力
+- 网络：bundle 下发 + scores/decisions 上传 ≈ 500KB/s 高峰
+- SQLite WAL 模式（默认）：5-10 写/秒可承受
+- 加 `pm2 ecosystem` 配置 `max_memory_restart: '800M'` 防内存泄漏
+
 **降级行为**：前端 `loadEvents()` 优先调 API，API 不可用时**自动降级**到 `fetch('content/*.json')`。所以本地开发不用启 API 也能跑游戏。生产环境因为 nginx 屏蔽了 /content/*，降级路径无效——必须 API 服务存活。
 
 **验证清单**（上线前必跑）：
