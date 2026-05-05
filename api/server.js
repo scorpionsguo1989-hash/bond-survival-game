@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DB_PATH = path.join(__dirname, 'leaderboard.db');
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'leaderboard.db');
 const PORT = process.env.PORT || 3000;
 
 const db = createDb(DB_PATH);
@@ -19,9 +19,19 @@ const app = express();
 // portrait 请求 body 略大（含 decisions 列表），上限放 64 KB
 app.use(express.json({ limit: '64kb' }));
 
-// CORS 仅本地开发使用（生产 nginx 反向代理走同源）
+// CORS: 默认 * 兼容本地开发;生产环境通过 ALLOWED_ORIGINS env 限制(逗号分隔)
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '*')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  if (ALLOWED_ORIGINS.includes('*')) {
+    res.header('Access-Control-Allow-Origin', '*');
+  } else if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.sendStatus(204);
