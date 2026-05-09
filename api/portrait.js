@@ -1,20 +1,25 @@
 // api/portrait.js — AI 战后画像（DeepSeek 代理 + 模板兜底）
 //
 // 设计原则：
-//   1. 服务端代理：DeepSeek API key 永远不暴露给前端
+//   1. 服务端代理：API key 永远不暴露给前端
 //   2. 优雅降级：无 key / API 失败时，自动走模板兜底，玩家依然能看到一段画像
 //   3. 缓存：同一战绩 5 分钟内重复请求直接返回（避免重试时重复扣费）
 //   4. 限流：单次调用上限 600 token 输出，约 ¥0.0012/次
+//
+// V1.8.2 重构: 改用 lib/llm/LLMClient (跨语言对齐 Python 端 app/llm/client.py)
+//   旧: 自定义 callDeepSeek + 硬编码 DEEPSEEK_URL
+//   新: defaultClient.chat({provider: 'deepseek', ...}) — 自动重试 + cost + 日志
 
 import crypto from 'crypto';
+
+import { defaultClient } from './lib/llm/index.js';
 
 // ─────────────────────────────────────────────
 // 1. 配置
 // ─────────────────────────────────────────────
 
-const DEEPSEEK_URL = process.env.DEEPSEEK_URL || 'https://api.deepseek.com/v1/chat/completions';
+// 仍保留环境变量兜底(给 buildFallbackPortrait 等用), key 状态用 LLMClient resolveConfig
 const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY || '';
-const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
 
 const ROLE_NAMES_ZH = {
   cfo: '城投财务总监',
@@ -167,44 +172,25 @@ function labelMetric(k) { return METRIC_LABELS[k] || k; }
 // 4. DeepSeek 调用
 // ─────────────────────────────────────────────
 
+// V1.8.2 重构: 删除自定义 callDeepSeek, 改用 defaultClient.chat
+//   保留同名 wrapper 让其他模块 (server.js / 测试) 调用接口不变
 async function callDeepSeek(messages, { signal } = {}) {
-  if (!DEEPSEEK_KEY) throw new Error('DEEPSEEK_API_KEY not configured');
-
-  const resp = await fetch(DEEPSEEK_URL, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${DEEPSEEK_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: DEEPSEEK_MODEL,
-      messages,
-      temperature: 0.85,
-      top_p: 0.9,
-      max_tokens: 600,
-      stream: false,
-    }),
+  const result = await defaultClient.chat({
+    provider: 'deepseek',
+    messages,
+    temperature: 0.85,
+    topP: 0.9,
+    maxTokens: 600,
+    scenario: 'survival_game/portrait',
     signal,
   });
-
-  if (!resp.ok) {
-    const txt = await resp.text().catch(() => '');
-    throw new Error(`DeepSeek HTTP ${resp.status}: ${txt.slice(0, 200)}`);
-  }
-
-  const data = await resp.json();
-  const content = data?.choices?.[0]?.message?.content?.trim();
-  if (!content) throw new Error('DeepSeek empty response');
-
-  const usage = data?.usage || {};
   return {
-    text: content,
+    text: result.text,
     usage: {
-      inputTokens: usage.prompt_tokens || 0,
-      outputTokens: usage.completion_tokens || 0,
-      // DeepSeek-chat 价格：缓存命中 ¥0.5/M、未命中 ¥2/M 输入；输出 ¥8/M
-      // 这里按未命中的保守上限估算
-      costCNY: ((usage.prompt_tokens || 0) * 2 + (usage.completion_tokens || 0) * 8) / 1_000_000,
+      inputTokens: result.usage.inputTokens,
+      outputTokens: result.usage.outputTokens,
+      // V1.8.2: cost 由 LLMClient 算好, 直接用; 旧字段名 costCNY 保留兼容
+      costCNY: result.usage.costYuan,
     },
   };
 }

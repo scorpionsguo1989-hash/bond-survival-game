@@ -1,13 +1,16 @@
 // api/coaching.js — AI 辅助两个功能：爆款标题 + 决策助手
 //
-// 共用：DeepSeek 代理 + 缓存 + 模板兜底
+// 共用：LLM 代理 + 缓存 + 模板兜底
 // 与 portrait.js 隔离独立模块，但调用方式一致
+//
+// V1.8.2 重构: 改用 lib/llm/LLMClient (跨语言对齐 Python 端)
 
 import crypto from 'crypto';
 
-const DEEPSEEK_URL = process.env.DEEPSEEK_URL || 'https://api.deepseek.com/v1/chat/completions';
+import { defaultClient } from './lib/llm/index.js';
+
+// 仍保留 key 状态查询给 fallback 路径用
 const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY || '';
-const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
 
 const ROLE_NAMES_ZH = {
   cfo: '城投财务总监',
@@ -197,38 +200,26 @@ function stringifyEffects(fx) {
 // 4. DeepSeek 调用（共用）
 // ─────────────────────────────────────────────
 
-async function callDeepSeek(messages, { signal, jsonMode = false, maxTokens = 500, temperature = 0.85 } = {}) {
-  if (!DEEPSEEK_KEY) throw new Error('DEEPSEEK_API_KEY not configured');
-  const body = {
-    model: DEEPSEEK_MODEL,
+// V1.8.2 重构: 删除自定义 callDeepSeek, 改用 defaultClient.chat
+//   保留同名 wrapper, 内部委托给 LLMClient (自动重试 + cost + 日志)
+async function callDeepSeek(messages, { signal, jsonMode = false, maxTokens = 500, temperature = 0.85, scenario = 'survival_game/coaching' } = {}) {
+  const result = await defaultClient.chat({
+    provider: 'deepseek',
     messages,
     temperature,
-    top_p: 0.9,
-    max_tokens: maxTokens,
-    stream: false,
-  };
-  if (jsonMode) {
-    body.response_format = { type: 'json_object' };
-  }
-  const resp = await fetch(DEEPSEEK_URL, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${DEEPSEEK_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
+    topP: 0.9,
+    maxTokens,
+    responseFormat: jsonMode ? 'json_object' : 'text',
+    scenario,
     signal,
   });
-  if (!resp.ok) {
-    const txt = await resp.text().catch(() => '');
-    throw new Error(`DeepSeek HTTP ${resp.status}: ${txt.slice(0, 200)}`);
-  }
-  const data = await resp.json();
-  const content = data?.choices?.[0]?.message?.content?.trim();
-  if (!content) throw new Error('DeepSeek empty response');
   return {
-    text: content,
-    usage: data?.usage || {},
+    text: result.text,
+    // 旧接口返 raw usage (prompt_tokens / completion_tokens), 兼容 caller
+    usage: {
+      prompt_tokens: result.usage.inputTokens,
+      completion_tokens: result.usage.outputTokens,
+    },
   };
 }
 
