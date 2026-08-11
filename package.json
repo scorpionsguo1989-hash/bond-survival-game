@@ -1,7 +1,11 @@
 {
   "name": "bond-survival-game",
   "version": "0.1.0",
+  "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=22 <23"
+  },
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
