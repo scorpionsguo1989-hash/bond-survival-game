@@ -22,7 +22,8 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 3000,
         DB_PATH: '/opt/bond-game-api/leaderboard.db',
-        ALLOWED_ORIGINS: 'https://gaozhai-bond.com',
+        // 迁移期保留旧域名客户端；全部升级并验收后再移除旧 origin。
+        ALLOWED_ORIGINS: 'https://gaozhai.bond,https://gaozhai-bond.com',
       },
 
       // 单实例 (SQLite 不支持多进程并发写)
