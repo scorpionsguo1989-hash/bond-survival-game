@@ -18,6 +18,7 @@ describe('gaozhai.bond migration', () => {
     expect(html).toContain('https://beian.miit.gov.cn/');
     expect(html).toContain('鄂ICP备2026021516号-6');
     expect(css).toContain('.site-compliance');
+    expect(css).toContain('body:not(:has(.hm-root)) { padding-bottom: 38px; }');
   });
 
   it('allows both origins until legacy clients are retired', () => {

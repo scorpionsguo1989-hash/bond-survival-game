@@ -49,6 +49,7 @@ body {
 body:has(.hm-root) > .site-compliance { bottom: 42px; }
 
 @media (max-width: 639px) {
+  body:not(:has(.hm-root)) { padding-bottom: 38px; }
   body:has(.hm-root) > .site-compliance { bottom: 70px; }
 }
 
