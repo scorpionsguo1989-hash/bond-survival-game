@@ -1,6 +1,6 @@
 // js/embed.js — iframe 嵌入主站时的运行时适配
 //
-// 场景：游戏运行在主站 gaozhai-bond.com/game 的 iframe 内
+// 场景：游戏运行在主站 gaozhai.bond/game 的 iframe 内
 // 行为：
 //   - body 加 .embedded class（CSS 据此隐藏与主站重复的元素）
 //   - 右上角浮一个 ← 搞债 角标，点击 → window.parent.location = '/'
