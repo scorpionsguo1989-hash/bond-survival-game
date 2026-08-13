@@ -20,6 +20,38 @@ body {
   font-size: 13px;
 }
 
+/* 独立游戏页的备案信息：跨首页、对局与终局状态持续可见。 */
+.site-compliance {
+  position: fixed;
+  right: max(10px, env(safe-area-inset-right));
+  bottom: max(8px, env(safe-area-inset-bottom));
+  z-index: 120;
+  padding: 4px 8px;
+  border: 1px solid rgba(120, 140, 200, 0.13);
+  border-radius: 4px;
+  background: rgba(7, 9, 15, 0.84);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  backdrop-filter: blur(6px);
+}
+.site-compliance a {
+  color: var(--text-4, #606b83);
+  text-decoration: none;
+}
+.site-compliance a:hover,
+.site-compliance a:focus-visible {
+  color: var(--text-2, #98a3bd);
+  outline: none;
+}
+body:has(.hm-root) > .site-compliance { bottom: 42px; }
+
+@media (max-width: 639px) {
+  body:has(.hm-root) > .site-compliance { bottom: 70px; }
+}
+
 /* fate card 用设计稿的 15px / 1.55 line-height（覆盖 body 的 13px） */
 .fate { font-size: var(--fs-body, 15px); line-height: 1.55; }
 /* fate 全屏背景：tokens.css 的 .fate 默认 100%/100%，需要外层撑开 */
