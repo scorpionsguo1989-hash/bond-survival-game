@@ -401,8 +401,10 @@ async function submitAndShowEnd(nickname, finalScore) {
     nickname,
     directorName: state.origin.directorName,
     platformName: state.origin.platformName,
-    regionTier: state.origin.regionTier,
-    healthLevel: state.origin.healthLevel,
+    // 排行榜仍保留 CFO 时代的两个非空维度；IM / GOV 没有 regionTier，
+    // 提交时用中性兼容值，服务端也会做同样兜底以兼容旧缓存前端。
+    regionTier: state.origin.regionTier || 'central_capital',
+    healthLevel: state.origin.healthLevel || 'medium',
     role: state.origin.role || state.origin.roleId || 'cfo',
     score: finalScore.total,
     grade: finalScore.grade.grade,

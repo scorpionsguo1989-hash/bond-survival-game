@@ -1,6 +1,6 @@
 // tests/api-validate.test.js
 import { describe, it, expect } from 'vitest';
-import { validateScoreSubmission } from '../api/validate.js';
+import { normalizeScoreSubmission, validateScoreSubmission } from '../api/validate.js';
 
 const validData = {
   nickname: '债王',
@@ -124,5 +124,32 @@ describe('validateScoreSubmission', () => {
   it('rejects missing platformName', () => {
     const result = validateScoreSubmission({ ...validData, platformName: undefined });
     expect(result.valid).toBe(false);
+  });
+});
+
+describe('normalizeScoreSubmission', () => {
+  it.each(['im', 'gov'])('为 %s 的旧客户端提交补齐排行榜兼容字段', (role) => {
+    const normalized = normalizeScoreSubmission({
+      ...validData,
+      role,
+      regionTier: undefined,
+      healthLevel: undefined,
+    });
+
+    expect(normalized.regionTier).toBe('central_capital');
+    expect(normalized.healthLevel).toBe('medium');
+    expect(validateScoreSubmission(normalized).valid).toBe(true);
+  });
+
+  it('不覆盖 CFO 客户端已经提供的真实字段', () => {
+    const normalized = normalizeScoreSubmission({
+      ...validData,
+      role: 'cfo',
+      regionTier: 'west_prefecture',
+      healthLevel: 'weak',
+    });
+
+    expect(normalized.regionTier).toBe('west_prefecture');
+    expect(normalized.healthLevel).toBe('weak');
   });
 });

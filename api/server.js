@@ -1,7 +1,7 @@
 // api/server.js
 import express from 'express';
 import { createDb, insertScore, getTopScores, getRank, insertDecisions, getPeerSignalRaw } from './db.js';
-import { validateScoreSubmission, VALID_ROLES } from './validate.js';
+import { normalizeScoreSubmission, validateScoreSubmission, VALID_ROLES } from './validate.js';
 import { verifySubmission } from './replayVerify.js';
 import { generatePortrait, validatePortraitPayload } from './portrait.js';
 import { generateHeadline, generateCoachAdvice, validateHeadlinePayload, validateCoachPayload } from './coaching.js';
@@ -74,11 +74,7 @@ const sessionInitRateLimit = makeRateLimit(1_000, '创建 session');
 // --- Routes ---
 
 app.post('/api/scores', rateLimit, (req, res) => {
-  const data = { ...req.body };
-  if (!data.role) {
-    data.role = 'cfo';
-    console.warn('[BC-FALLBACK] POST /api/scores without role, defaulted to cfo');
-  }
+  const data = normalizeScoreSubmission(req.body);
 
   const validation = validateScoreSubmission(data);
   if (!validation.valid) {

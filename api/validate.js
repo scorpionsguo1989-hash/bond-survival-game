@@ -5,6 +5,19 @@ const VALID_REGIONS = ['east_core', 'central_capital', 'west_prefecture', 'north
 const VALID_HEALTH = ['good', 'medium', 'weak'];
 export const VALID_ROLES = ['cfo', 'im', 'gov'];
 
+// 排行榜表沿用 CFO 时代的 regionTier / healthLevel 非空字段。
+// IM / GOV 出身没有天然对应的 regionTier；旧前端会因此把 undefined 省略掉。
+// 在进入通用校验前补中性兼容值，避免合法的非 CFO 对局被 400 拒绝。
+export function normalizeScoreSubmission(data) {
+  if (!data || typeof data !== 'object') return data;
+  return {
+    ...data,
+    role: data.role || 'cfo',
+    regionTier: data.regionTier || 'central_capital',
+    healthLevel: data.healthLevel || 'medium',
+  };
+}
+
 // 与前端 score.js getScoreGrade 保持一致
 const GRADE_RANGES = {
   S: [90, 200],
