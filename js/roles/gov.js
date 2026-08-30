@@ -3,6 +3,7 @@
 import { GOV_ACTIONS, govApplyAction, govIsActionAvailable } from '../actions/gov.js';
 import { sampleTip, sampleRisks } from './_hintHelpers.js';
 import { GOV_KIT_MODIFIERS } from '../starterKits.js';
+import { DIFFICULTY } from '../config.js';
 
 const TIER_PROFILES = {
   strong_capital: { fiscalRevenue: 280, landRevenue: 180, specialBondQuota: 28, debtRatio: 200, transferPayment: 8 },
@@ -47,50 +48,81 @@ function getInitialMetrics(profile) {
 }
 
 function advanceTurn(state) {
+  const D = DIFFICULTY.gov;
   const { policyValue, metrics } = state;
   let { fiscalRevenue, landRevenue, debtRatio, hiddenDebtRisk, industryIndex,
         politicalScore, specialBondQuota, transferPayment, cash } = metrics;
 
+  // settlement：本季财政收支的逐项归因，UI 拿它渲染"钱去哪了"
+  const settlement = [];
+
   // 1. 季度财政入账
-  cash = round(cash + fiscalRevenue / 4, 2);
+  settlement.push({ label: '一般公共预算入账', delta: fiscalRevenue / 4 });
 
   // 2. 转移支付（按 politicalScore 调整：60 = 基线）
   const transfer = transferPayment * (politicalScore / 60);
-  cash = round(cash + transfer, 2);
+  settlement.push({ label: '上级转移支付', delta: transfer });
 
   // 3. 土地收入（政策紧时打折，最低 4 折）
   const landMult = policyValue >= 0 ? 1.0 : Math.max(0.4, 1 + policyValue * 0.08);
-  cash = round(cash + (landRevenue / 4) * landMult, 2);
+  settlement.push({ label: '土地出让收入', delta: (landRevenue / 4) * landMult });
 
-  // 4. 刚性支出（民生 + 工资 + 利息）≈ fiscalRevenue × 0.55（更贴合现实地方财政结构）
-  const operatingCost = fiscalRevenue * 0.55 / 4;
-  cash = round(cash - operatingCost, 2);
+  // 4. 刚性支出（民生 + 工资 + 利息）。系数见 config.DIFFICULTY.gov.rigidSpendRatio：
+  //    地方本级支出常年大于本级收入，靠转移支付和土地出让补口子。
+  const operatingCost = fiscalRevenue * D.rigidSpendRatio / 4;
+  settlement.push({ label: '刚性支出（民生/工资/利息）', delta: -operatingCost });
 
   // 5. 化债任务（按隐债敞口动态：重点区压力大）
-  //    每季最少 1.5 亿，敞口大的最多 6 亿
-  const debtServiceTarget = Math.min(6, Math.max(1.5, hiddenDebtRisk * 0.04));
-  if (cash >= debtServiceTarget) {
-    cash = round(cash - debtServiceTarget, 2);
+  const debtServiceTarget = Math.min(
+    D.debtServiceMax,
+    Math.max(1.5, hiddenDebtRisk * D.debtServiceRate, fiscalRevenue * D.debtServiceRevenueShare / 4),
+  );
+  const cashBeforeService = round(cash + settlement.reduce((s, x) => s + round(x.delta, 2), 0), 2);
+  if (cashBeforeService >= debtServiceTarget) {
+    settlement.push({ label: '化债任务支出', delta: -debtServiceTarget });
     hiddenDebtRisk = Math.max(0, round(hiddenDebtRisk - debtServiceTarget, 2));
   } else {
     // 没钱完成化债任务 → 隐债累积 + 政绩重扣
-    hiddenDebtRisk = round(hiddenDebtRisk + 3, 2);
-    politicalScore = clamp(politicalScore - 2, 0, 100);
+    hiddenDebtRisk = round(hiddenDebtRisk + D.missedDebtServicePenalty, 2);
+    politicalScore = clamp(politicalScore - D.missedPoliticalPenalty, 0, 100);
+    settlement.push({ label: '化债任务未完成（隐债累积 + 政绩扣分）', delta: 0 });
   }
+  // 逐项取整到分，再按取整后的合计改现金：界面上列出来的数字加起来
+  // 必须正好等于现金的实际变化，否则归因面板会自相矛盾。
+  for (const item of settlement) item.delta = round(item.delta, 2);
+  cash = round(cash + settlement.reduce((s, x) => s + x.delta, 0), 2);
 
-  // 6. industryIndex 自然衰减（不投入则退步）
+  // 6. 产业指数自然衰减（不投入则退步）
   industryIndex = Math.max(0, round(industryIndex - 1.0, 2));
 
-  // 7. debtRatio 累积（隐债敞口大 → 债务率自然增加；化债任务完成 → 抵扣）
-  debtRatio = round(debtRatio + hiddenDebtRisk * 0.05 - debtServiceTarget * 0.5, 2);
+  // 6b. 产业 → 税源：指数高于基准则本级收入增长，低于则萎缩。
+  //     这是"做大分母"这条路的机制入口——招商引资的长期回报在这里兑现。
+  const industryPull = (industryIndex - D.industryBaseline) / 50 * D.industryRevenueSensitivity;
+  fiscalRevenue = round(Math.max(10, fiscalRevenue * (1 + industryPull)), 2);
 
-  // 8. 政绩自然衰减（不主动管理则退步，每季 -0.8）
-  politicalScore = clamp(politicalScore - 0.8, 0, 100);
+  // 6c. 专项债额度逐年下达（每 4 季补一次，按本级财力）
+  if ((state.quartersPassed || 0) % 4 === 3) {
+    specialBondQuota = round(specialBondQuota + fiscalRevenue * D.annualQuotaRefillShare, 2);
+  }
+
+  // 7. debtRatio 累积（隐债敞口大 → 债务率自然增加；化债任务完成 → 抵扣）
+  // 分母效应：综合财力缩水多少，债务率就被动抬升多少（乘以敏感度）
+  const baselineCapacity = fiscalRevenue + transferPayment * 4 + landRevenue;
+  const currentCapacity = fiscalRevenue + transferPayment * 4 + landRevenue * landMult;
+  const capacityDrag = (baselineCapacity / Math.max(1, currentCapacity) - 1) * D.debtRatioCapacitySensitivity;
+  debtRatio = round(
+    debtRatio * (1 + Math.max(0, capacityDrag))
+    + hiddenDebtRisk * D.debtRatioDriftPerHiddenDebt
+    - debtServiceTarget * D.debtRatioCreditPerDebtService, 2);
+
+  // 8. 政绩自然衰减（不主动管理则退步）
+  politicalScore = clamp(politicalScore - D.politicalDecayPerQuarter, 0, 100);
 
   return {
     metrics: { fiscalRevenue, landRevenue, debtRatio, hiddenDebtRisk,
                industryIndex, politicalScore, specialBondQuota, transferPayment, cash },
     score: state.score,
+    settlement: settlement.filter(x => Math.abs(x.delta) > 0.001 || x.delta === 0),
   };
 }
 
@@ -156,6 +188,22 @@ const RISKS_POOL = [
   { id: 'gov_risk_redm',        text: '危机开局，没有蜜月期', when: { script: 'redemption' } },
 ];
 
+// 六维评分里由财政指标驱动的三个维度（其余三维靠事件累积）
+// 财政平衡 ← 现金；化债执行 ← 隐债风险敞口；综合发展 ← 综合债务率
+function scoreContributions(state) {
+  const m = state.metrics || {};
+  return {
+    liquidity: cap(m.cash * 2, 30),
+    costControl: cap(30 - m.hiddenDebtRisk * 0.12, 30),
+    development: cap(30 - (m.debtRatio - 180) * 0.25, 30),
+  };
+}
+
+function cap(v, max) {
+  if (!Number.isFinite(v)) return 0;
+  return Math.max(0, Math.min(max, v));
+}
+
 function getOnboardingHints(profile, scriptId = null) {
   return {
     goal: '存活 12 季度，期末综合债务率不超 300%、政绩不跌穿 20',
@@ -207,10 +255,14 @@ export const ROLE_GOV = {
   applyActionEffects: govApplyAction,
   isActionAvailable: govIsActionAvailable,
 
+  // 不确定选项赌输了的默认代价：话放出去没兑现，班子里要扣分。
+  failureCost: { politicalScore: -1.5, 'score.crisisResponse': -1 },
+
   getInitialMetrics,
   advanceTurn,
   detectCrisis,
   getOnboardingHints,
+  scoreContributions,
 };
 
 function round(v, n) { return parseFloat(v.toFixed(n)); }

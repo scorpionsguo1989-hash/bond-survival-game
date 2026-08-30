@@ -4,6 +4,8 @@ import { CFO_ACTIONS, applyAction as cfoApplyAction, isActionAvailable as cfoIsA
 import { applyPolicyShift } from '../policy.js';
 import { sampleTip, sampleRisks } from './_hintHelpers.js';
 import { CFO_KIT_MODIFIERS, CFO_DEBT_SCHEDULES } from '../starterKits.js';
+import { computeChallengeScore } from '../origins/cfoOrigin.js';
+import { GAME_CONFIG, DIFFICULTY } from '../config.js';
 
 // 区域能级影响初始指标
 const REGION_MODIFIERS = {
@@ -21,17 +23,51 @@ const HEALTH_MODIFIERS = {
 
 const INITIAL_CREDIT_USAGE_RATIO = 0.55;
 
+// 每季固定收支（经营现金流入 / 运营消耗 / 项目缺口）
+const QUARTERLY_INFLOW = 2.5;
+const OP_COST_RATE = 0.6;
+const PROJECT_GAP = 2.1;
+const MIN_INITIAL_CASH = 2.0;   // 现金下限：保证任何出身都有至少一个完整回合可以反应
+
+// 难度锚点：challengeScore 15→25 线性映射到「玩家 12 季里必须自己补上的融资缺口」。
+// 旧实现里 totalDebt = 8/(rMult*hMult) 而 cash = 5*rMult*hMult 反向相乘，
+// 实测缺口从 -3.2 亿（躺赢）到 30.9 亿，与标称难度的相关系数只有 0.206。
+// 现在把债务总额当配平项算出来，标称难度就等于实际难度。
+function targetFundingGap(challengeScore) {
+  const { gapAtEasiest, gapAtHardest } = DIFFICULTY.cfo;
+  const t = Math.max(0, Math.min(1, (challengeScore - 15) / 10));
+  return gapAtEasiest + t * (gapAtHardest - gapAtEasiest);
+}
+
 // D 改造：起手包 modifier 来自 starterKits.js（默认 'balanced' 兼容老存档）
 function getKitMods(profile) {
   return CFO_KIT_MODIFIERS[profile?.starterKit] || CFO_KIT_MODIFIERS.balanced;
 }
 
-function generateDebtSchedule(rMult, hMult, scheduleProfile = 'mid_peak') {
-  // 总债务规模随财务健康度变化，分布在12季度
-  const totalDebt = 8 / (rMult * hMult);
-  // D 改造：分布形态由 starterKit 决定（mid_peak / late_peak / early_peak）
+// D 改造：分布形态由 starterKit 决定（mid_peak / late_peak / early_peak），总额不变
+function spreadDebt(totalDebt, scheduleProfile = 'mid_peak') {
   const distribution = CFO_DEBT_SCHEDULES[scheduleProfile] || CFO_DEBT_SCHEDULES.mid_peak;
   return distribution.map(p => parseFloat((totalDebt * p).toFixed(2)));
+}
+
+/**
+ * 保证第 1 季可玩：首季到期额不能吃光起始现金，否则玩家还没做任何决策就出局。
+ * 把超出的部分按比例顺延到后面的季度——总额不变（难度不变），只挪节奏。
+ */
+function deferUnplayableFirstQuarter(schedule, cash) {
+  const opDrain = OP_COST_RATE + PROJECT_GAP - QUARTERLY_INFLOW;   // 每季固定净流出
+  const affordable = Math.max(0, cash - opDrain - 0.3);            // 留 0.3 亿余量
+  const excess = schedule[0] - affordable;
+  if (excess <= 0) return schedule;
+
+  const out = [...schedule];
+  out[0] = parseFloat(affordable.toFixed(2));
+  const tailTotal = out.slice(1).reduce((a, b) => a + b, 0);
+  if (tailTotal <= 0) { out[out.length - 1] = parseFloat((out[out.length - 1] + excess).toFixed(2)); return out; }
+  for (let i = 1; i < out.length; i++) {
+    out[i] = parseFloat((out[i] + excess * (out[i] / tailTotal)).toFixed(2));
+  }
+  return out;
 }
 
 export function getInitialMetrics(profile) {
@@ -39,33 +75,47 @@ export function getInitialMetrics(profile) {
   const h = HEALTH_MODIFIERS[profile.healthLevel];
   const k = getKitMods(profile);
   const baseCreditTotal = r.creditBase * (k.creditMult || 1);
+
+  // 现金保留区域/健康度/起手包的质感差异（手里有多少子弹），只加下限
+  const cash = Math.max(MIN_INITIAL_CASH, 5.0 * r.cashMult * h.cashMult * (k.cashMult || 1));
+
+  // 债务总额 = 目标缺口 + 起始现金 + 12 季经营净现金。
+  // 项目缺口不再按起手包缩放：起手包用债务节奏/授信/杠杆/成本区分打法，不改净难度。
+  const opNet = (QUARTERLY_INFLOW - OP_COST_RATE - PROJECT_GAP) * GAME_CONFIG.totalQuarters;
+  const totalDebt = targetFundingGap(computeChallengeScore(profile)) + cash + opNet;
+
   return {
-    cash: parseFloat((5.0 * r.cashMult * h.cashMult * (k.cashMult || 1)).toFixed(2)),
+    cash: parseFloat(cash.toFixed(2)),
     creditTotal: parseFloat(baseCreditTotal.toFixed(2)),
     creditUsed: parseFloat((baseCreditTotal * INITIAL_CREDIT_USAGE_RATIO).toFixed(2)),
     creditUsage: INITIAL_CREDIT_USAGE_RATIO * 100,
     leverageRatio: r.leverageBase + h.leverageDelta + (k.leverageDelta || 0),
     financingCost: parseFloat((r.costBase + h.costDelta + (k.costDelta || 0)).toFixed(2)),
     collateralRoom: profile.healthLevel === 'good' ? 'high' : (profile.healthLevel === 'medium' ? 'medium' : 'low'),
-    opCostRate: 0.6,
-    projectGap: parseFloat((2.1 * (k.projectGapMult || 1)).toFixed(2)),
-    debtMaturity: generateDebtSchedule(r.cashMult, h.cashMult, k.debtScheduleProfile),
+    opCostRate: OP_COST_RATE,
+    projectGap: PROJECT_GAP,
+    debtMaturity: deferUnplayableFirstQuarter(spreadDebt(totalDebt, k.debtScheduleProfile), cash),
   };
 }
 
 // CFO 季度自动结算：扣到期债务/运营/项目缺口 + 加经营现金流
 // 注意：目前 engine.js 仍在自己执行这些计算，T2 会改为调用此处。
 function advanceTurn(state) {
-  let newMetrics = { ...state.metrics };
+  const newMetrics = { ...state.metrics };
   const dueIdx = state.quartersPassed;
-  if (dueIdx < newMetrics.debtMaturity.length) {
-    const due = newMetrics.debtMaturity[dueIdx] || 0;
-    newMetrics.cash = parseFloat((newMetrics.cash - due).toFixed(2));
-  }
-  newMetrics.cash = parseFloat((newMetrics.cash - newMetrics.opCostRate).toFixed(2));
-  newMetrics.cash = parseFloat((newMetrics.cash - newMetrics.projectGap).toFixed(2));
-  newMetrics.cash = parseFloat((newMetrics.cash + 2.5).toFixed(2));
-  return { metrics: newMetrics, score: state.score };
+  const due = dueIdx < newMetrics.debtMaturity.length ? (newMetrics.debtMaturity[dueIdx] || 0) : 0;
+
+  // settlement：本季现金变动的逐项归因，UI 拿它渲染"钱去哪了"
+  const settlement = [
+    { label: '本季到期债务', delta: -due },
+    { label: '运营成本', delta: -newMetrics.opCostRate },
+    { label: '在建项目投入', delta: -newMetrics.projectGap },
+    { label: '经营现金流入', delta: QUARTERLY_INFLOW },
+  ].filter(x => Math.abs(x.delta) > 0.001);
+
+  const net = settlement.reduce((s, x) => s + x.delta, 0);
+  newMetrics.cash = parseFloat((newMetrics.cash + net).toFixed(2));
+  return { metrics: newMetrics, score: state.score, settlement };
 }
 
 // CFO 危机检测：现金低于 0.5 亿（且未到末季）触发危机弹窗
@@ -83,9 +133,9 @@ function detectCrisis(state) {
         { label: '缺口', value: `-${Math.max(0, (m.debtMaturity[state.quartersPassed] || 0) - m.cash).toFixed(1)}亿` },
       ],
       options: [
-        { label: '紧急向兄弟平台拆借', cost: '中', desc: '联系同区域兄弟城投拆借资金，利率8%，期限30天。', effects: { cash: 2.5, financingCost: 0.5, 'score.危机应对': 5 } },
-        { label: '资产紧急变现', cost: '中高', desc: '出售停车场运营权，估值打折15%，能覆盖缺口。', effects: { cash: 2.0, collateralRoom: 'downgrade', 'score.危机应对': 3 } },
-        { label: '向上级紧急汇报', cost: '低（不确定）', desc: '请求主管领导协调银行特批放款。成功率约40%。', effects: { _uncertain: 0.4, cash: 3.0, 'score.合规指数': 4 } },
+        { label: '紧急向兄弟平台拆借', cost: '中', desc: '联系同区域兄弟城投拆借资金，利率8%，期限30天。', effects: { cash: 2.5, financingCost: 0.5, 'score.crisisResponse': 5 } },
+        { label: '资产紧急变现', cost: '中高', desc: '出售停车场运营权，估值打折15%，能覆盖缺口。', effects: { cash: 2.0, collateralRoom: 'downgrade', 'score.crisisResponse': 3 } },
+        { label: '向上级紧急汇报', cost: '低（不确定）', desc: '请求主管领导协调银行特批放款。成功率约40%。', effects: { _uncertain: 0.4, cash: 3.0, 'score.compliance': 4 } },
       ],
     };
   }
@@ -130,6 +180,22 @@ const RISKS_POOL = [
   { id: 'cfo_risk_rise',       text: 'Q1-Q4 蜜月期容易过度扩张，紧缩期被卡喉咙', when: { script: 'rise_and_fall' } },
   { id: 'cfo_risk_redm',       text: '没有蜜月期，第一季就要面对真问题', when: { script: 'redemption' } },
 ];
+
+// 六维评分里由经营指标驱动的三个维度（其余三维靠事件累积）
+// 流动性 ← 现金余量；融资成本控制 ← 综合融资成本；综合发展 ← 资产负债率
+function scoreContributions(state) {
+  const m = state.metrics || {};
+  return {
+    liquidity: clamp01to(m.cash * 4, 20),
+    costControl: clamp01to(30 - (m.financingCost - 4) * 8, 30),
+    development: clamp01to(30 - (m.leverageRatio - 60) * 1.5, 30),
+  };
+}
+
+function clamp01to(v, max) {
+  if (!Number.isFinite(v)) return 0;
+  return Math.max(0, Math.min(max, v));
+}
 
 // 命运卡 onboarding 提示（设计稿 §3.10 / 实施计划 T5；C 改造：池化抽样）
 function getOnboardingHints(profile, scriptId = null) {
@@ -183,8 +249,13 @@ export const ROLE_CFO = {
   isActionAvailable: cfoIsActionAvailable,
 
   // —— 引擎钩子（T2 启用调用） ——
+  // 不确定选项赌输了的默认代价：事儿没办成，但关系动了、加急费花了。
+  // 内容里写 _onFail 可以覆盖这个默认值。
+  failureCost: { financingCost: 0.15, 'score.crisisResponse': -1 },
+
   getInitialMetrics,
   advanceTurn,
   detectCrisis,
   getOnboardingHints,
+  scoreContributions,
 };

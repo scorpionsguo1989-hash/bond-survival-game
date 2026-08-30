@@ -8,6 +8,7 @@
 //   - 36 个变体分布：3 角色 × 4 剧本 × 3 变体。
 //   - 每个变体形态对齐 buildGoal 旧返回值：{ text, q, suffix }，外层加 id 用于持久化。
 
+import { gameRandom } from './rng.js';
 export const GOAL_POOLS = {
   // ─── CFO ─────────────────────────────────────
   cfo: {
@@ -113,7 +114,7 @@ export function pickGoalForGame(roleId, scriptId) {
   if (!roleMap) return FALLBACK_GOAL[roleId] || FALLBACK_GOAL.cfo;
   const arr = roleMap[scriptId];
   if (!arr || !arr.length) return FALLBACK_GOAL[roleId] || FALLBACK_GOAL.cfo;
-  return arr[Math.floor(Math.random() * arr.length)];
+  return arr[Math.floor(gameRandom() * arr.length)];
 }
 
 /**

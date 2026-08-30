@@ -8,6 +8,7 @@
 //   - 老存档（无 starterKit 字段）→ 默认走 'balanced'，兼容。
 
 // ──────────── 标签：用于 fate-card tag 显示 ─────────────
+import { gameRandom } from './rng.js';
 export const STARTER_KIT_LABELS = {
   // CFO
   balanced:           '平衡型',
@@ -30,7 +31,7 @@ export const STARTER_KITS_BY_ROLE = {
 
 export function pickStarterKit(roleId) {
   const arr = STARTER_KITS_BY_ROLE[roleId] || ['balanced'];
-  return arr[Math.floor(Math.random() * arr.length)];
+  return arr[Math.floor(gameRandom() * arr.length)];
 }
 
 // ──────────── CFO modifier 表 ─────────────

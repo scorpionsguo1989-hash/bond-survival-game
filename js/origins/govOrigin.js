@@ -1,6 +1,7 @@
 // js/origins/govOrigin.js
 // 地方官员命运卡随机生成
 import { pickStarterKit } from '../starterKits.js';
+import { gameRandom } from '../rng.js';
 
 const TIERS = [
   { id: 'strong_capital', label: '强省会', score: 4 },
@@ -114,5 +115,5 @@ function generateChallenges(origin) {
 }
 
 function pick(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
+  return arr[Math.floor(gameRandom() * arr.length)];
 }

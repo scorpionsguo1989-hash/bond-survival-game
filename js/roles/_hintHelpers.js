@@ -8,6 +8,7 @@
 //   - tip 抽 1（优先有 when 命中的；都不命中走无 when 兜底）
 //   - risks 抽 3：1 条核心死亡（无 when 的第一条）+ 2 条情境（when 命中的随机抽）+ 不足时再用核心补齐
 
+import { cosmeticRandom } from '../rng.js';
 /**
  * 过滤判定。when 字段：
  *   - script:   string | string[] —— 匹配 scriptId
@@ -43,7 +44,7 @@ export function matchesHints(when, profile, scriptId) {
 function shuffleSlice(arr, n) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(cosmeticRandom() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a.slice(0, n);
@@ -58,7 +59,7 @@ export function sampleTip(pool, profile, scriptId, fallback = '观察主线事�
   const generics = pool.filter(t => !t.when);
   const candidates = matched.length ? matched : generics;
   if (!candidates.length) return fallback;
-  return candidates[Math.floor(Math.random() * candidates.length)].text;
+  return candidates[Math.floor(cosmeticRandom() * candidates.length)].text;
 }
 
 /**

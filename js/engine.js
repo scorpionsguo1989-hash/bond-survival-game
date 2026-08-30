@@ -3,9 +3,11 @@
 // 设计稿 §2.4 / 实施计划 T2
 import { GAME_CONFIG } from './config.js';
 import { getRole } from './roles/index.js';
-import { driftPolicy, applyPolicyShift } from './policy.js';
+import { naturalDrift, applyPolicyShift } from './policy.js';
+import { canTakeAction } from './actionBudget.js';
 import { pickRandomScriptId, getCurrentAct, applyActScoreMultiplier } from './scripts.js';
 import { pickGoalForGame } from './goals.js';
+import { gameRandom } from './rng.js';
 
 export function createInitialState(origin) {
   const role = getRole(origin.role);
@@ -43,6 +45,9 @@ export function createInitialState(origin) {
 
 export const COACHING_MAX_PER_GAME = 3;
 
+// 回合行动预算：定义在 actionBudget.js（避免与 actions.js 循环依赖），这里转出给调用方
+export { canTakeAction };
+
 /**
  * Advance to next quarter:
  *  1) drift policy
@@ -54,17 +59,21 @@ export const COACHING_MAX_PER_GAME = 3;
  * See main.js handleEndTurn for the expected pattern.
  */
 export function advanceTurn(state) {
-  // 1. 政策轴漂移：先按当前位置自然回归，再叠加当前幕的剧本压力
+  // 0. 已结束的局不再推进。终局页只是在主界面上盖一层弹窗，主界面的「结束本季」
+  //    仍然挂着 handleEndTurn；不拦住的话 quartersPassed 会超过 12，
+  //    而排行榜服务端只接受 1-12，会把这局成绩静默拒收。
+  if (isGameOver(state).over) return state;
+
+  // 1. 政策轴漂移：先向中性自然回归，再叠加当前幕的剧本压力
   //    剧本里 policyDrift > 0 推向宽松、< 0 推向收紧、= 0 不额外推
-  const dir = state.policyValue < 0 ? 'tight' : (state.policyValue > 0 ? 'loose' : 'stable');
-  let newPolicy = driftPolicy(state.policyValue, dir);
+  let newPolicy = naturalDrift(state.policyValue);
   const act = getCurrentAct(state);
   if (act?.policyDrift) {
     newPolicy = applyPolicyShift(newPolicy, act.policyDrift);
   }
 
-  // 2. 角色独有的季度结算
-  const { metrics: newMetrics, score: newScore } = state.role.advanceTurn(state);
+  // 2. 角色独有的季度结算（settlement = 本季变动的逐项归因）
+  const { metrics: newMetrics, score: newScore, settlement } = state.role.advanceTurn(state);
 
   // 3. 季度推进
   let newQuarter = state.quarter + 1;
@@ -80,6 +89,7 @@ export function advanceTurn(state) {
     financingCost: state.metrics.financingCost,
     nav: state.metrics.nav,                // IM 角色的净值历史
     debtRatio: state.metrics.debtRatio,    // GOV 角色的债务率历史
+    redemptionPressure: state.metrics.redemptionPressure,  // IM 赎回压力卡的环比来源
     policyValue: state.policyValue,
   }];
 
@@ -88,6 +98,7 @@ export function advanceTurn(state) {
   const newQuartersPassed = state.quartersPassed + 1;
   const triggeredDelayedEffects = [];
   const remainingPendingEffects = [];
+  const settlementLines = [...(settlement || [])];
   let withDelayedMetrics = newMetrics;
   let withDelayedScore = newScore || state.score;
   for (const item of (state.pendingEffects || [])) {
@@ -106,6 +117,15 @@ export function advanceTurn(state) {
         } else if (typeof val === 'number') {
           m[key] = parseFloat(((m[key] || 0) + val).toFixed(2));
         }
+      });
+      // 延迟后果也要出现在归因里，否则玩家会看到一笔无法解释的变动
+      Object.entries(item.effects || {}).forEach(([key, val]) => {
+        if (key.startsWith('_') || key.startsWith('score.') || typeof val !== 'number') return;
+        settlementLines.push({
+          label: `前情回响 · ${(item.sourceTitle || '过往决策').slice(0, 14)}`,
+          metric: key,
+          delta: val,
+        });
       });
       withDelayedMetrics = m;
       withDelayedScore = sc;
@@ -126,6 +146,7 @@ export function advanceTurn(state) {
     history: newHistory,
     pendingEffects: remainingPendingEffects,
     triggeredDelayedEffects,  // main.js 拿这个弹 toast；下一季会被清空
+    lastSettlement: settlementLines,  // 归因面板：本季每一笔变动的来源
   };
 }
 
@@ -149,17 +170,40 @@ export function applyEventChoice(state, event, choiceIdx) {
   const uncertainty = choice.effects?._uncertainty;
   let uncertainOutcome = null;
   if (uncertainty !== undefined) {
-    const success = Math.random() < uncertainty;
+    const success = gameRandom() < uncertainty;
     uncertainOutcome = success ? 'succeeded' : 'failed';
     if (!success) {
+      // 失败不能是免费的。原实现只应用 policyShift、其余全跳过，于是 1283 个
+      // 带 _uncertainty 的选项（占全部选项 35.5%）都是零成本的赌，玩家还收不到任何反馈。
+      // 优先用内容写的 _onFail；没写就用角色的默认"空转成本"——事儿没办成，
+      // 但时间花了、关系动了、承诺放出去了。
+      const failEffects = choice.effects._onFail || state.role?.failureCost || {};
       let postPolicy = state.policyValue;
       if (event.policyShift) {
         postPolicy = applyPolicyShift(postPolicy, event.policyShift);
       }
+      const failMetrics = { ...state.metrics };
+      const failScore = { ...state.score };
+      Object.entries(failEffects).forEach(([key, val]) => {
+        if (key.startsWith('_')) return;
+        if (key.startsWith('score.')) {
+          const dim = key.slice(6);
+          failScore[dim] = (failScore[dim] || 0) + val;
+        } else if (key === 'collateralRoom') {
+          if (val === 'downgrade') failMetrics.collateralRoom = downgradeCollateral(failMetrics.collateralRoom);
+          else if (val === 'upgrade') failMetrics.collateralRoom = upgradeCollateral(failMetrics.collateralRoom);
+        } else if (typeof val === 'number') {
+          failMetrics[key] = parseFloat(((failMetrics[key] || 0) + val).toFixed(2));
+        }
+      });
       return {
         ...state,
+        metrics: failMetrics,
+        score: failScore,
         policyValue: postPolicy,
-        eventLog: [...state.eventLog, { eventId: event.id, choiceIdx, uncertainOutcome: 'failed' }],
+        eventLog: [...state.eventLog, { eventId: event.id, choiceIdx, uncertainOutcome: 'failed', quarter: (state.quartersPassed || 0) + 1 }],
+        // 给 UI 用：让玩家知道自己赌输了，以及输掉了什么
+        lastUncertainOutcome: { success: false, chance: uncertainty, effects: failEffects },
       };
     }
   }
@@ -216,8 +260,10 @@ export function applyEventChoice(state, event, choiceIdx) {
     metrics: newMetrics,
     score: newScore,
     policyValue: newPolicy,
-    eventLog: [...state.eventLog, { eventId: event.id, choiceIdx, uncertainOutcome }],
+    eventLog: [...state.eventLog, { eventId: event.id, choiceIdx, uncertainOutcome, quarter: (state.quartersPassed || 0) + 1 }],
     pendingEffects: [...(state.pendingEffects || []), ...newPendingEffects],
+    lastUncertainOutcome: uncertainOutcome === 'succeeded'
+      ? { success: true, chance: uncertainty } : null,
   };
 }
 

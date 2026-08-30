@@ -933,6 +933,21 @@
 .pulse-row .d.lvl-ok { color: var(--ok); }
 .pulse-row.lvl-danger { background: linear-gradient(90deg, rgba(239,83,80,0.05), transparent 70%); }
 
+/* 拿玩家自己的指标跟同档比的那一行，跟大盘行区分开 */
+.pulse-row.is-self { background: linear-gradient(90deg, rgba(120,140,200,0.07), transparent 70%); }
+.pulse-row.is-self .k { color: var(--text-1); }
+.pulse-row.is-self.lvl-danger { background: linear-gradient(90deg, rgba(239,83,80,0.10), transparent 70%); }
+
+/* 口径声明：面板里的数字是本局情景推演，不是行情源 */
+.pulse-foot {
+  padding: 5px 10px 6px;
+  border-top: 1px dashed var(--line);
+  color: var(--text-4);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-align: right;
+}
+
 /* 图表面板：桌面紧凑、移动稍高 */
 /* 用户反馈：130px/200px 用 chart.js 渲染时 y-tick + x-label + 线条挤不下，被裁
    实战测：size-md 至少 180px、size-tall 至少 240px 才能完整显示 */
@@ -1255,3 +1270,101 @@
 }
 .ui.mobile .panel { display: flex; flex-direction: column; }
 .ui.mobile .seg-tabs { padding: 0; }
+
+/* ─── 上季结算归因面板 ─────────────────────────────
+   把主指标的变动拆成逐项来源；没有它玩家只看到数字跳，不知道为什么跳。 */
+.settle {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: rgba(18, 24, 40, 0.45);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.settle-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 10px;
+  font-size: 10px; letter-spacing: 0.08em;
+  color: var(--text-3);
+  border-bottom: 1px dashed var(--line);
+}
+.settle-head .ax { color: var(--role); margin-right: 4px; }
+.settle-head .meta { font-size: 11px; font-variant-numeric: tabular-nums; }
+.settle-head .meta.up { color: var(--ok); }
+.settle-head .meta.down { color: var(--danger); }
+.settle-rows { display: flex; flex-direction: column; }
+.settle-row {
+  display: grid;
+  grid-template-columns: 1fr 48px 62px;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  font-size: 10.5px;
+}
+.settle-row + .settle-row { border-top: 1px dashed rgba(120, 140, 200, 0.08); }
+.settle-row .k { color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.settle-row .bar { height: 4px; border-radius: 2px; background: rgba(120, 140, 200, 0.12); overflow: hidden; }
+.settle-row .bar i { display: block; height: 100%; border-radius: 2px; }
+.settle-row.pos .bar i { background: var(--ok); }
+.settle-row.neg .bar i { background: var(--danger); }
+.settle-row .v { text-align: right; font-variant-numeric: tabular-nums; }
+.settle-row.pos .v { color: var(--ok); }
+.settle-row.neg .v { color: var(--danger); }
+
+/* 游戏内确认弹窗（替掉原生 confirm，避免与深色终端风格割裂） */
+.confirm-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(10, 14, 26, 0.9);
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ─── 复盘时间轴 ───────────────────────────────── */
+.timeline-card .tl-list { display: flex; flex-direction: column; }
+.tl-row {
+  display: grid;
+  grid-template-columns: 76px 14px 1fr 96px;
+  gap: 10px;
+  align-items: stretch;
+  padding: 9px 14px;
+  border-top: 1px dashed rgba(120, 140, 200, 0.10);
+}
+.tl-row:first-child { border-top: 0; }
+.tl-row.is-death { background: linear-gradient(90deg, rgba(239,83,80,0.10), transparent 70%); }
+.tl-when { display: flex; flex-direction: column; gap: 2px; padding-top: 1px; }
+.tl-q { font-size: 12px; color: var(--role); font-variant-numeric: tabular-nums; }
+.tl-date { font-size: 9.5px; color: var(--text-4); letter-spacing: 0.04em; }
+.tl-spine { position: relative; }
+.tl-spine::before {
+  content: ""; position: absolute; left: 50%; top: 0; bottom: 0;
+  width: 1px; background: rgba(120, 140, 200, 0.18); transform: translateX(-50%);
+}
+.tl-spine i {
+  position: absolute; left: 50%; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--role); transform: translate(-50%, 50%);
+  box-shadow: 0 0 8px var(--role);
+}
+.tl-row.is-death .tl-spine i { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+.tl-body { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.tl-line1 { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.tl-evt { font-size: 12px; color: var(--text-1); }
+.tl-idle { color: var(--text-4); font-style: normal; font-size: 11px; }
+.tl-choice { font-size: 11px; color: var(--text-2); }
+.tl-crisis { font-size: 11px; color: var(--warn); }
+.tl-death { font-size: 11px; color: var(--danger); }
+.tl-acts { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 1px; }
+.tl-act {
+  font-size: 9.5px; padding: 1px 6px; border-radius: 3px;
+  border: 1px solid var(--line-strong); color: var(--text-3);
+}
+.tl-mark {
+  font-size: 9px; letter-spacing: 0.08em; padding: 1px 6px; border-radius: 3px;
+  border: 1px solid currentColor; flex: 0 0 auto;
+}
+.tl-mark.m-black_swan { color: var(--info); }
+.tl-mark.m-crisis { color: var(--warn); }
+.tl-mark.m-gamble_lost { color: var(--text-3); }
+.tl-mark.m-death { color: var(--danger); }
+.tl-metric { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.tl-val { font-size: 13px; color: var(--text-1); font-variant-numeric: tabular-nums; }
+.tl-delta { font-size: 10px; color: var(--text-4); font-variant-numeric: tabular-nums; }
+.tl-delta.up { color: var(--ok); }
+.tl-delta.down { color: var(--danger); }

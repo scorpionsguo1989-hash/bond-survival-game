@@ -1,5 +1,6 @@
 // js/origins/cfoOrigin.js
 import { pickStarterKit } from '../starterKits.js';
+import { gameRandom } from '../rng.js';
 
 const REGIONS = [
   { id: 'east_core', label: '东部核心城市', score: 8 },
@@ -33,18 +34,24 @@ const TAGS = [
 const TARGET_SCORE_MIN = 15;
 const TARGET_SCORE_MAX = 25;
 
-export function computeChallengeScore(origin) {
-  const r = REGIONS.find(x => x.id === origin.regionTier).score;
-  const b = BUSINESS.find(x => x.id === origin.businessType).score;
-  const h = HEALTH.find(x => x.id === origin.healthLevel).score;
-  const t = TAGS.find(x => x.id === origin.tag).score;
+// 缺字段时取该维度的中位档，而不是抛错。
+// getInitialMetrics 现在按 challengeScore 定难度，老存档和最小 profile 都会走到这里。
+function scoreOf(table, id, fallbackIdx) {
+  return (table.find(x => x.id === id) || table[fallbackIdx]).score;
+}
+
+export function computeChallengeScore(origin = {}) {
+  const r = scoreOf(REGIONS, origin.regionTier, 1);
+  const b = scoreOf(BUSINESS, origin.businessType, 0);
+  const h = scoreOf(HEALTH, origin.healthLevel, 1);
+  const t = scoreOf(TAGS, origin.tag, 3);
   // 强区域 + 弱平台 = 不平衡，引入交互项
   // 总分目标 15-25
   return r/2 + b + h + t/2 + 5;
 }
 
 function pick(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
+  return arr[Math.floor(gameRandom() * arr.length)];
 }
 
 const PLATFORM_NAMES = [

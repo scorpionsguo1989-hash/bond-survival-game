@@ -7,6 +7,8 @@ import { showAchievementToasts, openAchievementsDrawer, getAchievementsForUI } f
 import { getScript, getCurrentAct } from './scripts.js';
 import { getGoalById } from './goals.js';
 import { STARTER_KIT_LABELS } from './starterKits.js';
+import { GAME_CONFIG } from './config.js';
+import { computePulseRows } from './marketPulse.js';
 
 // AI 决策助手限额（与 engine.js 的 COACHING_MAX_PER_GAME 保持一致）
 const COACH_MAX = 3;
@@ -409,7 +411,7 @@ function renderUITopbar(state) {
   const policyPct = ((policyValue + 5) / 10) * 100;
   const policyLabel = policyLabelClean(policyValue);
   const labels = ["严格","偏紧","中性","偏松","宽松"];
-  const totalActions = 6;
+  const totalActions = GAME_CONFIG.actionsPerTurn;
   const actionsLeft = Math.max(0, totalActions - (state.actionsUsed || 0));
   // 多周期叙事：当前幕徽章
   const act = getCurrentAct(state);
@@ -574,7 +576,14 @@ function renderRedeemPanel(state) {
         <span><span class="ax" style="color:var(--danger)">!</span> 赎回压力</span>
         <span class="meta">live</span>
       </div>
-      ${renderRedeemCard({ level, expected: expected.toFixed(1), cash: cash.toFixed(1), gap: gap.toFixed(1) })}
+      ${renderRedeemCard({
+        level,
+        expected: expected.toFixed(1),
+        cash: cash.toFixed(1),
+        gap: gap.toFixed(1),
+        delta: getDeltaStr(state, 'redemptionPressure'),
+        deltaCls: getDeltaCls(state, 'redemptionPressure', true),
+      })}
     </div>
   `;
 }
@@ -590,7 +599,7 @@ function renderRedeemCard(r) {
     <div class="redeem ${danger ? 'danger' : ''}">
       <div class="redeem-head">
         <span><span class="ax">⨯</span> 赎回压力</span>
-        <span class="stat">vs 上季 <b class="up">+24</b></span>
+        ${r.delta ? `<span class="stat">vs 上季 <b class="${r.deltaCls || ''}">${escapeHtml(r.delta)}</b></span>` : ''}
       </div>
       <div class="redeem-num">
         <span class="big">${lvl}</span>
@@ -821,12 +830,12 @@ function renderUIChoicePred(choice, role) {
 
 function renderUIActionsBar(state, callbacks) {
   const actions = callbacks?.actions || state.role?.actions || [];
-  const actionsLeft = Math.max(0, 2 - (state.actionsUsed || 0));
+  const actionsLeft = Math.max(0, GAME_CONFIG.actionsPerTurn - (state.actionsUsed || 0));
   return `
     <div class="actions-bar">
       <div class="actions-bar-head">
         <span><span class="ax">▸</span> 主动操作 · 可选加行动作</span>
-        <span class="meta">${actionsLeft}/2 剩余 · 不消耗事件回合</span>
+        <span class="meta">${actionsLeft}/${GAME_CONFIG.actionsPerTurn} 剩余 · 不消耗事件回合</span>
       </div>
       <div class="actions-grid">
         ${actions.map((a, i) => {
@@ -843,10 +852,15 @@ function renderUIActionsBar(state, callbacks) {
             </button>
           `;
         }).join('')}
-        <button id="btn-end-turn" class="action-btn compact end-turn">
+        ${(() => {
+          // 本季的事必须表态才能翻篇，否则"全是负面选项就不表态"成了免费规避
+          const mustDecide = !!(state.pendingCrisis?.options?.length || state.pendingEvent?.choices?.length);
+          return `
+        <button id="btn-end-turn" class="action-btn compact end-turn ${mustDecide ? 'locked' : ''}" ${mustDecide ? 'disabled' : ''}>
           <span class="tag mono">END</span>
-          <span class="label">结束本季度<span class="desc">→ 下一回合</span></span>
-        </button>
+          <span class="label">结束本季度<span class="desc">${mustDecide ? '先对本季事件表态' : '→ 下一回合'}</span></span>
+        </button>`;
+        })()}
       </div>
     </div>
   `;
@@ -1022,44 +1036,54 @@ function renderRightCol(state) {
   return `
     <div class="col col-r">
       ${charts}
+      ${renderSettlementPanel(state)}
       ${renderPulseCard(state)}
     </div>
   `;
 }
 
-function renderPulseCard(state) {
-  const roleId = state.role?.id;
-  const policy = state.policyValue || 0;
-  const seed = hashString(`${state.year}${state.quarter}${state.origin?.platformName || ''}`);
-  const noise = (idx) => ((seed >> idx) & 0xff) / 255 - 0.5;
-  const tighten = -policy;
+/**
+ * 上季结算归因：把主指标的变动拆成逐项来源。
+ * 没有这个面板，玩家只看到现金从 5.2 掉到 2.0，不知道是到期债务、运营、
+ * 项目缺口还是三季前某个决策的延迟后果——那是"随机数字跳动"，不是策略游戏。
+ */
+function renderSettlementPanel(state) {
+  const lines = state.lastSettlement;
+  if (!Array.isArray(lines) || lines.length === 0) return '';
 
-  let sub, rows;
-  if (roleId === 'im') {
-    sub = '公募债基行业';
-    rows = [
-      { k: '10Y 国债收益率', v: `${(2.5 + tighten * 0.05 + noise(6) * 0.08).toFixed(2)}%`, delta: `+${Math.round(tighten * 5 + noise(7) * 4)} bp`, lvl: 'warn' },
-      { k: 'AA 信用利差', v: `${Math.round(150 + tighten * 12 + noise(0) * 10)} bp`, delta: `+${Math.round(tighten * 3 + noise(1) * 5)}`, lvl: 'danger' },
-      { k: '行业平均赎回率', v: `${(5.5 + tighten * 0.6 + noise(8) * 0.5).toFixed(1)}%`, delta: `+${(tighten * 0.4 + noise(9) * 0.5).toFixed(1)}`, lvl: 'danger' },
-      { k: '回购加权利率', v: `${(2.0 + tighten * 0.2 + noise(10) * 0.15).toFixed(2)}%`, delta: `+${Math.round(tighten * 6 + noise(11) * 4)} bp`, lvl: 'warn' },
-    ];
-  } else if (roleId === 'gov') {
-    sub = '政策与同侪';
-    rows = [
-      { k: '全国特殊再融资额度', v: `${(1.4 - tighten * 0.05 + noise(6) * 0.1).toFixed(1)} 万亿`, delta: 'Q3 截止', lvl: 'warn' },
-      { k: '同档区县均债务率', v: `${Math.round(248 + tighten * 4 + noise(7) * 6)}%`, delta: `我 +${Math.round(tighten * 2 + noise(8) * 3)}pp`, lvl: 'danger' },
-      { k: '省级转移支付增速', v: `+${(3.2 - tighten * 0.4 + noise(9) * 0.4).toFixed(1)}%`, delta: `${(-tighten * 0.3 + noise(10) * 0.5).toFixed(1)}`, lvl: 'warn' },
-      { k: '土地出让流拍率', v: `${Math.round(38 + tighten * -3 + noise(11) * 5)}%`, delta: `${Math.round(tighten * -2 + noise(12) * 3)}`, lvl: 'danger' },
-    ];
-  } else {
-    sub = '本地城投融资环境';
-    rows = [
-      { k: 'AA 城投信用利差', v: `${Math.round(150 + tighten * 12 + noise(0) * 10)} bp`, delta: `+${Math.round(tighten * 3 + noise(1) * 5)}`, lvl: 'danger' },
-      { k: '本省取消发行', v: `${Math.max(0, Math.round(2 + tighten * 0.7 + noise(2) * 1.5))} / 周`, delta: `+${Math.round(tighten * 0.5 + noise(3) * 1.5)}`, lvl: 'warn' },
-      { k: '银行授信审批', v: `T+${Math.round(12 + tighten * 2.5 + noise(4) * 3)} 天`, delta: `+${Math.round(tighten * 1.2 + noise(5) * 2)}`, lvl: 'warn' },
-      { k: '土地拍卖溢价率', v: `${(-2 + tighten * -0.5 + noise(9) * 1.5).toFixed(1)}%`, delta: `${(tighten * -0.3 + noise(10) * 1).toFixed(1)}`, lvl: 'warn' },
-    ];
-  }
+  const roleId = state.role?.id || 'cfo';
+  const primary = roleId === 'im' ? 'nav' : 'cash';
+  const rows = lines.filter(l => (l.metric || primary) === primary);
+  if (!rows.length) return '';
+
+  const unit = primary === 'nav' ? '' : ' 亿';
+  const fmt = (v) => (primary === 'nav' ? v.toFixed(4) : v.toFixed(2));
+  const net = rows.reduce((s, r) => s + r.delta, 0);
+  const title = primary === 'nav' ? '上季净值归因' : '上季资金去向';
+  const max = Math.max(...rows.map(r => Math.abs(r.delta)), 0.0001);
+
+  return `
+    <div class="settle">
+      <div class="settle-head">
+        <span><span class="ax">Σ</span> ${escapeHtml(title)}</span>
+        <span class="meta mono ${net >= 0 ? 'up' : 'down'}">${net >= 0 ? '+' : ''}${escapeHtml(fmt(net))}${unit}</span>
+      </div>
+      <div class="settle-rows">
+        ${rows.map(r => `
+          <div class="settle-row ${r.delta >= 0 ? 'pos' : 'neg'}">
+            <span class="k">${escapeHtml(r.label)}</span>
+            <span class="bar"><i style="width:${Math.min(100, Math.abs(r.delta) / max * 100).toFixed(1)}%"></i></span>
+            <span class="v mono">${r.delta >= 0 ? '+' : ''}${escapeHtml(fmt(r.delta))}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderPulseCard(state) {
+  // 数值与口径都在 marketPulse.js（纯模块、有测试）。这里只负责画。
+  const { sub, disclaimer, rows } = computePulseRows(state);
 
   return `
     <div class="pulse">
@@ -1069,13 +1093,14 @@ function renderPulseCard(state) {
       </div>
       <div class="pulse-rows">
         ${rows.map(r => `
-          <div class="pulse-row lvl-${r.lvl}">
+          <div class="pulse-row lvl-${r.lvl}${r.self ? ' is-self' : ''}">
             <span class="k">${escapeHtml(r.k)}</span>
             <span class="v mono">${escapeHtml(r.v)}</span>
-            <span class="d mono lvl-${r.lvl}">${escapeHtml(r.delta)}</span>
+            <span class="d mono lvl-${r.lvl}">${r.delta ? escapeHtml(r.delta) : '—'}</span>
           </div>
         `).join('')}
       </div>
+      <div class="pulse-foot">${escapeHtml(disclaimer)}</div>
     </div>
   `;
 }
@@ -1734,6 +1759,7 @@ export function renderEndScreen(state, finalScore, callbacks) {
         ${renderNewAchievements(callbacks.newAchievements, callbacks)}
         ${renderPortraitShell()}
         ${renderHeadlineShell()}
+        ${renderRunTimeline(callbacks.timeline)}
         ${renderDecisionsShell(callbacks.decisionDetails)}
       </div>
     </div>
@@ -2024,6 +2050,63 @@ function renderNewAchievements(newAchievements, callbacks) {
 // ───────────────────────────────────────────────
 // 决策对比：本局 vs 全网玩家
 // ───────────────────────────────────────────────
+
+/**
+ * 复盘时间轴：12 季一条线，标出黑天鹅、危机、赌输的那一步和出局季。
+ * 数据在 runTimeline.js（纯模块、有测试），这里只负责画。
+ */
+function renderRunTimeline(timeline) {
+  if (!Array.isArray(timeline) || timeline.length === 0) return '';
+
+  const MARK_LABEL = {
+    black_swan: '黑天鹅', crisis: '危机处置', gamble_lost: '赌输了', death: '出局',
+  };
+  const values = timeline.map(r => r.primary.value);
+  const lo = Math.min(...values), hi = Math.max(...values);
+  const span = hi - lo || 1;
+
+  return `
+    <div class="decisions-card timeline-card">
+      <div class="dec-head">
+        <div class="dec-title">
+          <span class="dec-ax">⌇</span>
+          <span>这一局是怎么走到这一步的</span>
+          <span class="dec-sub">${timeline.length} 个季度 · ${escapeHtml(timeline[0].primary.label)}走势与关键转折</span>
+        </div>
+      </div>
+      <div class="tl-list">
+        ${timeline.map(r => {
+          const pos = ((r.primary.value - lo) / span) * 100;
+          const dir = r.primary.delta > 0 ? 'up' : (r.primary.delta < 0 ? 'down' : '');
+          const digits = r.primary.digits;
+          return `
+          <article class="tl-row ${r.marks.includes('death') ? 'is-death' : ''}">
+            <div class="tl-when">
+              <span class="tl-q mono">Q${r.quarter}</span>
+              <span class="tl-date mono">${escapeHtml(r.label)}</span>
+            </div>
+            <div class="tl-spine"><i style="bottom:${pos.toFixed(1)}%"></i></div>
+            <div class="tl-body">
+              <div class="tl-line1">
+                ${r.marks.map(m => `<span class="tl-mark m-${m}">${escapeHtml(MARK_LABEL[m] || m)}</span>`).join('')}
+                <span class="tl-evt">${r.event ? annotateNpc(annotate(escapeHtml(r.event.title))) : '<i class="tl-idle">无事件</i>'}</span>
+                ${r.event?.outcome ? `<span class="dec-outcome ${r.event.outcome === '没成' ? 'bad' : 'good'}">${escapeHtml(r.event.outcome)}</span>` : ''}
+              </div>
+              ${r.event ? `<div class="tl-choice">→ ${annotateNpc(annotate(escapeHtml(r.event.choiceLabel)))}</div>` : ''}
+              ${r.crisis ? `<div class="tl-crisis">⚠ ${escapeHtml(r.crisis.title)} · ${escapeHtml(r.crisis.label)}${r.crisis.success ? '' : '（处置失败）'}</div>` : ''}
+              ${r.actions.length ? `<div class="tl-acts">${r.actions.map(a => `<span class="tl-act">${escapeHtml(a.name || a.id)}</span>`).join('')}</div>` : ''}
+              ${r.deathReason ? `<div class="tl-death">${escapeHtml(r.deathReason)}</div>` : ''}
+            </div>
+            <div class="tl-metric mono">
+              <span class="tl-val">${r.primary.value.toFixed(digits)}</span>
+              ${r.primary.delta ? `<span class="tl-delta ${dir}">${r.primary.delta > 0 ? '+' : ''}${r.primary.delta.toFixed(digits)}</span>` : '<span class="tl-delta">—</span>'}
+            </div>
+          </article>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
 
 function renderDecisionsShell(decisions) {
   if (!Array.isArray(decisions) || decisions.length === 0) return '';
@@ -2909,6 +2992,39 @@ function formatNowDateStr() {
   const d = new Date();
   const pad = n => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/**
+ * 游戏内的确认弹窗，替掉原生 confirm()。
+ * 原生弹窗跟整套深色终端风格割裂，而且在 iframe 嵌入主站时观感更差。
+ */
+export function confirmDialog({ title, body = '', okText = '继续', cancelText = '重新开始' }) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-overlay';
+    overlay.innerHTML = `
+      <div class="nickname-card">
+        <div class="nickname-title">${escapeHtml(title)}</div>
+        ${body ? `<div class="nickname-subtitle">${escapeHtml(body)}</div>` : ''}
+        <div class="nickname-actions">
+          <button class="btn-primary" data-act="ok">${escapeHtml(okText)}</button>
+          <button class="btn-secondary" data-act="cancel">${escapeHtml(cancelText)}</button>
+        </div>
+      </div>
+    `;
+    const finish = (val) => { document.removeEventListener('keydown', onKey); overlay.remove(); resolve(val); };
+    const onKey = (e) => {
+      if (e.key === 'Escape') finish(false);
+      if (e.key === 'Enter') finish(true);
+    };
+    overlay.addEventListener('click', (e) => {
+      const act = e.target.closest('[data-act]')?.dataset.act;
+      if (act) finish(act === 'ok');
+    });
+    document.addEventListener('keydown', onKey);
+    document.body.appendChild(overlay);
+    overlay.querySelector('[data-act="ok"]')?.focus();
+  });
 }
 
 export function renderNicknamePrompt(onSubmit, onSkip) {

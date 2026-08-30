@@ -2,6 +2,7 @@
 import express from 'express';
 import { createDb, insertScore, getTopScores, getRank, insertDecisions, getPeerSignalRaw } from './db.js';
 import { validateScoreSubmission, VALID_ROLES } from './validate.js';
+import { verifySubmission } from './replayVerify.js';
 import { generatePortrait, validatePortraitPayload } from './portrait.js';
 import { generateHeadline, generateCoachAdvice, validateHeadlinePayload, validateCoachPayload } from './coaching.js';
 import { buildSeedMap, getSeedSignal, blendDistribution } from './peerSeeds.js';
@@ -84,23 +85,32 @@ app.post('/api/scores', rateLimit, (req, res) => {
     return res.status(400).json({ ok: false, error: validation.error });
   }
 
+  // 服务端按 seed + inputs 重放整局复算。格式校验挡不住编分数，只有重放能。
+  const verdict = verifySubmission(data);
+  if (!verdict.ok) {
+    console.warn('[replay] 成绩驳回:', verdict.error);
+    return res.status(400).json({ ok: false, error: verdict.error });
+  }
+  // 入库一律用复算值，不用客户端报的值
+  const trusted = { ...data, ...verdict.verified };
+
   try {
-    const id = insertScore(db, data);
+    const id = insertScore(db, trusted);
     // 同步写 decisions（如果客户端提供了）。失败不影响 score 提交。
     if (Array.isArray(data.decisions) && data.decisions.length > 0) {
       try {
         insertDecisions(db, {
           scoreId: id,
-          role: data.role,
-          totalScore: data.score,
-          survived: data.survived,
+          role: trusted.role,
+          totalScore: trusted.score,
+          survived: trusted.survived,
           decisions: data.decisions,
         });
       } catch (decErr) {
         console.warn('[decisions] insert failed, score still saved:', decErr.message);
       }
     }
-    const { rank } = getRank(db, data.score, data.role);
+    const { rank } = getRank(db, trusted.score, trusted.role);
     res.json({ ok: true, rank, id });
   } catch (err) {
     console.error('Insert score failed:', err);

@@ -1,5 +1,6 @@
 // js/origins/imOrigin.js
 import { pickStarterKit } from '../starterKits.js';
+import { gameRandom } from '../rng.js';
 
 const INSTITUTIONS = [
   { id: 'bank_wm', label: '银行理财', score: 4 },
@@ -99,5 +100,5 @@ function generateChallenges(origin) {
 }
 
 function pick(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
+  return arr[Math.floor(gameRandom() * arr.length)];
 }

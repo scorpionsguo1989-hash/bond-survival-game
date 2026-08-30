@@ -1,11 +1,12 @@
 // js/main.js
-import { generateOrigin } from './origins/index.js';
-import { createInitialState, advanceTurn, applyEventChoice, checkDeath, isGameOver, detectCrisis } from './engine.js';
-import { findMainEvent, sampleRandomEvents, getPolicyDirection, loadEvents, shouldTriggerBlackSwan, sampleBlackSwan, findSagaEvent, getNextSagaEventId, getEligibleSagaStartEvents, pickOpeningEvent } from './eventEngine.js';
+import { canTakeAction } from './engine.js';
+import { createGame, applyInput, replayGame } from './gameLoop.js';
+import { loadEvents, resolveEventView } from './eventEngine.js';
+import { buildRunTimeline } from './runTimeline.js';
 import { computeFinalScore } from './score.js';
-import { saveGame, loadGame, clearSave, pushHistoryRecord } from './storage.js';
-import { renderFateCard, renderMainScreen, renderCrisisModal, renderEndScreen, generateShareCard, downloadShareCard, renderLeaderboardModal, renderNicknamePrompt, renderActionModal, toast, showToast, showActTransition, preloadBrandAssets, ensureBrandAssets } from './ui.js';
-import { getCurrentAct, getScript } from './scripts.js';
+import { saveGame, loadSaveTicket, clearSave, pushHistoryRecord } from './storage.js';
+import { renderFateCard, renderMainScreen, renderCrisisModal, renderEndScreen, generateShareCard, downloadShareCard, renderLeaderboardModal, renderNicknamePrompt, renderActionModal, confirmDialog, toast, showToast, showActTransition, preloadBrandAssets, ensureBrandAssets } from './ui.js';
+import { getScript } from './scripts.js';
 import { submitScore, fetchLeaderboard, fetchRank, fetchPortrait, fetchHeadline, fetchCoachAdvice } from './api.js';
 import { renderDebtWaterfall, renderCashTrend, renderNavChart, renderHoldingsChart, renderFiscalChart, renderDebtRatioChart } from './charts.js';
 import { attachGlossaryListeners } from './glossary.js';
@@ -55,18 +56,28 @@ async function init() {
   // 暴露给 ui.js / 全局：NPC 记忆同步（在 enterMainScreen 前由 ui.js 读取）
   // 这里先不调，等 enterMainScreen 时再同步
 
-  const saved = loadGame();
-  if (saved && confirm('发现存档，是否继续？')) {
-    state = saved;
-    if (state.survived && state.quartersPassed < 12) {
-      // Refresh pendingEvent in case save happened between turns
-      if (!state.pendingEvent) {
-        loadCurrentTurnEvent();
-      }
-      enterMainScreen();
-    } else {
-      enterEndScreen();
+  // 存档只存 { seed, inputs }，靠重放还原整局（RNG 游标也一并归位）
+  const ticket = loadSaveTicket();
+  const resume = ticket ? await confirmDialog({
+    title: '发现未打完的存档',
+    body: '继续上一局，还是重新抽一张命运卡？',
+    okText: '继续这一局',
+    cancelText: '重新开始',
+  }) : false;
+  if (resume) {
+    try {
+      state = replayGame(ticket, eventData);
+    } catch (e) {
+      console.warn('[init] 存档重放失败，开新局：', e);
+      state = null;
     }
+    if (state && !state.gameOver) {
+      enterMainScreen();
+      return;
+    }
+    if (state) { enterEndScreen(); return; }
+    clearSave();
+    startNewGame();
   } else {
     clearSave();
     // 首次进入（localStorage 无 _home_seen）→ 显示首页
@@ -107,10 +118,10 @@ function enterHomePage() {
 }
 
 function startNewGame() {
-  const origin = generateOrigin();
-  state = createInitialState(origin);
-  loadCurrentTurnEvent();
-  renderFateCard(origin, state.role, () => {
+  // 整局由 gameLoop 驱动：state 自带 seed 和 inputLog，服务端才能重放复算
+  state = createGame(null, eventData);
+  announceActTransition();
+  renderFateCard(state.origin, state.role, () => {
     enterMainScreen();
   }, state.scriptId, state.goalId);
 
@@ -137,73 +148,28 @@ async function showLeaderboard() {
   renderLeaderboardModal(result?.data || [], null, fetchLeaderboard, _lastSubmittedScoreId);
 }
 
-function loadCurrentTurnEvent() {
-  const roleId = state.origin?.role || 'cfo';
+// 多周期叙事：gameLoop 进入新幕时会把幕对象放在 state.newActEntered，这里负责放过场卡
+function announceActTransition() {
+  const act = state.newActEntered;
+  if (!act) return;
+  const script = getScript(state.scriptId);
+  setTimeout(() => showActTransition(act, script), 100);
+}
 
-  // 0) 多周期叙事：检测是否进入新幕，若是则触发过场（异步，不阻塞事件加载）
-  const newAct = getCurrentAct(state);
-  if (newAct && newAct.id !== state.currentActId) {
-    state = { ...state, currentActId: newAct.id };
-    const script = getScript(state.scriptId);
-    // 延迟显示，让主界面先渲染出来
-    setTimeout(() => showActTransition(newAct, script), 100);
-  }
-
-  // E 改造：Q1 必触发开场事件。每局只触发一次，挑过即标 openingEventConsumed。
-  // 池子空 / 角色没匹配到 → 也标记 consumed，避免每季重复尝试。
-  if (state.quartersPassed === 0 && !state.openingEventConsumed) {
-    const opening = pickOpeningEvent(eventData.openingEvents || [], state);
-    if (opening) {
-      state = { ...state, pendingEvent: opening, openingEventConsumed: true };
-      return;
-    }
-    state = { ...state, openingEventConsumed: true };
-  }
-
-  // 1) Saga 强制接续：上一季选择指向下一步时，本季不再走主线/随机抽取。
-  //    如果内容文件缺失该 ID，则清空指针并继续正常事件流程，避免坏存档卡死。
-  if (state.nextSagaEventId) {
-    const saga = findSagaEvent(eventData.sagaEvents || [], state.nextSagaEventId, roleId);
-    if (saga) {
-      state = { ...state, pendingEvent: saga, nextSagaEventId: null };
-      return;
-    }
-    state = { ...state, nextSagaEventId: null };
-  }
-
-  // 2) 黑天鹅 roll：命中则用黑天鹅取代本季事件（包括主线）
-  //    主线事件本身已经够戏剧化，但如果黑天鹅命中且能找到合适候选，仍然替换
-  if (shouldTriggerBlackSwan(state, roleId)) {
-    const swan = sampleBlackSwan(eventData.blackSwans || [], state, roleId);
-    if (swan) {
-      state = {
-        ...state,
-        pendingEvent: swan,
-        blackSwansSeen: [...(state.blackSwansSeen || []), swan.id],
-        lastSwanTag: swan.swanTag || null,  // 给下一次黑天鹅的"同 tag 冷却"用
-      };
-      return;
-    }
-  }
-
-  // 3) 主线事件优先
-  const main = findMainEvent(eventData.main, state.year, state.quarter, roleId);
-  if (main) {
-    state = { ...state, pendingEvent: main };
-  } else {
-    // 4) 随机事件兜底：普通/季节/定向事件 + 符合条件的 Saga 第一步。
-    const dir = getPolicyDirection(state.policyValue);
-    const sagaStarts = getEligibleSagaStartEvents(eventData.sagaEvents || [], state, roleId);
-    const sampled = sampleRandomEvents([...(eventData.random || []), ...sagaStarts], dir, { min: 1, max: 1 }, roleId, state);
-    state = { ...state, pendingEvent: sampled[0] || null };
-  }
+// 所有玩家输入都从这里过一遍 reducer，state 只在这里被改写。
+// 这样实况和服务端重放跑的是同一段代码，inputLog 也天然记全。
+function dispatch(input) {
+  state = applyInput(state, input, eventData);
 }
 
 function enterMainScreen() {
-  // 危机检测
-  const crisis = detectCrisis(state);
+  // 危机由 gameLoop 检出并挂在 state 上（每季最多一次，避免处置失败后反复弹）
+  const crisis = state.pendingCrisis;
   if (crisis) {
-    renderCrisisModal(crisis, (option) => handleCrisisChoice(option));
+    renderCrisisModal(crisis, (option) => {
+      const idx = crisis.options.indexOf(option);
+      handleCrisisChoice(idx >= 0 ? idx : 0);
+    });
     return;
   }
 
@@ -237,47 +203,45 @@ function enterMainScreen() {
 }
 
 function handleEventChoice(idx) {
-  const currentEvent = state.pendingEvent;
-  const nextSagaEventId = getNextSagaEventId(currentEvent, idx);
-  state = applyEventChoice(state, currentEvent, idx);
+  // saga 接续、NPC 记忆、不确定掷骰都在 gameLoop 里做，这里只负责派发和渲染
+  dispatch({ t: 'event', idx });
 
-  if (currentEvent?.saga_id) {
-    const sagaSeenIds = Array.from(new Set([...(state.sagaSeenIds || []), currentEvent.id]));
-    const completedSagaIds = nextSagaEventId
-      ? (state.completedSagaIds || [])
-      : Array.from(new Set([...(state.completedSagaIds || []), currentEvent.saga_id]));
-    state = {
-      ...state,
-      sagaSeenIds,
-      completedSagaIds,
-      nextSagaEventId: nextSagaEventId || null,
-    };
-  }
-
-  // NPC 记忆：本季选了某事件 → 给该事件涉及的 NPC 加 1 次互动
-  const involves = currentEvent?.involves_npc;
-  if (Array.isArray(involves) && involves.length) {
-    const choiceLabel = currentEvent.choices?.[idx]?.label || '';
-    const npcEncounters = { ...(state.npcEncounters || {}) };
-    for (const npcId of involves) {
-      const prev = npcEncounters[npcId] || { count: 0 };
-      npcEncounters[npcId] = {
-        count: prev.count + 1,
-        lastQuarter: (state.quartersPassed || 0) + 1,  // 即将结束的回合
-        lastEventTitle: currentEvent.title || '',
-        lastChoiceLabel: choiceLabel,
-      };
+  // 不确定选项的结果要说出来。原来赌输了页面上什么都不会变，
+  // 玩家既不知道自己输了，也不知道输掉了什么。
+  const outcome = state.lastUncertainOutcome;
+  if (outcome) {
+    const chance = Math.round((outcome.chance ?? 0) * 100);
+    if (outcome.success) {
+      showToast({ kind: 'ok', meta: `${chance}%`, t1: '赌赢了：这一步成了', duration: 3500 });
+    } else {
+      const cost = Object.entries(outcome.effects || {})
+        .filter(([k, v]) => !k.startsWith('_') && typeof v === 'number')
+        .slice(0, 2)
+        .map(([k, v]) => {
+          const label = k.startsWith('score.') ? k.slice(6) : (state.role?.metricLabels?.[k] || k);
+          return `${label} ${v > 0 ? '+' : ''}${v}`;
+        })
+        .join('，');
+      showToast({
+        kind: 'error', meta: `${chance}%`,
+        t1: '没成：事儿没办下来',
+        t2: cost ? `代价：${cost}` : '',
+        duration: 5000,
+      });
     }
-    state = { ...state, npcEncounters };
   }
-
-  state = { ...state, pendingEvent: null };
   enterMainScreen();
 }
 
 async function handleActionSelected(actionId) {
   const action = state.role.actions.find(a => a.id === actionId);
   if (!action) return;
+  // 回合行动预算：UI 之外再拦一道，键盘快捷键和旧存档都走这里
+  const budget = canTakeAction(state);
+  if (!budget.allowed) {
+    toast.error(budget.reason);
+    return;
+  }
   // 预览影响：模拟应用 effects 后的关键指标变化
   const previewFn = (params) => {
     try {
@@ -301,33 +265,16 @@ async function handleActionSelected(actionId) {
   };
   const params = await renderActionModal(action, previewFn);
   if (!params) return;  // 用户取消
-  state = state.role.applyActionEffects(state, actionId, params);
+  dispatch({ t: 'action', id: actionId, params });
   toast.success(`${action.name} 已执行`);
   enterMainScreen();
 }
 
-function handleCrisisChoice(option) {
-  // 不确定性处理
-  let success = true;
-  if (option.effects._uncertain !== undefined) {
-    success = Math.random() < option.effects._uncertain;
-  }
-  if (success) {
-    Object.entries(option.effects).forEach(([k, v]) => {
-      if (k.startsWith('_')) return;
-      if (k.startsWith('score.')) {
-        const dim = k.slice(6);
-        state.score[dim] = (state.score[dim] || 0) + v;
-      } else if (k === 'collateralRoom' && v === 'downgrade') {
-        state.metrics.collateralRoom = state.metrics.collateralRoom === 'high' ? 'medium' : 'low';
-      } else if (typeof v === 'number') {
-        state.metrics[k] = parseFloat(((state.metrics[k] || 0) + v).toFixed(2));
-      }
-    });
-    toast.success('处置成功，危机暂时缓解');
-  } else {
-    toast.error('处置失败，未能解决问题');
-  }
+function handleCrisisChoice(idx) {
+  dispatch({ t: 'crisis', idx });
+  const outcome = state.lastCrisisOutcome;
+  if (outcome?.success === false) toast.error('处置失败，未能解决问题');
+  else toast.success('处置成功，危机暂时缓解');
   enterMainScreen();
 }
 
@@ -389,17 +336,8 @@ function findActById(script, actId) {
 }
 
 function handleEndTurn() {
-  // 检查死亡
-  const death = checkDeath(state);
-  if (death.dead) {
-    state.survived = false;
-    state.deathReason = death.reason;
-    enterEndScreen();
-    return;
-  }
-
-  // 推进回合
-  state = advanceTurn(state);
+  // 死亡判定、季度推进、延迟后果、下一季取事件全在 gameLoop 里
+  dispatch({ t: 'endTurn' });
 
   // 延迟后果触发提示（advanceTurn 把到期的 _delayedEffect 应用并放在 triggeredDelayedEffects）
   if (Array.isArray(state.triggeredDelayedEffects) && state.triggeredDelayedEffects.length > 0) {
@@ -424,24 +362,12 @@ function handleEndTurn() {
     state = { ...state, triggeredDelayedEffects: [] };
   }
 
-  // 二次死亡检查
-  const death2 = checkDeath(state);
-  if (death2.dead) {
-    state.survived = false;
-    state.deathReason = death2.reason;
+  if (state.gameOver) {
     enterEndScreen();
     return;
   }
 
-  // 游戏结束检查
-  const over = isGameOver(state);
-  if (over.over) {
-    enterEndScreen();
-    return;
-  }
-
-  // 加载下回合事件
-  loadCurrentTurnEvent();
+  announceActTransition();
   enterMainScreen();
 }
 
@@ -483,6 +409,9 @@ async function submitAndShowEnd(nickname, finalScore) {
     survived: state.survived,
     quartersPassed: state.quartersPassed,
     decisions,
+    // 服务端拿这两个字段重放整局复算，对不上就驳回
+    seed: state.seed,
+    inputs: state.inputLog || [],
   };
 
   // 提交成绩（失败时 rank 为 null，静默降级）
@@ -502,6 +431,8 @@ async function submitAndShowEnd(nickname, finalScore) {
     rank,
     role: roleId,
     newAchievements,
+    // 复盘时间轴：12 季一条线，标出黑天鹅 / 危机 / 赌输的那步 / 出局季
+    timeline: buildRunTimeline(state, eventData),
     onAchievementsOpen: (focusId) => {
       // 由 ui.js 在 status bar / 卡片入口调用
       import('./achievements.js').then(m => m.openAchievementsDrawer(focusId));
@@ -591,21 +522,21 @@ function buildPortraitPayload(state, eventData, finalScore) {
     ...((eventData?.random) || []),
     ...((eventData?.blackSwans) || []),
     ...((eventData?.sagaEvents) || []),
+    ...((eventData?.openingEvents) || []),  // 开场事件也要能反查，否则每局 Q1 都显示"未知事件"
   ];
   const eventMap = new Map(allEvents.map(e => [e.id, e]));
   const roleId = state.origin?.role || state.role?.id || 'cfo';
 
   // eventLog -> 富化为 {quarter, eventTitle, choiceLabel, outcome}
   const decisions = (state.eventLog || []).map((log, i) => {
-    const ev = eventMap.get(log.eventId);
-    const title = ev?.title || '未知事件';
-    const choice = ev?.roles?.[roleId]?.choices?.[log.choiceIdx];
+    // resolveEventView 抹平「roles 嵌套」与「开场事件顶层 choices」两套 schema
+    const view = resolveEventView(eventMap.get(log.eventId), roleId);
     const outcome = log.uncertainOutcome === 'failed' ? '失败'
       : log.uncertainOutcome === 'succeeded' ? '成功' : null;
     return {
       quarter: i + 1,  // 按 eventLog 顺序，每季最多 1 个事件
-      eventTitle: title,
-      choiceLabel: choice?.label || `选项 ${String.fromCharCode(65 + (log.choiceIdx || 0))}`,
+      eventTitle: view.title,
+      choiceLabel: view.choices[log.choiceIdx]?.label || `选项 ${String.fromCharCode(65 + (log.choiceIdx || 0))}`,
       outcome,
     };
   });

@@ -1,4 +1,5 @@
 // js/actions.js
+import { canTakeAction } from './actionBudget.js';
 
 export const CFO_ACTIONS = [
   {
@@ -39,6 +40,9 @@ export const CFO_ACTIONS = [
 ];
 
 export function isActionAvailable(state, actionId) {
+  const budget = canTakeAction(state);
+  if (!budget.allowed) return { available: false, reason: budget.reason };
+
   const m = state.metrics;
   switch (actionId) {
     case 'bank_loan':
@@ -71,7 +75,7 @@ export function applyAction(state, actionId, params) {
       newMetrics.cash = parseFloat((newMetrics.cash + amt).toFixed(2));
       newMetrics.creditUsed = parseFloat((newMetrics.creditUsed + amt).toFixed(2));
       newMetrics.creditUsage = Math.round((newMetrics.creditUsed / newMetrics.creditTotal) * 100);
-      addScore(newScore, '流动性管理', 2);
+      addScore(newScore, 'liquidity', 2);
       break;
     }
     case 'bond_issue': {
@@ -80,7 +84,7 @@ export function applyAction(state, actionId, params) {
       // 政策越紧成本越高
       const costAdjust = state.policyValue <= -2 ? 0.3 : 0;
       newMetrics.financingCost = parseFloat((newMetrics.financingCost + costAdjust).toFixed(2));
-      addScore(newScore, '融资成本控制', state.policyValue >= 0 ? 4 : 1);
+      addScore(newScore, 'costControl', state.policyValue >= 0 ? 4 : 1);
       break;
     }
     case 'asset_disposal': {
@@ -90,22 +94,22 @@ export function applyAction(state, actionId, params) {
       newMetrics.cash = parseFloat((newMetrics.cash + cashIn).toFixed(2));
       newMetrics.collateralRoom = downgradeCollateral(newMetrics.collateralRoom);
       newMetrics.leverageRatio = parseFloat((newMetrics.leverageRatio - 1.5).toFixed(1));
-      addScore(newScore, '流动性管理', -2);
+      addScore(newScore, 'liquidity', -2);
       break;
     }
     case 'non_standard': {
       const amt = params.amount;
       newMetrics.cash = parseFloat((newMetrics.cash + amt).toFixed(2));
       newMetrics.financingCost = parseFloat((newMetrics.financingCost + 0.8).toFixed(2));
-      addScore(newScore, '合规指数', -8);
-      addScore(newScore, '融资成本控制', -5);
+      addScore(newScore, 'compliance', -8);
+      addScore(newScore, 'costControl', -5);
       break;
     }
     case 'pre_funding': {
       const amt = params.amount;
       newMetrics.cash = parseFloat((newMetrics.cash + amt * 0.6).toFixed(2));
       newMetrics.opCostRate = parseFloat((newMetrics.opCostRate + 0.1).toFixed(2));
-      addScore(newScore, '流动性管理', 3);
+      addScore(newScore, 'liquidity', 3);
       break;
     }
   }

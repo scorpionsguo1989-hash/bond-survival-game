@@ -3,6 +3,7 @@
 import { IM_ACTIONS, imApplyAction, imIsActionAvailable } from '../actions/im.js';
 import { sampleTip, sampleRisks } from './_hintHelpers.js';
 import { IM_KIT_MODIFIERS } from '../starterKits.js';
+import { DIFFICULTY } from '../config.js';
 
 const SCALE_PROFILES = {
   large: { initialAum: 500, cashRatio: 12 },
@@ -38,25 +39,39 @@ function advanceTurn(state) {
   let { nav, aum, cashRatio, duration, concentration, creditExposure, redemptionPressure, leverage } = metrics;
 
   // NAV 漂移公式（联调调参后，目标通关率 ~70%）：
-  //   - 票息基础收益 1.0%/季（年化 ~4%）
-  //   - 政策影响 0.005（政策紧时久期长会更痛）
-  //   - 信用惩罚 0.009（政策紧时高信用敞口吃亏）
-  const policyContrib = policyValue * 0.005 * (duration / 3);
-  const creditPenalty = (policyValue < 0 ? Math.abs(policyValue) : 0) * (creditExposure / 100) * 0.015;
-  const baseYield = 0.009;
+  //   - 票息基础收益见 config.DIFFICULTY.im.baseYieldPerQuarter
+  //   - 政策影响：政策紧时久期长会更痛（久期放大）
+  //   - 信用惩罚：政策紧时高信用敞口吃亏 —— 这两条才是难度来源
+  const policyContrib = policyValue * DIFFICULTY.im.policyImpactRate * (duration / 3);
+  const creditPenalty = (policyValue < 0 ? Math.abs(policyValue) : 0) * (creditExposure / 100) * DIFFICULTY.im.creditPenaltyRate;
+  const baseYield = DIFFICULTY.im.baseYieldPerQuarter;
   const leverageMultiplier = leverage / 100;
   const navDelta = (baseYield + policyContrib - creditPenalty) * leverageMultiplier;
+  // settlement：净值是乘性变动，这里把每个成分按当前净值折算成绝对变化，
+  // 加总等于净值的实际变化，UI 才能直接展示"这季净值为什么动"
+  const navBefore = nav;
+  const settlement = [
+    { label: '票息收益', metric: 'nav', delta: navBefore * baseYield * leverageMultiplier },
+    { label: policyContrib >= 0 ? '利率下行贡献' : '利率上行冲击', metric: 'nav', delta: navBefore * policyContrib * leverageMultiplier },
+    { label: '信用利差走阔', metric: 'nav', delta: -navBefore * creditPenalty * leverageMultiplier },
+  ].filter(x => Math.abs(x.delta) > 0.00005);
   nav = round(nav * (1 + navDelta), 4);
+  // 四舍五入的零头并到票息那一项，保证明细加总严格等于实际变化
+  if (settlement.length) {
+    const drift = (nav - navBefore) - settlement.reduce((s, x) => s + x.delta, 0);
+    settlement[0].delta = settlement[0].delta + drift;
+  }
 
   const navMomentum = navDelta < 0 ? Math.abs(navDelta) * 800 : -5;
   const policyMomentum = policyValue < -2 ? 8 : 0;
   redemptionPressure = clamp(redemptionPressure + navMomentum + policyMomentum, 0, 100);
 
-  // 赎回触发阈值 60，redeemRatio 公式更温和
+  // 赎回触发阈值见 config.DIFFICULTY.im.redemptionThreshold，redeemRatio 公式更温和
   // 设计：good 玩家不会触发，medium 偶尔触发但能撑过去，weak 持续触发但仍有机会
-  if (redemptionPressure >= 60 && aum > 0) {
+  if (redemptionPressure >= DIFFICULTY.im.redemptionThreshold && aum > 0) {
     const redeemRatio = (redemptionPressure - 55) / 350;  // 1.4% - 13%
     const redeemAmount = aum * redeemRatio;
+    settlement.push({ label: '客户赎回', metric: 'aum', delta: -round(redeemAmount, 2) });
     aum = round(aum - redeemAmount, 2);
     cashRatio = aum > 0 ? round((cashRatio * (aum + redeemAmount) - redeemAmount * 100) / aum, 2) : 0;
   }
@@ -66,6 +81,7 @@ function advanceTurn(state) {
   return {
     metrics: { nav, aum, cashRatio, duration, concentration, creditExposure, redemptionPressure, leverage },
     score: state.score,
+    settlement,
   };
 }
 
@@ -129,6 +145,23 @@ const RISKS_POOL = [
   { id: 'im_risk_rise',         text: 'Q5+ 紧缩期，高久期 + 高敞口同时受损', when: { script: 'rise_and_fall' } },
 ];
 
+// 六维评分里由持仓指标驱动的三个维度（其余三维靠事件累积）
+// 流动性管理 ← 现金比例 + 赎回压力；收益管理 ← 组合净值；AUM 稳定性 ← 规模相对起点
+function scoreContributions(state) {
+  const m = state.metrics || {};
+  const initialAum = (SCALE_PROFILES[state.origin?.scale] || SCALE_PROFILES.medium).initialAum;
+  return {
+    liquidity: cap(m.cashRatio * 1.2, 15) + cap((100 - m.redemptionPressure) * 0.15, 15),
+    costControl: cap((m.nav - 0.85) * 100, 30),
+    development: cap((m.aum / initialAum) * 30, 30),
+  };
+}
+
+function cap(v, max) {
+  if (!Number.isFinite(v)) return 0;
+  return Math.max(0, Math.min(max, v));
+}
+
 function getOnboardingHints(profile, scriptId = null) {
   return {
     goal: '存活 12 季度，期末净值不跌穿 0.85',
@@ -182,10 +215,14 @@ export const ROLE_IM = {
   applyActionEffects: imApplyAction,
   isActionAvailable: imIsActionAvailable,
 
+  // 不确定选项赌输了的默认代价：渠道看你没兜住，赎回情绪抬头。
+  failureCost: { redemptionPressure: 3, 'score.crisisResponse': -1 },
+
   getInitialMetrics,
   advanceTurn,
   detectCrisis,
   getOnboardingHints,
+  scoreContributions,
 };
 
 function round(v, n) { return parseFloat(v.toFixed(n)); }

@@ -10,6 +10,7 @@
 //     * scoreMultiplier：维度分加成（鼓励本幕的"正确动作"）
 //   - 每幕首回合显示过场卡
 
+import { gameRandom } from './rng.js';
 export const SCRIPTS = [
   {
     id: 'rise_and_fall',
@@ -198,7 +199,7 @@ export const SCRIPTS = [
 // ─────────────────────────────────────────────
 
 export function pickRandomScriptId() {
-  const idx = Math.floor(Math.random() * SCRIPTS.length);
+  const idx = Math.floor(gameRandom() * SCRIPTS.length);
   return SCRIPTS[idx].id;
 }
 

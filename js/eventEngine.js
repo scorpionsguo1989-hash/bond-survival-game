@@ -1,6 +1,8 @@
 // js/eventEngine.js
 // 角色感知事件加载/筛选（Plan 3 T3）
 import { getCurrentAct } from './scripts.js';
+import { GAME_CONFIG } from './config.js';
+import { gameRandom } from './rng.js';
 
 /**
  * 找到指定季度的主线事件，按角色拍平后返回。
@@ -13,7 +15,7 @@ export function findMainEvent(mainEvents, year, quarter, roleId = 'cfo') {
     e.roles && e.roles[roleId]
   );
   if (matching.length === 0) return null;
-  const event = matching[Math.floor(Math.random() * matching.length)];
+  const event = matching[Math.floor(gameRandom() * matching.length)];
   return flattenForRole(event, roleId);
 }
 
@@ -30,7 +32,7 @@ export function getPolicyDirection(axisValue) {
 export function sampleRandomEvents(pool, policyDirection, count, roleId = 'cfo', state = null) {
   const min = count.min;
   const max = count.max;
-  const targetCount = min + Math.floor(Math.random() * (max - min + 1));
+  const targetCount = min + Math.floor(gameRandom() * (max - min + 1));
   if (targetCount === 0) return [];
 
   // 先按角色 + 触发条件过滤。state 为空时保持旧行为，只做角色过滤。
@@ -41,7 +43,7 @@ export function sampleRandomEvents(pool, policyDirection, count, roleId = 'cfo',
   const result = [];
   for (let i = 0; i < targetCount && remaining.length > 0; i++) {
     const totalWeight = remaining.reduce((s, e) => s + getEventWeight(e, policyDirection), 0);
-    let r = Math.random() * totalWeight;
+    let r = gameRandom() * totalWeight;
     let pickedIdx = 0;
     for (let j = 0; j < remaining.length; j++) {
       r -= getEventWeight(remaining[j], policyDirection);
@@ -69,6 +71,23 @@ function flattenForRole(event, roleId) {
     type: event.type,
     kind: event.kind || 'normal',  // 'normal' | 'black_swan'
     swanTag: event.swanTag || null, // 黑天鹅副标题（如"区域信用重定价"）
+  };
+}
+
+/**
+ * 统一取事件的展示视角，抹平两套 schema：
+ *  - 常规事件：choices 在 roles[roleId] 下
+ *  - 开场事件：单角色专属，choices 直接在顶层
+ * 终局页复盘和分享卡都要靠这个反查历史 eventLog，取不到就会显示「未知事件 / 选项 A」。
+ */
+export function resolveEventView(event, roleId = 'cfo') {
+  if (!event) return { title: '未知事件', choices: [] };
+  const nested = event.roles?.[roleId];
+  const choices = nested?.choices || (Array.isArray(event.choices) ? event.choices : []);
+  return {
+    title: event.title || '未知事件',
+    body: nested?.body ?? event.body ?? '',
+    choices,
   };
 }
 
@@ -176,7 +195,7 @@ export function shouldTriggerBlackSwan(state, roleId) {
     if (isUnderStress(state, roleId)) p += BS_STRESS_BOOST;
   }
 
-  return Math.random() < p;
+  return gameRandom() < p;
 }
 
 /**
@@ -221,7 +240,7 @@ export function sampleBlackSwan(pool, state, roleId) {
   };
 
   const totalWeight = candidates.reduce((s, e) => s + weightOf(e), 0);
-  let r = Math.random() * totalWeight;
+  let r = gameRandom() * totalWeight;
   for (const ev of candidates) {
     r -= weightOf(ev);
     if (r <= 0) return flattenForRole(ev, roleId);
@@ -296,6 +315,69 @@ async function tryLoadFromApi() {
 }
 
 /**
+ * 决定本季呈现哪个事件。这是唯一的取事件入口，main.js 只负责把 statePatch 合进 state。
+ *
+ * 优先级：开场事件 → saga 强制接续 → 黑天鹅 → 按 eventMix 配比在主线 / saga 链头 / 随机池之间抽签。
+ *
+ * 关键点：主线不再无条件优先。mainEvents 覆盖了 12 个季度 × 3 角色，如果主线优先，
+ * 253 条随机事件和 189 条 saga（含 30 条历史复盘）就永远抽不到——这是原实现的行为。
+ *
+ * @returns {{event: object|null, source: 'opening'|'saga'|'black_swan'|'main'|'random'|null, statePatch: object}}
+ */
+export function pickTurnEvent(content, state, roleId = 'cfo') {
+  const patch = {};
+  const done = (event, source) => ({ event, source, statePatch: { ...patch, pendingEvent: event } });
+
+  // 1) 开场事件：每局 Q1 触发一次。池子里没有匹配的也标记 consumed，避免每季重试。
+  if ((state.quartersPassed || 0) === 0 && !state.openingEventConsumed) {
+    patch.openingEventConsumed = true;
+    const opening = pickOpeningEvent(content.openingEvents || [], state);
+    if (opening) return done(opening, 'opening');
+  }
+
+  // 2) saga 强制接续：上一季的选择指向了下一步，优先级高于主线和随机池。
+  //    内容文件缺该 ID 时清空指针继续走正常流程，避免坏存档卡死。
+  if (state.nextSagaEventId) {
+    patch.nextSagaEventId = null;
+    const saga = findSagaEvent(content.sagaEvents || [], state.nextSagaEventId, roleId);
+    if (saga) return done(saga, 'saga');
+  }
+
+  // 3) 黑天鹅：命中则取代本季事件（包括主线）
+  if (shouldTriggerBlackSwan(state, roleId)) {
+    const swan = sampleBlackSwan(content.blackSwans || [], state, roleId);
+    if (swan) {
+      patch.blackSwansSeen = [...(state.blackSwansSeen || []), swan.id];
+      patch.lastSwanTag = swan.swanTag || null;  // 给下一次黑天鹅的"同 tag 冷却"用
+      return done(swan, 'black_swan');
+    }
+  }
+
+  const { mainEventRate, sagaStartRate } = GAME_CONFIG.eventMix;
+  const pickMain = () => findMainEvent(content.main || [], state.year, state.quarter, roleId);
+
+  // 4) 主线季
+  if (gameRandom() < mainEventRate) {
+    const main = pickMain();
+    if (main) return done(main, 'main');
+  }
+
+  // 5) 非主线季：先看能不能起一条 saga 长线，否则走随机 / 季节 / 定向事件池
+  const dir = getPolicyDirection(state.policyValue || 0);
+  const sagaStarts = getEligibleSagaStartEvents(content.sagaEvents || [], state, roleId);
+  if (sagaStarts.length && gameRandom() < sagaStartRate) {
+    const [saga] = sampleRandomEvents(sagaStarts, dir, { min: 1, max: 1 }, roleId, state);
+    if (saga) return done(saga, 'saga');
+  }
+  const [random] = sampleRandomEvents(content.random || [], dir, { min: 1, max: 1 }, roleId, state);
+  if (random) return done(random, 'random');
+
+  // 6) 兜底：池子被 triggerCondition 筛空了就回主线，主线也没有才交空回合
+  const fallback = pickMain();
+  return fallback ? done(fallback, 'main') : done(null, null);
+}
+
+/**
  * E 改造：从 openingEvents 池子里挑一个开场事件。
  * 优先 role + scriptId 都精准命中；没命中就找仅 role 命中且无 scriptId 的 generic 兜底。
  * 若池子空 / 角色不在池中，返回 null（main.js 会 fallback 到正常事件流程）。
@@ -307,5 +389,5 @@ export function pickOpeningEvent(pool, state) {
   const generic = pool.filter(e => e.role === roleId && !e.scriptId);
   const candidates = exact.length ? exact : generic;
   if (!candidates.length) return null;
-  return candidates[Math.floor(Math.random() * candidates.length)];
+  return candidates[Math.floor(gameRandom() * candidates.length)];
 }

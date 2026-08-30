@@ -7,34 +7,25 @@ const DIM_MAX_RAW = 50;  // 各维度原始分理论上限
 // 内部维度 key（6 个）
 const DIM_KEYS = ['liquidity', 'costControl', 'projectProgress', 'compliance', 'crisisResponse', 'development'];
 
+// 各维度的保底基数：一局什么都没做也能拿到的分，决定"零分局"的落点
+const DIM_BASE = {
+  liquidity: 30, costControl: 15, projectProgress: 25,
+  compliance: 25, crisisResponse: 25, development: 10,
+};
+
 export function computeFinalScore(state) {
   const dimensions = {};
 
-  // CFO 公式（基于 cash/financingCost/leverageRatio）
-  // IM 角色在 T6 实装时引擎会用 state.role 钩子覆盖；此处保留 CFO 公式做兼容默认
-  const m = state.metrics;
-  const isCfo = !!m.cash && !!m.financingCost;  // 简单判定（CFO 才有这两个指标）
+  // 指标贡献由角色自己提供（role.scoreContributions），每个角色挂 3 个维度到自己的核心指标上。
+  // 原实现靠 `!!m.cash && !!m.financingCost` 猜角色，导致 IM/GOV 的三个维度恒为常数、
+  // 与实际经营完全脱钩，并且 CFO 现金恰好归零时会误判成非 CFO。
+  const contributions = state.role?.scoreContributions?.(state) || {};
 
-  // 1. 流动性
-  const liquidityFromMetric = isCfo ? Math.min(20, m.cash * 4) : 0;
-  dimensions.liquidity = clamp(((state.score?.liquidity || 0) + liquidityFromMetric + 30) / DIM_MAX_RAW * 100);
-
-  // 2. 融资成本（IM 时复用为"收益管理"）
-  const costFromMetric = isCfo ? Math.max(0, 30 - (m.financingCost - 4) * 8) : 0;
-  dimensions.costControl = clamp(((state.score?.costControl || 0) + costFromMetric + 15) / DIM_MAX_RAW * 100);
-
-  // 3. 项目推进（IM 时复用为"信用筛选"）
-  dimensions.projectProgress = clamp(((state.score?.projectProgress || 0) + 25) / DIM_MAX_RAW * 100);
-
-  // 4. 合规指数
-  dimensions.compliance = clamp(((state.score?.compliance || 0) + 25) / DIM_MAX_RAW * 100);
-
-  // 5. 危机应对
-  dimensions.crisisResponse = clamp(((state.score?.crisisResponse || 0) + 25) / DIM_MAX_RAW * 100);
-
-  // 6. 综合发展（IM 时复用为"AUM 稳定性"）
-  const leverageScore = isCfo ? Math.max(0, 30 - (m.leverageRatio - 60) * 1.5) : 0;
-  dimensions.development = clamp(((state.score?.development || 0) + leverageScore + 10) / DIM_MAX_RAW * 100);
+  DIM_KEYS.forEach(key => {
+    const fromEvents = state.score?.[key] || 0;
+    const fromMetrics = contributions[key] || 0;
+    dimensions[key] = clamp((fromEvents + fromMetrics + DIM_BASE[key]) / DIM_MAX_RAW * 100);
+  });
 
   // 加权求和（角色提供 scoreWeights；缺失时按 1.0 算）
   const weights = state.role?.scoreWeights || Object.fromEntries(DIM_KEYS.map(k => [k, 1.0]));

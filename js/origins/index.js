@@ -2,6 +2,7 @@
 import { generateOrigin as generateCfoOrigin, computeChallengeScore } from './cfoOrigin.js';
 import { generateImOrigin } from './imOrigin.js';
 import { generateGovOrigin } from './govOrigin.js';
+import { gameRandom } from '../rng.js';
 
 export { computeChallengeScore, generateImOrigin, generateGovOrigin };
 
@@ -11,7 +12,7 @@ export function generateOrigin(roleHint = null) {
   let role = roleHint;
   if (!role) {
     // Q1 决策：三角色等概率随机分配（命运卡是真"命运"）
-    role = ROLES[Math.floor(Math.random() * ROLES.length)];
+    role = ROLES[Math.floor(gameRandom() * ROLES.length)];
   }
   if (role === 'cfo') return generateCfoOrigin('cfo');
   if (role === 'im') return generateImOrigin();

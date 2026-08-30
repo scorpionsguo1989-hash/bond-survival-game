@@ -1,5 +1,7 @@
 // js/actions/gov.js
 // 地方官员角色主动操作
+import { canTakeAction } from '../actionBudget.js';
+import { gameRandom } from '../rng.js';
 
 export const GOV_ACTIONS = [
   {
@@ -64,7 +66,7 @@ export function govApplyAction(state, actionId, params) {
       const actual = Math.min(amt, m.specialBondQuota) * policyHaircut;
       m.cash = round(m.cash + actual, 2);
       m.specialBondQuota = round(m.specialBondQuota - Math.min(amt, m.specialBondQuota), 2);
-      m.debtRatio = round(m.debtRatio + actual * 0.6, 2);
+      m.debtRatio = round(m.debtRatio + actual * 0.25, 2);  // 显性举债推高债务率，但远轻于隐债滚存
       addScore(score, 'liquidity', 2);
       break;
     }
@@ -72,7 +74,7 @@ export function govApplyAction(state, actionId, params) {
       const amt = params.amount;
       // 成功率：政绩高 + 财政依赖度高 → 成功率高
       const successProb = Math.min(0.8, m.politicalScore / 120 + 0.2);
-      if (Math.random() < successProb) {
+      if (gameRandom() < successProb) {
         m.cash = round(m.cash + amt, 2);
         m.transferPayment = round(m.transferPayment + amt * 0.3, 2);
         m.politicalScore = clamp(m.politicalScore + 2, 0, 100);
@@ -99,7 +101,7 @@ export function govApplyAction(state, actionId, params) {
       const used = Math.min(amt, m.specialBondQuota);
       m.specialBondQuota = round(m.specialBondQuota - used, 2);
       m.hiddenDebtRisk = round(Math.max(0, m.hiddenDebtRisk - used * 1.5), 2);
-      m.debtRatio = round(m.debtRatio - used * 0.3, 2);  // 隐性转显性，债务率下降
+      m.debtRatio = round(m.debtRatio - used * 1.2, 2);  // 隐性转显性 + 拉长期限降息，债务率实质下降
       m.politicalScore = clamp(m.politicalScore + used * 0.6, 0, 100);
       addScore(score, 'compliance', 5);
       addScore(score, 'costControl', 4);
@@ -111,6 +113,9 @@ export function govApplyAction(state, actionId, params) {
 }
 
 export function govIsActionAvailable(state, actionId) {
+  const budget = canTakeAction(state);
+  if (!budget.allowed) return { available: false, reason: budget.reason };
+
   const m = state.metrics;
   switch (actionId) {
     case 'attract_investment':

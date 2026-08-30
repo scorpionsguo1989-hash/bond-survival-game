@@ -1,5 +1,6 @@
 // js/actions/im.js
 // 投资经理角色主动操作定义与效果
+import { canTakeAction } from '../actionBudget.js';
 
 export const IM_ACTIONS = [
   {
@@ -97,6 +98,9 @@ export function imApplyAction(state, actionId, params) {
 }
 
 export function imIsActionAvailable(state, actionId) {
+  const budget = canTakeAction(state);
+  if (!budget.allowed) return { available: false, reason: budget.reason };
+
   const m = state.metrics;
   switch (actionId) {
     case 'buy_bond':

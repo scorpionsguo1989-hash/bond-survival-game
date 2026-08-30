@@ -1,6 +1,9 @@
 // tests/engine.test.js
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { createInitialState, advanceTurn, applyEventChoice, checkDeath, detectCrisis } from '../js/engine.js';
+import { ROLE_CFO } from '../js/roles/cfo.js';
+import { ROLE_IM } from '../js/roles/im.js';
+import { ROLE_GOV } from '../js/roles/gov.js';
 
 const sampleOrigin = {
   role: 'cfo', regionTier: 'central_capital', businessType: 'infrastructure',
@@ -100,32 +103,30 @@ describe('applyEventChoice', () => {
     const next = applyEventChoice(baseState(), event, 0);
     expect(next.policyValue).toBe(0);  // -2 + 2 = 0
     expect(next.eventLog).toHaveLength(1);
-    expect(next.eventLog[0]).toEqual({ eventId: 'test_evt', choiceIdx: 0, uncertainOutcome: null });
+    expect(next.eventLog[0]).toEqual({ eventId: 'test_evt', choiceIdx: 0, uncertainOutcome: null, quarter: 1 });
   });
 
-  it('skips effects when uncertainty roll fails (Math.random returns 0.99)', () => {
-    const origRandom = Math.random;
-    Math.random = () => 0.99;  // force failure
+  it('skips effects when uncertainty roll fails (掷骰 0.99)', () => {
+    rngStub.roll = 0.99;  // force failure
     try {
       const event = { id: 'test_unc', choices: [{ effects: { cash: 5, _uncertainty: 0.4 } }] };
       const next = applyEventChoice(baseState(), event, 0);
       expect(next.metrics.cash).toBe(5);  // unchanged from baseState which had cash: 5
-      expect(next.eventLog[0]).toEqual({ eventId: 'test_unc', choiceIdx: 0, uncertainOutcome: 'failed' });
+      expect(next.eventLog[0]).toEqual({ eventId: 'test_unc', choiceIdx: 0, uncertainOutcome: 'failed', quarter: 1 });
     } finally {
-      Math.random = origRandom;
+      rngStub.roll = null;
     }
   });
 
-  it('applies effects when uncertainty roll succeeds (Math.random returns 0.01)', () => {
-    const origRandom = Math.random;
-    Math.random = () => 0.01;  // force success
+  it('applies effects when uncertainty roll succeeds (掷骰 0.01)', () => {
+    rngStub.roll = 0.01;  // force success
     try {
       const event = { id: 'test_unc', choices: [{ effects: { cash: 5, _uncertainty: 0.4 } }] };
       const next = applyEventChoice(baseState(), event, 0);
       expect(next.metrics.cash).toBe(10);  // 5 + 5
       expect(next.eventLog[0].uncertainOutcome).toBe('succeeded');
     } finally {
-      Math.random = origRandom;
+      rngStub.roll = null;
     }
   });
 });
@@ -151,6 +152,14 @@ describe('detectCrisis', () => {
 
 // ---- Plan 3 T2: role registry & role-driven engine ----
 import { getRole, ROLE_REGISTRY } from '../js/roles/index.js';
+
+// 掷骰已从 Math.random 搬到 rng.js 的种子流（服务端要能重放复算），
+// 所以这里改成 mock 种子流；roll=null 时走真实实现。
+const rngStub = vi.hoisted(() => ({ roll: null }));
+vi.mock('../js/rng.js', async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, gameRandom: () => (rngStub.roll === null ? actual.gameRandom() : rngStub.roll) };
+});
 
 describe('role registry', () => {
   it('exposes cfo role', () => {
@@ -184,5 +193,66 @@ describe('checkDeath uses role.deathConditions', () => {
     const d = checkDeath(s);
     expect(d.dead).toBe(true);
     expect(d.reason).toMatch(/现金归零/);
+  });
+});
+
+// ── 缺陷修复：不确定选项失败要有代价、有反馈 ──
+// 原实现失败时只应用 policyShift，其余全跳过：玩家既看不到"赌输了"，
+// 也不付任何代价。1283 个带 _uncertainty 的选项（占全部选项 35.5%）都是免费的赌。
+describe('不确定选项的失败分支', () => {
+  const baseState = () => ({
+    ...createInitialState(sampleOrigin),
+    scriptId: 'rise_and_fall',
+    metrics: { cash: 5, creditUsed: 5, creditTotal: 20, financingCost: 6, leverageRatio: 70, opCostRate: 0.6, projectGap: 2, debtMaturity: new Array(12).fill(0), collateralRoom: 'medium' },
+  });
+  const evt = (effects) => ({ id: 'unc_evt', title: '测试事件', choices: [{ label: '赌一把', effects }] });
+
+  it('内容写了 _onFail 就按它结算', () => {
+    rngStub.roll = 0.99;  // 必失败
+    try {
+      const s = { ...baseState(), role: ROLE_CFO };
+      const next = applyEventChoice(s, evt({ cash: 5, _uncertainty: 0.4, _onFail: { cash: -1.5, 'score.compliance': -2 } }), 0);
+      expect(next.metrics.cash).toBe(3.5);          // 5 - 1.5，没有拿到 +5
+      expect(next.score.compliance).toBe(-2);
+      expect(next.eventLog[0].uncertainOutcome).toBe('failed');
+    } finally { rngStub.roll = null; }
+  });
+
+  it('没写 _onFail 时按角色的默认空转成本结算，不能白赌', () => {
+    rngStub.roll = 0.99;
+    try {
+      const before = baseState().metrics.financingCost;
+      const s = { ...baseState(), role: ROLE_CFO };
+      const next = applyEventChoice(s, evt({ cash: 5, _uncertainty: 0.4 }), 0);
+      expect(next.metrics.cash).toBe(5);                                  // 收益没拿到
+      expect(next.metrics.financingCost).toBeGreaterThan(before);         // 但付了代价
+    } finally { rngStub.roll = null; }
+  });
+
+  it('三个角色都要定义默认失败代价，不能有角色白赌', () => {
+    for (const role of [ROLE_CFO, ROLE_IM, ROLE_GOV]) {
+      expect(role.failureCost, `${role.id} 没定义 failureCost`).toBeTruthy();
+      expect(Object.keys(role.failureCost).length).toBeGreaterThan(0);
+    }
+  });
+
+  it('成功时不施加失败代价', () => {
+    rngStub.roll = 0.01;  // 必成功
+    try {
+      const before = baseState().metrics.financingCost;
+      const s = { ...baseState(), role: ROLE_CFO };
+      const next = applyEventChoice(s, evt({ cash: 5, _uncertainty: 0.4, _onFail: { cash: -1.5 } }), 0);
+      expect(next.metrics.cash).toBe(10);
+      expect(next.metrics.financingCost).toBe(before);
+    } finally { rngStub.roll = null; }
+  });
+
+  it('失败结果要能被 UI 取到，用来给玩家反馈', () => {
+    rngStub.roll = 0.99;
+    try {
+      const s = { ...baseState(), role: ROLE_CFO };
+      const next = applyEventChoice(s, evt({ cash: 5, _uncertainty: 0.4 }), 0);
+      expect(next.lastUncertainOutcome).toEqual(expect.objectContaining({ success: false }));
+    } finally { rngStub.roll = null; }
   });
 });
