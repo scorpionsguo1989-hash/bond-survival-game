@@ -15,8 +15,9 @@ export const PROVIDERS = {
     envUrl: 'DEEPSEEK_BASE_URL',
     envModel: 'DEEPSEEK_MODEL',
     fallbackUrl: 'https://api.deepseek.com',
-    fallbackModel: 'deepseek-chat',
+    fallbackModel: 'deepseek-flash',
     pricePer1k: {
+      'deepseek-flash': { input: 0.002, output: 0.008, cached: 0.00004 }, // CNY/1K tokens, peak-rate estimate
       'deepseek-chat': { input: 0.001, output: 0.002, cached: 0.0001 },
       'deepseek-reasoner': { input: 0.004, output: 0.016, cached: 0.0001 },
     },

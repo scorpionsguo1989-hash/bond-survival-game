@@ -98,6 +98,11 @@ export class LLMClient {
       max_tokens: maxTokens,
       stream: false,
     };
+    if (cfg.model === 'deepseek-flash') {
+      body.thinking = { type: 'enabled' };
+      body.reasoning_effort = 'high';
+      body.max_tokens = Math.max(body.max_tokens, 8192);
+    }
     if (topP !== undefined) body.top_p = topP;
     if (responseFormat === 'json_object') {
       body.response_format = { type: 'json_object' };
